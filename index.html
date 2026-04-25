@@ -29,7 +29,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--tx);height:100vh;o
 .btnp{background:var(--ac);color:#fff;border-color:var(--ac);}
 .btnp:hover{background:var(--ac2);border-color:var(--ac2);}
 .btnsm{padding:3px 8px;font-size:10px;}
-.mr{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px;}
+.mr{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:8px;}
 .mc{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);padding:10px 14px;}
 .ml{font-size:10px;font-weight:600;color:var(--tx3);letter-spacing:.07em;text-transform:uppercase;margin-bottom:3px;}
 .mv{font-size:16px;font-weight:700;font-family:var(--mono);}
@@ -666,13 +666,23 @@ function dashFilt(v,btn){dashCF=v;document.querySelectorAll('#sec-dashboard .fb'
 async function rdash(){
   document.getElementById('dash-date').textContent=new Date().toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric'});
   const fx=getFX();
-  const jpyFx=parseFloat(document.getElementById('fx-rate')?.value||'32.5')*0.0068||0.22; // rough JPY/TWD
+  const jpyFx=parseFloat(document.getElementById('fx-rate')?.value||'32.5')*0.0068||0.22;
   const uF=D.filter(d=>d.ccy==='USD').reduce((a,d)=>a+d.face,0);
   const jF=D.filter(d=>d.ccy==='JPY').reduce((a,d)=>a+d.face,0);
   const tTWD=D.reduce((a,d)=>a+twd(d),0);
   const tIntUSD=D.filter(d=>d.ccy==='USD').reduce((a,d)=>a+(d.totalUSD||0),0);
   const tIntJPY=D.filter(d=>d.ccy==='JPY').reduce((a,d)=>a+((d.paidDates||[]).length*d.monthly),0);
   const act=D.filter(d=>d.status==='active').length;
+
+  // 剩餘外幣 = 換匯紀錄總額 − 目前進行中(active+hold)的投資面額
+  const fxlUSD=FXL.filter(r=>r.ccy==='USD').reduce((a,r)=>a+r.foreign,0);
+  const fxlJPY=FXL.filter(r=>r.ccy==='JPY').reduce((a,r)=>a+r.foreign,0);
+  const activeUSD=D.filter(d=>d.ccy==='USD'&&(d.status==='active'||d.status==='hold')).reduce((a,d)=>a+d.face,0);
+  const activeJPY=D.filter(d=>d.ccy==='JPY'&&(d.status==='active'||d.status==='hold')).reduce((a,d)=>a+d.face,0);
+  const remUSD=fxlUSD-activeUSD;
+  const remJPY=fxlJPY-activeJPY;
+  const hasRem=fxlUSD>0||fxlJPY>0;
+
   document.getElementById('dash-m').innerHTML=`
     <div class="mc" style="grid-column:span 1">
       <div class="ml">投資面額合計</div>
@@ -705,7 +715,22 @@ async function rdash(){
         <div style="font-size:10px;color:var(--gn);margin-top:1px">≈ NT$${F(Math.round(tIntJPY*jpyFx))}</div>`:''}
       </div>
     </div>
-    <div class="mc"><div class="ml">進行中筆數</div><div class="mv mono bl">${act}</div><div class="ms">已出場 ${D.filter(d=>d.status==='closed').length} 筆</div></div>`;
+    <div class="mc"><div class="ml">進行中筆數</div><div class="mv mono bl">${act}</div><div class="ms">已出場 ${D.filter(d=>d.status==='closed').length} 筆</div></div>
+    <div class="mc" style="grid-column:span 1">
+      <div class="ml">剩餘外幣</div>
+      ${hasRem?`<div style="margin-top:4px;">
+        ${fxlUSD>0?`<div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;">
+          <span class="mv mono ${remUSD<0?'cr':remUSD===0?'':'gn'}" style="font-size:16px">$${F(Math.abs(remUSD),0)}</span>
+          <span style="font-size:10px;color:var(--tx3)">USD ${remUSD<0?'⚠ 不足':remUSD===0?'剛好用完':''}</span>
+        </div>
+        <div style="font-size:10px;color:var(--tx3);margin-top:1px">換匯 $${F(fxlUSD,0)} － 使用中 $${F(activeUSD,0)}</div>`:''}
+        ${fxlJPY>0?`<div style="display:flex;align-items:baseline;gap:6px;margin-top:6px;flex-wrap:wrap;">
+          <span class="mv mono ${remJPY<0?'cr':remJPY===0?'':'gn'}" style="font-size:16px">¥${F(Math.abs(remJPY),0)}</span>
+          <span style="font-size:10px;color:var(--tx3)">JPY ${remJPY<0?'⚠ 不足':remJPY===0?'剛好用完':''}</span>
+        </div>
+        <div style="font-size:10px;color:var(--tx3);margin-top:1px">換匯 ¥${F(fxlJPY,0)} － 使用中 ¥${F(activeJPY,0)}</div>`:''}
+      </div>`:`<div class="ms" style="margin-top:6px;">尚無換匯紀錄<br><a href="#" onclick="showSec('fxlog');return false;" style="font-size:10px;color:var(--ac2)">前往新增 →</a></div>`}
+    </div>`;
 
   let rows=dashCF==='all'?D:dashCF==='yin'?D.filter(d=>d.bank.includes('音')):dashCF==='lin'?D.filter(d=>d.bank.includes('林')):D.filter(d=>d.status===dashCF);
   rows=[...rows].sort((a,b)=>b.date.localeCompare(a.date));

@@ -402,17 +402,19 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
       <div class="fgrp"><label id="fxf-from-label">支出金額 *</label>
         <div style="display:flex;align-items:center;gap:6px;">
           <span id="fxf-from-sym" style="font-family:var(--mono);font-size:13px;color:var(--tx2);white-space:nowrap">NT$</span>
-          <input type="number" id="fxf-twd" placeholder="1000000" step="0.01" oninput="fxfCalc()" style="flex:1;">
+          <input type="number" id="fxf-twd" placeholder="例：1,000,000" step="0.01" oninput="fxfFromChange()" style="flex:1;">
         </div>
       </div>
-      <div class="fgrp"><label>匯率 *</label><input type="number" id="fxf-rate" placeholder="32.75" step="0.00001" oninput="fxfCalc()">
-        <div class="hint" id="fxf-rate-hint">每 1 支出幣 = 幾個取得幣</div>
+      <div class="fgrp"><label>匯率（每1支出幣 = 幾取得幣）</label>
+        <input type="number" id="fxf-rate" step="0.00001" oninput="fxfRateChange()">
+        <div class="hint" id="fxf-rate-hint"></div>
       </div>
-      <div class="fgrp"><label id="fxf-to-label">取得金額（自動）</label>
+      <div class="fgrp"><label id="fxf-to-label">取得金額（可直接輸入）</label>
         <div style="display:flex;align-items:center;gap:6px;">
-          <span id="fxf-to-sym" style="font-family:var(--mono);font-size:13px;color:var(--tx2);white-space:nowrap">$</span>
-          <input type="text" id="fxf-foreign" readonly style="background:var(--sur2);flex:1;">
+          <span id="fxf-to-sym" style="font-family:var(--mono);font-size:13px;color:var(--gn);white-space:nowrap">$</span>
+          <input type="number" id="fxf-foreign" step="0.01" oninput="fxfToChange()" style="flex:1;" placeholder="取得外幣金額">
         </div>
+        <div class="hint" id="fxf-foreign-hint" style="color:var(--gn)"></div>
       </div>
       <div class="fgrp"><label>備註</label><input type="text" id="fxf-note" placeholder="例：換匯用途說明"></div>
     </div>
@@ -1192,22 +1194,118 @@ let FXL=JSON.parse(localStorage.getItem('fcnfxl')||'[]');
 function saveFXL(){localStorage.setItem('fcnfxl',JSON.stringify(FXL));}
 
 const PAIRS={
-  'TWD-USD':{fromSym:'NT$',toSym:'$',fromLabel:'支出台幣 NT$',toLabel:'取得美元 $',hint:'每 1 NT$ 換幾 USD（或用 NT$/USD 匯率 e.g. 32.75 → 0.0305）',placeholder:'32.75',fromCcy:'TWD',toCcy:'USD'},
-  'TWD-JPY':{fromSym:'NT$',toSym:'¥',fromLabel:'支出台幣 NT$',toLabel:'取得日幣 ¥',hint:'每 1 NT$ 換幾 JPY（e.g. 4.5）',placeholder:'4.5',fromCcy:'TWD',toCcy:'JPY'},
-  'USD-JPY':{fromSym:'$',toSym:'¥',fromLabel:'支出美元 $',toLabel:'取得日幣 ¥',hint:'每 1 USD 換幾 JPY（e.g. 155.2）',placeholder:'155.2',fromCcy:'USD',toCcy:'JPY'},
-  'JPY-USD':{fromSym:'¥',toSym:'$',fromLabel:'支出日幣 ¥',toLabel:'取得美元 $',hint:'每 1 JPY 換幾 USD（e.g. 0.0064）',placeholder:'0.0064',fromCcy:'JPY',toCcy:'USD'},
-  'custom':{fromSym:'',toSym:'',fromLabel:'支出金額',toLabel:'取得金額',hint:'每 1 支出幣 = 幾個取得幣',placeholder:'',fromCcy:'OTHER',toCcy:'OTHER'},
+  // rate = how many "to" units per 1 "from" unit
+  // exception: TWD-USD we store rateDisplay (NT$/USD e.g. 32.75) and convert
+  'TWD-USD':{fromSym:'NT$',toSym:'$',fromLabel:'支出台幣 NT$',toLabel:'取得美元 $',
+    fromCcy:'TWD',toCcy:'USD',
+    hint:'匯率填銀行牌價（NT$/USD，如 32.75）　或直接輸入取得美元',
+    placeholder:'32.75',rateDisplay:'NT$/USD（如 32.75）',
+    // foreign = twd / rate (rate here = NT per USD)
+    calcForeign:(twd,rate)=>rate?twd/rate:0,
+    calcRate:(twd,foreign)=>foreign?twd/foreign:0,
+    calcFrom:(foreign,rate)=>rate?foreign*rate:0,
+  },
+  'TWD-JPY':{fromSym:'NT$',toSym:'¥',fromLabel:'支出台幣 NT$',toLabel:'取得日幣 ¥',
+    fromCcy:'TWD',toCcy:'JPY',
+    hint:'匯率填銀行牌價（NT$/JPY，如 0.22）　或直接輸入取得日幣',
+    placeholder:'0.22',rateDisplay:'NT$/JPY（如 0.22）',
+    calcForeign:(twd,rate)=>rate?twd/rate:0,
+    calcRate:(twd,foreign)=>foreign?twd/foreign:0,
+    calcFrom:(foreign,rate)=>rate?foreign*rate:0,
+  },
+  'USD-JPY':{fromSym:'$',toSym:'¥',fromLabel:'支出美元 $',toLabel:'取得日幣 ¥',
+    fromCcy:'USD',toCcy:'JPY',
+    hint:'匯率填 USD/JPY（如 155.2）　或直接輸入取得日幣',
+    placeholder:'155.2',rateDisplay:'USD/JPY（如 155.2）',
+    calcForeign:(from,rate)=>from&&rate?from*rate:0,
+    calcRate:(from,foreign)=>from?foreign/from:0,
+    calcFrom:(foreign,rate)=>rate?foreign/rate:0,
+  },
+  'JPY-USD':{fromSym:'¥',toSym:'$',fromLabel:'支出日幣 ¥',toLabel:'取得美元 $',
+    fromCcy:'JPY',toCcy:'USD',
+    hint:'匯率填 JPY/USD（如 0.0064）　或直接輸入取得美元',
+    placeholder:'0.0064',rateDisplay:'JPY/USD（如 0.0064）',
+    calcForeign:(from,rate)=>from&&rate?from*rate:0,
+    calcRate:(from,foreign)=>from?foreign/from:0,
+    calcFrom:(foreign,rate)=>rate?foreign/rate:0,
+  },
+  'custom':{fromSym:'',toSym:'',fromLabel:'支出金額',toLabel:'取得金額',
+    fromCcy:'OTHER',toCcy:'OTHER',
+    hint:'每 1 支出幣 = 幾個取得幣',placeholder:'',rateDisplay:'匯率',
+    calcForeign:(from,rate)=>from&&rate?from*rate:0,
+    calcRate:(from,foreign)=>from?foreign/from:0,
+    calcFrom:(foreign,rate)=>rate?foreign/rate:0,
+  },
 };
 
 function pairLabel(r){
-  if(r.pair&&PAIRS[r.pair]) return r.pair.replace('-',' → ');
-  // legacy records: ccy was the toCcy
+  if(r.pair&&PAIRS[r.pair])return r.pair.replace('-',' → ');
   return `TWD → ${r.ccy||'?'}`;
 }
 function fromSym(r){return r.fromSym||(r.pair?PAIRS[r.pair]?.fromSym:'NT$')||'NT$';}
 function toSym(r){return r.toSym||(r.pair?PAIRS[r.pair]?.toSym:(r.ccy==='JPY'?'¥':'$'))||'$';}
 function toCcy(r){return r.toCcy||(r.pair?PAIRS[r.pair]?.toCcy:r.ccy)||'USD';}
 function fromCcy(r){return r.fromCcy||(r.pair?PAIRS[r.pair]?.fromCcy:'TWD')||'TWD';}
+
+function getPair(){return PAIRS[document.getElementById('fxf-pair').value]||PAIRS['TWD-USD'];}
+function getFrom(){return parseFloat(document.getElementById('fxf-twd').value)||0;}
+function getRate(){return parseFloat(document.getElementById('fxf-rate').value)||0;}
+function getTo(){return parseFloat(document.getElementById('fxf-foreign').value)||0;}
+
+// user edited the FROM field → recalc TO (if rate exists) or rate (if TO exists)
+function fxfFromChange(){
+  const p=getPair(), from=getFrom(), rate=getRate(), to=getTo();
+  if(rate){
+    document.getElementById('fxf-foreign').value=p.calcForeign(from,rate).toFixed(p.toCcy==='JPY'?0:2);
+    showFxHint(p,from,rate,p.calcForeign(from,rate));
+  } else if(to){
+    document.getElementById('fxf-rate').value=p.calcRate(from,to).toFixed(5);
+    showFxHint(p,from,p.calcRate(from,to),to);
+  }
+}
+// user edited RATE → recalc TO (if from exists) or from (if TO exists)
+function fxfRateChange(){
+  const p=getPair(), from=getFrom(), rate=getRate(), to=getTo();
+  if(from){
+    document.getElementById('fxf-foreign').value=p.calcForeign(from,rate).toFixed(p.toCcy==='JPY'?0:2);
+    showFxHint(p,from,rate,p.calcForeign(from,rate));
+  } else if(to){
+    document.getElementById('fxf-twd').value=p.calcFrom(to,rate).toFixed(2);
+    showFxHint(p,p.calcFrom(to,rate),rate,to);
+  }
+}
+// user edited the TO field → recalc rate (if from exists) or from (if rate exists)
+function fxfToChange(){
+  const p=getPair(), from=getFrom(), rate=getRate(), to=getTo();
+  if(from){
+    document.getElementById('fxf-rate').value=p.calcRate(from,to).toFixed(5);
+    showFxHint(p,from,p.calcRate(from,to),to);
+  } else if(rate){
+    document.getElementById('fxf-twd').value=p.calcFrom(to,rate).toFixed(2);
+    showFxHint(p,p.calcFrom(to,rate),rate,to);
+  }
+}
+function showFxHint(p,from,rate,to){
+  const toIsJPY=p.toCcy==='JPY';
+  document.getElementById('fxf-foreign-hint').textContent=
+    from&&rate&&to?`${p.fromSym}${F(from,2)} ÷ ${rate} = ${p.toSym}${F(to,toIsJPY?0:2)}`:'';
+}
+
+function fxfPairChange(){
+  const p=getPair();
+  document.getElementById('fxf-from-label').textContent=p.fromLabel+' *';
+  document.getElementById('fxf-from-sym').textContent=p.fromSym;
+  document.getElementById('fxf-to-label').textContent=p.toLabel+'（可直接輸入）';
+  document.getElementById('fxf-to-sym').textContent=p.toSym;
+  document.getElementById('fxf-rate-hint').textContent=p.hint;
+  document.getElementById('fxf-rate').placeholder=p.placeholder;
+  // clear all three fields when pair changes
+  ['fxf-twd','fxf-rate','fxf-foreign'].forEach(x=>document.getElementById(x).value='');
+  document.getElementById('fxf-foreign-hint').textContent='';
+}
+
+// legacy compat — keep fxfCalc for any old calls
+function fxfCalc(){fxfFromChange();}
 
 function rFxLog(){
   const sorted=[...FXL].sort((a,b)=>b.date.localeCompare(a.date));
@@ -1313,10 +1411,11 @@ function openFxForm(id){
       document.getElementById('fxf-date').value=r.date;
       document.getElementById('fxf-bank').value=r.bank||'';
       document.getElementById('fxf-pair').value=r.pair||'TWD-USD';
-      document.getElementById('fxf-twd').value=r.twd;
-      document.getElementById('fxf-rate').value=r.rate;
+      fxfPairChange();
+      document.getElementById('fxf-twd').value=r.twd||'';
+      document.getElementById('fxf-rate').value=r.rate||'';
+      document.getElementById('fxf-foreign').value=r.foreign||'';
       document.getElementById('fxf-note').value=r.note||'';
-      fxfPairChange();fxfCalc();
     }
   } else {
     document.getElementById('fxf-date').value=new Date().toISOString().slice(0,10);
@@ -1347,12 +1446,18 @@ function saveFxLog(){
   const pair=document.getElementById('fxf-pair').value;
   const from=parseFloat(document.getElementById('fxf-twd').value)||0;
   const rate=parseFloat(document.getElementById('fxf-rate').value)||0;
-  if(!date||!from||!rate){alert('請填寫日期、支出金額及匯率');return;}
+  const foreignInput=parseFloat(document.getElementById('fxf-foreign').value)||0;
   const p=PAIRS[pair]||PAIRS['TWD-USD'];
-  const foreign=from*rate;
+  // derive missing field
+  let finalFrom=from, finalRate=rate, finalForeign=foreignInput;
+  if(from&&rate&&!foreignInput) finalForeign=p.calcForeign(from,rate);
+  else if(from&&foreignInput&&!rate) finalRate=p.calcRate(from,foreignInput);
+  else if(foreignInput&&rate&&!from) finalFrom=p.calcFrom(foreignInput,rate);
+  if(!date||!finalFrom||!finalForeign){alert('請填寫日期，並至少輸入：支出金額＋匯率，或支出金額＋取得金額，或匯率＋取得金額');return;}
+  if(!finalRate) finalRate=p.calcRate(finalFrom,finalForeign);
   const note=document.getElementById('fxf-note').value.trim();
   const eid=document.getElementById('fxf-id').value;
-  const rec={date,bank,pair,twd:from,rate,foreign,note,
+  const rec={date,bank,pair,twd:finalFrom,rate:finalRate,foreign:finalForeign,note,
     fromCcy:p.fromCcy,toCcy:p.toCcy,fromSym:p.fromSym,toSym:p.toSym,ccy:p.toCcy};
   if(eid){
     const idx=FXL.findIndex(x=>x.id===parseInt(eid));

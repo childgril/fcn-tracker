@@ -202,6 +202,7 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
   </div>
   <div class="card"><div class="tw"><table>
     <thead><tr>
+      <th>狀態</th>
       <th>帳戶</th>
       <th>買進日</th>
       <th>到期日</th>
@@ -209,9 +210,9 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
       <th>連結股票</th>
       <th class="right">目前價格</th>
       <th class="right">買進價格</th>
-      <th class="right">保護價 E/AKI</th>
-      <th class="right">執行價 Strike</th>
-      <th class="right">出場價格 KO</th>
+      <th class="right" style="color:var(--rd)">保護價 E/AKI</th>
+      <th class="right" style="color:var(--bl)">執行價 Strike</th>
+      <th class="right" style="color:var(--gn)">出場價格 KO</th>
       <th></th>
     </tr></thead>
     <tbody id="list-tb"></tbody>
@@ -379,49 +380,51 @@ function showSec(n){
 }
 
 let dashCF='all';
-let priceCache={};  // symbol -> price
+let priceCache={};
 let fxUpdatedAt='';
 
 function getFX(){return parseFloat(document.getElementById('fx-rate')?.value||'32.5')||32.5;}
 
-async function fetchFX(){
-  // Try USDTWD=X first (gives TWD per USD directly)
-  const endpoints=[
-    'https://query1.finance.yahoo.com/v8/finance/chart/USDTWD=X?interval=1d&range=1d',
-    'https://query2.finance.yahoo.com/v8/finance/chart/USDTWD=X?interval=1d&range=1d',
-  ];
-  for(const url of endpoints){
+// Build fetch attempts: direct first, then via corsproxy.io
+function yahooUrls(ticker){
+  const base=`https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=1d`;
+  const base2=`https://query2.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=1d`;
+  const proxy=`https://corsproxy.io/?${encodeURIComponent(base)}`;
+  const proxy2=`https://corsproxy.io/?${encodeURIComponent(base2)}`;
+  return [base, base2, proxy, proxy2];
+}
+
+async function yahooFetch(ticker){
+  for(const url of yahooUrls(ticker)){
     try{
-      const r=await fetch(url);
+      const r=await fetch(url,{signal:AbortSignal.timeout(6000)});
+      if(!r.ok)continue;
       const j=await r.json();
       const p=j?.chart?.result?.[0]?.meta?.regularMarketPrice;
-      if(p&&p>20){  // sanity check: USDTWD should be ~30-35
-        document.getElementById('fx-rate').value=p.toFixed(3);
-        fxUpdatedAt=new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
-        document.getElementById('fx-time').textContent=`匯率 ${p.toFixed(3)}（${fxUpdatedAt} Yahoo）`;
-        return true;
-      }
+      if(p)return p;
     }catch(e){}
   }
+  return null;
+}
+
+async function fetchFX(){
+  const p=await yahooFetch('USDTWD=X');
+  if(p&&p>20){
+    document.getElementById('fx-rate').value=p.toFixed(3);
+    fxUpdatedAt=new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
+    document.getElementById('fx-time').textContent=`USD/TWD ${p.toFixed(3)}（${fxUpdatedAt}）`;
+    return true;
+  }
+  document.getElementById('fx-time').textContent='匯率更新失敗，請手動輸入';
   return false;
 }
 
 async function fetchPrices(symbols){
-  const toFetch=symbols.filter(s=>s&&!/^\d/.test(s));  // skip Japanese stocks (start with digit)
+  const toFetch=symbols.filter(s=>s&&!/^\d/.test(s));
   if(!toFetch.length)return;
   await Promise.all(toFetch.map(async sym=>{
-    const endpoints=[
-      `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=1d`,
-      `https://query2.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=1d`,
-    ];
-    for(const url of endpoints){
-      try{
-        const r=await fetch(url);
-        const j=await r.json();
-        const p=j?.chart?.result?.[0]?.meta?.regularMarketPrice;
-        if(p){priceCache[sym]=p;break;}
-      }catch(e){}
-    }
+    const p=await yahooFetch(sym);
+    if(p)priceCache[sym]=p;
   }));
 }
 
@@ -511,40 +514,74 @@ async function rlist(){
   let rows=cf==='all'?D:cf==='yin'?D.filter(d=>d.bank.includes('音')):cf==='lin'?D.filter(d=>d.bank.includes('林')):D.filter(d=>d.status===cf);
   rows=[...rows].sort((a,b)=>b.date.localeCompare(a.date));
   document.getElementById('list-cnt').textContent=`共 ${rows.length} 筆`;
-
-  // collect all unique non-JPY stock symbols
   const symbols=[...new Set(rows.flatMap(d=>d.stocks.map(s=>s.name).filter(n=>!/^\d/.test(n))))];
-  // fetch prices in background
   fetchPrices(symbols).then(()=>renderListTable(rows));
-  renderListTable(rows); // render immediately with cached/empty prices
+  renderListTable(rows);
+}
+
+function setPriceManual(sym, val){
+  const n=parseFloat(val);
+  if(!isNaN(n)&&n>0){
+    priceCache[sym]=n;
+    // re-render whichever view is active
+    const rows=(()=>{let r=cf==='all'?D:cf==='yin'?D.filter(d=>d.bank.includes('音')):cf==='lin'?D.filter(d=>d.bank.includes('林')):D.filter(d=>d.status===cf);return[...r].sort((a,b)=>b.date.localeCompare(a.date));})();
+    renderListTable(rows);
+  }
 }
 
 function renderListTable(rows){
   let html='';
   rows.forEach((d,di)=>{
     const isJPY=d.ccy==='JPY';
+    const bg=di%2===0?'':'background:#fafaf8';
+    // compute per-investment AKI % thresholds for colour
+    const akiPct=(d.aki||0)/100;
+    const strikePct=(d.strike||0)/100;
+
     d.stocks.forEach((s,i)=>{
       const cur=priceCache[s.name];
-      const priceCls=cur&&s.buy?(cur<s.aki?'cr':cur<s.strike?'cgd':'cg'):'';
-      const pctChg=cur&&s.buy?((cur-s.buy)/s.buy*100).toFixed(1):null;
-      html+=`<tr style="${di%2===0?'':'background:#fafaf8'}">
-        <td style="white-space:nowrap">${i===0?d.bank:''}</td>
-        <td class="mono" style="white-space:nowrap">${i===0?d.date:''}</td>
-        <td class="mono" style="white-space:nowrap;color:var(--tx2)">${i===0?(d.maturity||'—'):''}</td>
+      // price zone: danger = below AKI price, caution = below strike price, safe = above
+      const belowAki = cur&&s.aki&&cur<s.aki;
+      const belowStrike = cur&&s.strike&&cur<s.strike;
+      let priceColor='';
+      let rowAlert='';
+      if(belowAki){
+        priceColor='color:var(--rd);font-weight:700;';
+        rowAlert='outline:2px solid #e8a0a5;outline-offset:-1px;';
+      } else if(belowStrike){
+        priceColor='color:var(--gd);font-weight:600;';
+      } else if(cur){
+        priceColor='color:var(--gn);';
+      }
+      const pctChg=cur&&s.buy?((cur-s.buy)/s.buy*100):null;
+
+      html+=`<tr style="${bg}${rowAlert}">
+        <td style="white-space:nowrap">${i===0?bdg(d.status):''}</td>
+        <td style="white-space:nowrap;font-size:11px">${i===0?d.bank:''}</td>
+        <td class="mono" style="white-space:nowrap;font-size:11px">${i===0?d.date:''}</td>
+        <td class="mono" style="white-space:nowrap;font-size:11px;color:var(--tx2)">${i===0?(d.maturity||'—'):''}</td>
         <td class="mono right" style="white-space:nowrap">${i===0?(SY(d.ccy)+F(d.face)):''}</td>
-        <td style="font-weight:500">${s.name}</td>
-        <td class="mono right ${priceCls}">
-          ${cur?F(cur,2):'<span style="color:var(--tx3);font-size:10px">—</span>'}
-          ${pctChg!==null?`<span style="font-size:9px;display:block;color:${parseFloat(pctChg)>=0?'var(--gn)':'var(--rd)'}">${parseFloat(pctChg)>=0?'+':''}${pctChg}%</span>`:''}
+        <td style="font-weight:600;${belowAki?'color:var(--rd)':''}">${s.name}
+          ${belowAki?'<span style="font-size:9px;background:#faeaec;color:var(--rd);padding:1px 5px;border-radius:4px;margin-left:4px;font-weight:700">⚠ 破保護價</span>':''}
+        </td>
+        <td class="mono right" style="${priceColor}white-space:nowrap">
+          <input type="number"
+            step="0.01"
+            value="${cur?cur.toFixed(isJPY?0:2):''}"
+            placeholder="手動輸入"
+            onchange="setPriceManual('${s.name}',this.value)"
+            style="width:80px;text-align:right;font-family:var(--mono);font-size:11px;${priceColor}padding:2px 4px;border:1px solid ${belowAki?'var(--rd)':belowStrike?'#e8cc9a':'var(--bdr)'};border-radius:4px;background:${belowAki?'#faeaec':belowStrike?'#fdf3e3':'var(--bg)'}"
+          >
+          ${pctChg!==null?`<span style="font-size:9px;display:block;color:${pctChg>=0?'var(--gn)':'var(--rd)'};margin-top:1px">${pctChg>=0?'+':''}${pctChg.toFixed(1)}%</span>`:''}
         </td>
         <td class="mono right">${s.buy?F(s.buy,isJPY?0:2):'—'}</td>
         <td class="mono right" style="color:var(--rd)">${s.aki?F(s.aki,isJPY?0:2):'—'}</td>
         <td class="mono right" style="color:var(--bl)">${s.strike?F(s.strike,isJPY?0:2):'—'}</td>
         <td class="mono right" style="color:var(--gn)">${s.exit?F(s.exit,isJPY?0:2):'—'}</td>
-        <td style="white-space:nowrap">${i===0?`<button class="btn btnsm" onclick="editRec(${d.id})">編輯</button>`:''}</td>
+        <td style="white-space:nowrap">${i===0?`<button class="btn btnsm" onclick="editRec(${d.id})" style="margin-right:3px">編輯</button><button class="btn btnsm" onclick="confDel(${d.id})">刪除</button>`:''}</td>
       </tr>`;
     });
-    html+=`<tr><td colspan="11" style="padding:0;height:4px;background:var(--bg)"></td></tr>`;
+    html+=`<tr><td colspan="12" style="padding:0;height:5px;background:var(--bg)"></td></tr>`;
   });
   document.getElementById('list-tb').innerHTML=html;
 }

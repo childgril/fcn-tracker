@@ -20,31 +20,29 @@ body{font-family:var(--sans);background:var(--bg);color:var(--tx);height:100vh;o
 .ni.active{background:rgba(255,255,255,.12);color:#fff;border-left-color:var(--gd);font-weight:500;}
 .ni svg{width:15px;height:15px;flex-shrink:0;}
 .sbf{padding:10px 18px;border-top:1px solid rgba(255,255,255,.1);font-size:11px;color:rgba(255,255,255,.3);}
-.main{flex:1;min-width:0;height:100vh;overflow-y:auto;padding:20px 26px;}
-.ph{margin-bottom:14px;display:flex;align-items:flex-end;justify-content:space-between;}
-.pt{font-size:19px;font-weight:700;}
-.ps{font-size:13px;color:var(--tx2);margin-top:3px;}
-.btn{display:inline-flex;align-items:center;gap:5px;padding:8px 16px;border-radius:var(--r);border:1px solid var(--bdr);background:var(--sur);color:var(--tx);cursor:pointer;font-size:13px;font-family:var(--sans);font-weight:500;transition:all .15s;}
+.main{flex:1;min-width:0;height:100vh;overflow-y:auto;padding:14px 18px;}
+.ph{margin-bottom:8px;display:flex;align-items:flex-end;justify-content:space-between;}
+.pt{font-size:17px;font-weight:700;}
+.ps{font-size:12px;color:var(--tx2);margin-top:2px;}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:var(--r);border:1px solid var(--bdr);background:var(--sur);color:var(--tx);cursor:pointer;font-size:12px;font-family:var(--sans);font-weight:500;transition:all .15s;}
 .btn:hover{background:var(--sur2);}
 .btnp{background:var(--ac);color:#fff;border-color:var(--ac);}
 .btnp:hover{background:var(--ac2);border-color:var(--ac2);}
-.btnsm{padding:4px 10px;font-size:11px;}
-.mr{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px;}
-.mc{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);padding:12px 16px;}
-.ml{font-size:10px;font-weight:600;color:var(--tx3);letter-spacing:.07em;text-transform:uppercase;margin-bottom:4px;}
-.mv{font-size:18px;font-weight:700;font-family:var(--mono);}
-.ms{font-size:10px;color:var(--tx3);margin-top:3px;}
+.btnsm{padding:3px 8px;font-size:10px;}
+.mr{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px;}
+.mc{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);padding:10px 14px;}
+.ml{font-size:10px;font-weight:600;color:var(--tx3);letter-spacing:.07em;text-transform:uppercase;margin-bottom:3px;}
+.mv{font-size:16px;font-weight:700;font-family:var(--mono);}
+.ms{font-size:10px;color:var(--tx3);margin-top:2px;}
 .mv.gn{color:var(--gn);}.mv.gd{color:var(--gd);}.mv.bl{color:var(--bl);}
-.card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);overflow:hidden;margin-bottom:14px;}
-.card.fill{display:flex;flex-direction:column;flex:1;min-height:0;margin-bottom:0;}
-.card.fill .tw{flex:1;min-height:0;overflow-y:auto;}
-.ch{padding:10px 16px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
-.ct{font-size:13px;font-weight:600;}
+.card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);overflow:hidden;margin-bottom:10px;}
+.ch{padding:8px 14px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.ct{font-size:12px;font-weight:600;}
 .tw{overflow-x:auto;}
 table{width:100%;border-collapse:collapse;}
-th{padding:8px 12px;text-align:left;font-size:10px;font-weight:600;color:var(--tx3);letter-spacing:.05em;text-transform:uppercase;background:var(--sur2);border-bottom:1px solid var(--bdr);white-space:nowrap;}
+th{padding:5px 8px;text-align:left;font-size:9px;font-weight:600;color:var(--tx3);letter-spacing:.05em;text-transform:uppercase;background:var(--sur2);border-bottom:1px solid var(--bdr);white-space:nowrap;line-height:1.3;}
 th[rowspan]{border-right:1px solid var(--bdr);}
-td{padding:9px 12px;border-bottom:1px solid var(--bdr);font-size:12px;color:var(--tx);vertical-align:middle;}
+td{padding:5px 8px;border-bottom:1px solid var(--bdr);font-size:11px;color:var(--tx);vertical-align:middle;}
 tr:last-child td{border-bottom:none;}
 tr:hover td{background:#fafaf8;}
 .mono{font-family:var(--mono);}
@@ -57,7 +55,6 @@ tr:hover td{background:#fafaf8;}
 .tag{display:inline-block;font-size:10px;padding:1px 6px;background:var(--sur2);border:1px solid var(--bdr);border-radius:4px;color:var(--tx2);margin:1px;white-space:nowrap;}
 .sec{display:none;}
 .sec.active{display:block;}
-#sec-dashboard.active{display:flex;}
 .fr{display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap;}
 .fb{padding:5px 13px;border-radius:100px;border:1px solid var(--bdr);background:var(--sur);font-size:12px;font-weight:500;color:var(--tx2);cursor:pointer;transition:all .15s;font-family:var(--sans);}
 .fb.active,.fb:hover{background:var(--ac);color:#fff;border-color:var(--ac);}
@@ -132,52 +129,55 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
 <main class="main">
 
 <!-- DASHBOARD -->
-<div id="sec-dashboard" class="sec active" style="display:flex;flex-direction:column;height:calc(100vh - 40px);">
-  <div class="ph">
+<div id="sec-dashboard" class="sec active">
+  <div class="ph" style="margin-bottom:8px;">
     <div><div class="pt">投資總覽</div><div class="ps" id="dash-date"></div></div>
-    <button class="btn btnp" onclick="showSec('add')">＋ 新增投資</button>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span id="fx-time" style="font-size:10px;color:var(--tx3)">匯率載入中…</span>
+      <span style="font-size:11px;color:var(--tx2)">手動調整</span>
+      <input type="number" id="fx-rate" value="32.5" step="0.01" style="width:68px;padding:3px 7px;font-size:12px;font-family:var(--mono);" oninput="rdash()">
+      <button class="btn btnsm" id="refresh-btn" onclick="refreshAll()">↻ 更新股價+匯率</button>
+      <button class="btn btnp" onclick="showSec('add')">＋ 新增</button>
+    </div>
   </div>
-  <div class="mr" id="dash-m"></div>
-  <div class="fr" style="margin-bottom:10px;">
+  <div class="mr" id="dash-m" style="margin-bottom:8px;"></div>
+  <div class="fr" style="margin-bottom:8px;">
     <button class="fb active" onclick="dashFilt('all',this)">全部</button>
     <button class="fb" onclick="dashFilt('active',this)">持有中</button>
     <button class="fb" onclick="dashFilt('closed',this)">已出場</button>
     <button class="fb" onclick="dashFilt('hold',this)">承接股票</button>
     <button class="fb" onclick="dashFilt('yin',this)">音－帳戶</button>
     <button class="fb" onclick="dashFilt('lin',this)">林－帳戶</button>
+    <span style="font-size:11px;color:var(--tx3);margin-left:4px" id="dash-cnt"></span>
   </div>
-  <div class="card fill">
-    <div class="ch">
-      <span class="ct">全部投資明細（最新在上）</span>
-      <span style="font-size:11px;color:var(--tx3)" id="dash-cnt"></span>
-    </div>
+  <div class="card" style="margin-bottom:0;">
     <div class="tw">
-      <table id="dash-table">
+      <table id="dash-table" style="font-size:11px;">
         <thead>
           <tr>
-            <th rowspan="2" style="vertical-align:middle;position:sticky;top:0;z-index:2;background:var(--sur2)">狀態</th>
-            <th rowspan="2" style="vertical-align:middle;position:sticky;top:0;z-index:2;background:var(--sur2)">帳戶</th>
-            <th rowspan="2" style="vertical-align:middle;position:sticky;top:0;z-index:2;background:var(--sur2)">買進日</th>
-            <th rowspan="2" style="vertical-align:middle;position:sticky;top:0;z-index:2;background:var(--sur2)">到期日</th>
-            <th rowspan="2" style="vertical-align:middle;position:sticky;top:0;z-index:2;background:var(--sur2)">賣出日</th>
-            <th rowspan="2" style="vertical-align:middle;position:sticky;top:0;z-index:2;background:var(--sur2)">連結股票</th>
-            <th rowspan="2" style="vertical-align:middle;position:sticky;top:0;z-index:2;background:var(--sur2)">幣別</th>
-            <th rowspan="2" class="right" style="vertical-align:middle;position:sticky;top:0;z-index:2;background:var(--sur2)">投資面額</th>
-            <th rowspan="2" class="right" style="vertical-align:middle;position:sticky;top:0;z-index:2;background:var(--sur2)">台幣成本</th>
-            <th rowspan="2" class="right" style="vertical-align:middle;position:sticky;top:0;z-index:2;background:var(--sur2)">匯率</th>
-            <th rowspan="2" class="right" style="vertical-align:middle;position:sticky;top:0;z-index:2;background:var(--sur2)">保護價<br><span style="font-weight:400;opacity:.7">E/AKI</span></th>
-            <th rowspan="2" class="right" style="vertical-align:middle;position:sticky;top:0;z-index:2;background:var(--sur2)">承購價<br><span style="font-weight:400;opacity:.7">Strike</span></th>
-            <th rowspan="2" class="right" style="vertical-align:middle;position:sticky;top:0;z-index:2;background:var(--sur2)">出場價<br><span style="font-weight:400;opacity:.7">KO</span></th>
-            <th rowspan="2" class="right" style="vertical-align:middle;position:sticky;top:0;z-index:2;background:var(--sur2)">利率<br><span style="font-weight:400;opacity:.7">Coupon</span></th>
-            <th rowspan="2" style="vertical-align:middle;position:sticky;top:0;z-index:2;background:var(--sur2)">期限</th>
-            <th colspan="4" style="text-align:center;border-bottom:1px solid var(--bdr);position:sticky;top:0;z-index:2;background:var(--sur2)">配息</th>
-            <th rowspan="2" class="right" style="vertical-align:middle;position:sticky;top:0;z-index:2;background:var(--sur2)">報酬率</th>
+            <th rowspan="2" style="vertical-align:middle">狀態</th>
+            <th rowspan="2" style="vertical-align:middle">帳戶</th>
+            <th rowspan="2" style="vertical-align:middle">買進日</th>
+            <th rowspan="2" style="vertical-align:middle">到期日</th>
+            <th rowspan="2" style="vertical-align:middle">賣出日</th>
+            <th rowspan="2" style="vertical-align:middle">連結股票</th>
+            <th rowspan="2" style="vertical-align:middle">幣別</th>
+            <th rowspan="2" class="right" style="vertical-align:middle">投資面額</th>
+            <th rowspan="2" class="right" style="vertical-align:middle">台幣成本</th>
+            <th rowspan="2" class="right" style="vertical-align:middle">匯率</th>
+            <th rowspan="2" class="right" style="vertical-align:middle">保護價<br><span style="font-weight:400;opacity:.7">E/AKI</span></th>
+            <th rowspan="2" class="right" style="vertical-align:middle">承購價<br><span style="font-weight:400;opacity:.7">Strike</span></th>
+            <th rowspan="2" class="right" style="vertical-align:middle">出場價<br><span style="font-weight:400;opacity:.7">KO</span></th>
+            <th rowspan="2" class="right" style="vertical-align:middle">利率<br><span style="font-weight:400;opacity:.7">Coupon</span></th>
+            <th rowspan="2" style="vertical-align:middle">期限</th>
+            <th colspan="4" style="text-align:center;border-bottom:1px solid var(--bdr)">配息</th>
+            <th rowspan="2" class="right" style="vertical-align:middle">報酬率</th>
           </tr>
           <tr>
-            <th style="position:sticky;top:37px;z-index:2;background:var(--sur2)">配息日</th>
-            <th class="right" style="position:sticky;top:37px;z-index:2;background:var(--sur2)">月配息</th>
-            <th class="right" style="position:sticky;top:37px;z-index:2;background:var(--sur2)">總配息</th>
-            <th class="right" style="position:sticky;top:37px;z-index:2;background:var(--sur2)">已領配息</th>
+            <th>配息日</th>
+            <th class="right">月配息</th>
+            <th class="right">總配息</th>
+            <th class="right">已領配息</th>
           </tr>
         </thead>
         <tbody id="dash-tb"></tbody>
@@ -202,11 +202,17 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
   </div>
   <div class="card"><div class="tw"><table>
     <thead><tr>
-      <th>狀態</th><th>買進日</th><th>帳戶</th><th>連結股票</th>
-      <th class="right">面額</th><th>幣別</th><th class="right">匯率</th><th class="right">台幣成本</th>
-      <th>Coupon</th><th>期限</th><th>到期日</th><th>實際出場日</th>
-      <th>AKI</th><th>Strike</th><th>KO</th>
-      <th class="right">月配息</th><th class="right">總配息</th><th>報酬率</th><th>備註</th><th></th>
+      <th>帳戶</th>
+      <th>買進日</th>
+      <th>到期日</th>
+      <th class="right">投資面額</th>
+      <th>連結股票</th>
+      <th class="right">目前價格</th>
+      <th class="right">買進價格</th>
+      <th class="right">保護價 E/AKI</th>
+      <th class="right">執行價 Strike</th>
+      <th class="right">出場價格 KO</th>
+      <th></th>
     </tr></thead>
     <tbody id="list-tb"></tbody>
   </table></div></div>
@@ -365,14 +371,96 @@ function showSec(n){
   document.getElementById('sec-'+n).classList.add('active');
   const m={dashboard:0,list:1,interest:2,add:3,report:4};
   if(m[n]!==undefined)document.querySelectorAll('.ni')[m[n]].classList.add('active');
-  if(n==='dashboard')rdash();else if(n==='list')rlist();else if(n==='interest')rint();else if(n==='add')resetF();else if(n==='report')rrep();
+  if(n==='dashboard')rdash();
+  else if(n==='list')rlist();
+  else if(n==='interest')rint();
+  else if(n==='add')resetF();
+  else if(n==='report')rrep();
 }
 
 let dashCF='all';
+let priceCache={};  // symbol -> price
+let fxUpdatedAt='';
+
+function getFX(){return parseFloat(document.getElementById('fx-rate')?.value||'32.5')||32.5;}
+
+async function fetchFX(){
+  // Try USDTWD=X first (gives TWD per USD directly)
+  const endpoints=[
+    'https://query1.finance.yahoo.com/v8/finance/chart/USDTWD=X?interval=1d&range=1d',
+    'https://query2.finance.yahoo.com/v8/finance/chart/USDTWD=X?interval=1d&range=1d',
+  ];
+  for(const url of endpoints){
+    try{
+      const r=await fetch(url);
+      const j=await r.json();
+      const p=j?.chart?.result?.[0]?.meta?.regularMarketPrice;
+      if(p&&p>20){  // sanity check: USDTWD should be ~30-35
+        document.getElementById('fx-rate').value=p.toFixed(3);
+        fxUpdatedAt=new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
+        document.getElementById('fx-time').textContent=`匯率 ${p.toFixed(3)}（${fxUpdatedAt} Yahoo）`;
+        return true;
+      }
+    }catch(e){}
+  }
+  return false;
+}
+
+async function fetchPrices(symbols){
+  const toFetch=symbols.filter(s=>s&&!/^\d/.test(s));  // skip Japanese stocks (start with digit)
+  if(!toFetch.length)return;
+  await Promise.all(toFetch.map(async sym=>{
+    const endpoints=[
+      `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=1d`,
+      `https://query2.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=1d`,
+    ];
+    for(const url of endpoints){
+      try{
+        const r=await fetch(url);
+        const j=await r.json();
+        const p=j?.chart?.result?.[0]?.meta?.regularMarketPrice;
+        if(p){priceCache[sym]=p;break;}
+      }catch(e){}
+    }
+  }));
+}
+
+async function refreshAll(){
+  const btn=document.getElementById('refresh-btn');
+  btn.textContent='更新中…';btn.disabled=true;
+  const allSymbols=[...new Set(D.flatMap(d=>d.stocks.map(s=>s.name).filter(n=>!/^\d/.test(n))))];
+  // reset cache so we always get fresh prices
+  priceCache={};
+  await Promise.all([fetchFX(), fetchPrices(allSymbols)]);
+  btn.textContent='↻ 更新';btn.disabled=false;
+  rdash();
+  if(document.getElementById('sec-list').classList.contains('active'))renderListTable(
+    (()=>{let rows=cf==='all'?D:cf==='yin'?D.filter(d=>d.bank.includes('音')):cf==='lin'?D.filter(d=>d.bank.includes('林')):D.filter(d=>d.status===cf);return[...rows].sort((a,b)=>b.date.localeCompare(a.date));})()
+  );
+}
+
+function fmtPayDates(dates){
+  if(!dates||!dates.length)return '—';
+  const chunks=[];
+  for(let i=0;i<dates.length;i+=3)chunks.push(dates.slice(i,i+3).join('、'));
+  return chunks.join('<br>');
+}
+
+function amtWithTWD(amt,ccy,fx){
+  if(!amt)return '—';
+  const s=SY(ccy)+F(amt,0);
+  if(ccy==='USD'&&fx){
+    const twd=Math.round(amt*fx);
+    return `${s}<br><span style="font-size:9px;color:var(--tx3)">≈ NT$${F(twd)}</span>`;
+  }
+  return s;
+}
+
 function dashFilt(v,btn){dashCF=v;document.querySelectorAll('#sec-dashboard .fb').forEach(b=>b.classList.remove('active'));btn.classList.add('active');rdash();}
 
-function rdash(){
+async function rdash(){
   document.getElementById('dash-date').textContent=new Date().toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric'});
+  const fx=getFX();
   const uF=D.filter(d=>d.ccy==='USD').reduce((a,d)=>a+d.face,0);
   const jF=D.filter(d=>d.ccy==='JPY').reduce((a,d)=>a+d.face,0);
   const tTWD=D.reduce((a,d)=>a+twd(d),0);
@@ -380,8 +468,8 @@ function rdash(){
   const act=D.filter(d=>d.status==='active').length;
   document.getElementById('dash-m').innerHTML=`
     <div class="mc"><div class="ml">USD 面額合計</div><div class="mv mono">$${F(uF)}</div><div class="ms">JPY ¥${F(jF)}</div></div>
-    <div class="mc"><div class="ml">台幣成本合計</div><div class="mv mono">$${F(tTWD)}</div><div class="ms">${D.length} 筆投資</div></div>
-    <div class="mc"><div class="ml">累計配息 USD</div><div class="mv mono gn">$${F(tInt)}</div><div class="ms">歷史累計</div></div>
+    <div class="mc"><div class="ml">台幣成本合計</div><div class="mv mono">NT$${F(tTWD)}</div><div class="ms">${D.length} 筆投資</div></div>
+    <div class="mc"><div class="ml">累計配息 USD</div><div class="mv mono gn">$${F(tInt)}</div><div class="ms">≈ NT$${F(Math.round(tInt*fx))}</div></div>
     <div class="mc"><div class="ml">進行中筆數</div><div class="mv mono bl">${act}</div><div class="ms">已出場 ${D.filter(d=>d.status==='closed').length} 筆</div></div>`;
 
   let rows=dashCF==='all'?D:dashCF==='yin'?D.filter(d=>d.bank.includes('音')):dashCF==='lin'?D.filter(d=>d.bank.includes('林')):D.filter(d=>d.status===dashCF);
@@ -391,59 +479,74 @@ function rdash(){
   document.getElementById('dash-tb').innerHTML=rows.map(d=>{
     const paidAmt=(d.paidDates||[]).length*d.monthly;
     const totalAmt=d.payDates.length*d.monthly;
-    const pdStr=d.payDates.join('、');
     return `<tr>
       <td>${bdg(d.status)}</td>
-      <td style="font-size:11px;white-space:nowrap">${d.bank}</td>
-      <td class="mono" style="font-size:11px;white-space:nowrap">${d.date}</td>
-      <td class="mono" style="font-size:11px;white-space:nowrap">${d.maturity||'—'}</td>
-      <td class="mono" style="font-size:11px;white-space:nowrap">${d.exitDate||'—'}</td>
+      <td style="white-space:nowrap">${d.bank}</td>
+      <td class="mono" style="white-space:nowrap">${d.date}</td>
+      <td class="mono" style="white-space:nowrap">${d.maturity||'—'}</td>
+      <td class="mono" style="white-space:nowrap">${d.exitDate||'—'}</td>
       <td>${tags(d.stocks)}</td>
       <td style="white-space:nowrap">${d.ccy==='JPY'?'<span class="badge bj">JPY</span>':d.ccy}</td>
       <td class="mono right" style="white-space:nowrap">${SY(d.ccy)}${F(d.face)}</td>
-      <td class="mono right" style="white-space:nowrap">${twd(d)?'$'+F(twd(d)):'—'}</td>
+      <td class="mono right" style="white-space:nowrap">${twd(d)?'NT$'+F(twd(d)):'—'}</td>
       <td class="mono right">${d.fx||'—'}</td>
       <td class="mono right">${d.aki||'—'}%</td>
       <td class="mono right">${d.strike||'—'}%</td>
       <td class="mono right">${d.ko||'—'}%</td>
       <td class="cb mono right">${d.coupon}%</td>
       <td style="white-space:nowrap">${d.term}</td>
-      <td style="font-size:11px;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${pdStr}">${pdStr}</td>
-      <td class="mono right" style="white-space:nowrap">${SY(d.ccy)}${F(d.monthly,0)}</td>
-      <td class="mono right cg" style="white-space:nowrap">${SY(d.ccy)}${F(totalAmt,0)}</td>
-      <td class="mono right" style="white-space:nowrap">
-        <span class="${paidAmt>=totalAmt&&totalAmt>0?'cg':paidAmt>0?'cgd':'cmu'}">${SY(d.ccy)}${F(paidAmt,0)}</span>
-        <span style="font-size:10px;color:var(--tx3);margin-left:3px">${(d.paidDates||[]).length}/${d.payDates.length}</span>
+      <td style="font-size:10px;line-height:1.6">${fmtPayDates(d.payDates)}</td>
+      <td class="mono right">${amtWithTWD(d.monthly,d.ccy,fx)}</td>
+      <td class="mono right cg">${amtWithTWD(totalAmt,d.ccy,fx)}</td>
+      <td class="mono right">
+        <span class="${paidAmt>=totalAmt&&totalAmt>0?'cg':paidAmt>0?'cgd':'cmu'}">${amtWithTWD(paidAmt,d.ccy,fx)}</span>
+        <span style="font-size:9px;color:var(--tx3);display:block">${(d.paidDates||[]).length}/${d.payDates.length} 期</span>
       </td>
       <td class="${d.rate>0?'cg':'cmu'} mono" style="white-space:nowrap">${d.rate>0?d.rate+'%':'—'}</td>
     </tr>`;
   }).join('');
 }
 
-function rlist(){
+async function rlist(){
   let rows=cf==='all'?D:cf==='yin'?D.filter(d=>d.bank.includes('音')):cf==='lin'?D.filter(d=>d.bank.includes('林')):D.filter(d=>d.status===cf);
   rows=[...rows].sort((a,b)=>b.date.localeCompare(a.date));
   document.getElementById('list-cnt').textContent=`共 ${rows.length} 筆`;
-  document.getElementById('list-tb').innerHTML=rows.map(d=>`<tr>
-    <td>${bdg(d.status)}</td><td class="mono" style="font-size:11px">${d.date}</td><td style="font-size:11px">${d.bank}</td>
-    <td>${tags(d.stocks)}</td>
-    <td class="mono right">${SY(d.ccy)}${F(d.face)}</td>
-    <td>${d.ccy==='JPY'?'<span class="badge bj">JPY</span>':d.ccy}</td>
-    <td class="mono right">${d.fx||'—'}</td>
-    <td class="mono right">${twd(d)?'$'+F(twd(d)):'—'}</td>
-    <td class="cb">${d.coupon}%</td><td>${d.term}</td>
-    <td style="font-size:11px">${d.maturity||'—'}</td>
-    <td style="font-size:11px">${d.exitDate||'—'}</td>
-    <td>${d.aki||'—'}%</td><td>${d.strike||'—'}%</td><td>${d.ko||'—'}%</td>
-    <td class="mono right">${SY(d.ccy)}${F(d.monthly,0)}</td>
-    <td class="mono right cg">${d.ccy!=='JPY'&&d.totalUSD?'$'+F(d.totalUSD):'—'}</td>
-    <td class="${d.rate>0?'cg':'cmu'}">${d.rate>0?d.rate+'%':'—'}</td>
-    <td style="font-size:11px;color:var(--tx2);max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${d.note||''}">${d.note||'—'}</td>
-    <td style="white-space:nowrap">
-      <button class="btn btnsm" onclick="editRec(${d.id})">編輯</button>
-      <button class="btn btnsm" style="margin-left:3px" onclick="confDel(${d.id})">刪除</button>
-    </td>
-  </tr>`).join('');
+
+  // collect all unique non-JPY stock symbols
+  const symbols=[...new Set(rows.flatMap(d=>d.stocks.map(s=>s.name).filter(n=>!/^\d/.test(n))))];
+  // fetch prices in background
+  fetchPrices(symbols).then(()=>renderListTable(rows));
+  renderListTable(rows); // render immediately with cached/empty prices
+}
+
+function renderListTable(rows){
+  let html='';
+  rows.forEach((d,di)=>{
+    const isJPY=d.ccy==='JPY';
+    d.stocks.forEach((s,i)=>{
+      const cur=priceCache[s.name];
+      const priceCls=cur&&s.buy?(cur<s.aki?'cr':cur<s.strike?'cgd':'cg'):'';
+      const pctChg=cur&&s.buy?((cur-s.buy)/s.buy*100).toFixed(1):null;
+      html+=`<tr style="${di%2===0?'':'background:#fafaf8'}">
+        <td style="white-space:nowrap">${i===0?d.bank:''}</td>
+        <td class="mono" style="white-space:nowrap">${i===0?d.date:''}</td>
+        <td class="mono" style="white-space:nowrap;color:var(--tx2)">${i===0?(d.maturity||'—'):''}</td>
+        <td class="mono right" style="white-space:nowrap">${i===0?(SY(d.ccy)+F(d.face)):''}</td>
+        <td style="font-weight:500">${s.name}</td>
+        <td class="mono right ${priceCls}">
+          ${cur?F(cur,2):'<span style="color:var(--tx3);font-size:10px">—</span>'}
+          ${pctChg!==null?`<span style="font-size:9px;display:block;color:${parseFloat(pctChg)>=0?'var(--gn)':'var(--rd)'}">${parseFloat(pctChg)>=0?'+':''}${pctChg}%</span>`:''}
+        </td>
+        <td class="mono right">${s.buy?F(s.buy,isJPY?0:2):'—'}</td>
+        <td class="mono right" style="color:var(--rd)">${s.aki?F(s.aki,isJPY?0:2):'—'}</td>
+        <td class="mono right" style="color:var(--bl)">${s.strike?F(s.strike,isJPY?0:2):'—'}</td>
+        <td class="mono right" style="color:var(--gn)">${s.exit?F(s.exit,isJPY?0:2):'—'}</td>
+        <td style="white-space:nowrap">${i===0?`<button class="btn btnsm" onclick="editRec(${d.id})">編輯</button>`:''}</td>
+      </tr>`;
+    });
+    html+=`<tr><td colspan="11" style="padding:0;height:4px;background:var(--bg)"></td></tr>`;
+  });
+  document.getElementById('list-tb').innerHTML=html;
 }
 function filt(v,btn){cf=v;document.querySelectorAll('.fb').forEach(b=>b.classList.remove('active'));btn.classList.add('active');rlist();}
 
@@ -574,6 +677,8 @@ function rrep(){
 
 document.getElementById('last-update').textContent=localStorage.getItem('fcnlast')||'首次載入';
 rdash();
+// auto-fetch FX + stock prices on load
+refreshAll();
 </script>
 </body>
 </html>

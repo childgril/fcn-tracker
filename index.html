@@ -182,6 +182,7 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
     <div class="ni" onclick="showSec('list')"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="3" width="14" height="2" rx="1"/><rect x="1" y="7" width="14" height="2" rx="1" opacity=".6"/><rect x="1" y="11" width="9" height="2" rx="1" opacity=".4"/></svg>投資清單</div>
     <div class="ni" onclick="showSec('interest')"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2" stroke-linecap="round"/></svg>利息紀錄</div>
     <div class="ni" onclick="showSec('holdtrack')"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12l4-4 3 3 5-6" stroke-linecap="round" stroke-linejoin="round"/></svg>承接股票追蹤</div>
+    <div class="ni" onclick="showSec('fxlog')"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8h10M10 5l3 3-3 3" stroke-linecap="round" stroke-linejoin="round"/><path d="M13 8H3M6 5L3 8l3 3" stroke-linecap="round" stroke-linejoin="round" opacity=".4"/></svg>換外幣紀錄</div>
     <div class="ni" onclick="showSec('add')"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v6M5 8h6" stroke-linecap="round"/></svg>新增投資</div>
     <div class="ni" onclick="showSec('report')"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="9" width="3" height="6" rx="1" opacity=".5"/><rect x="6" y="6" width="3" height="9" rx="1" opacity=".7"/><rect x="11" y="2" width="3" height="13" rx="1"/></svg>報表分析</div>
   </div>
@@ -313,8 +314,12 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
           </select>
         </div>
         <div class="fgrp"><label>投資面額 *</label><input type="number" id="f-face" placeholder="10000" oninput="updTWD()"></div>
-        <div class="fgrp"><label>換匯匯率</label><input type="number" id="f-fx" placeholder="32.75" step="0.0001" oninput="updTWD()">
-          <div class="hint">USD→TWD ≈ 32.x　JPY→TWD ≈ 0.22</div>
+        <div class="fgrp"><label>換匯匯率</label>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <input type="number" id="f-fx" placeholder="32.75" step="0.0001" oninput="updTWD()" style="flex:1;">
+            <button class="btn btnsm" type="button" onclick="openFxPicker()" style="white-space:nowrap;flex-shrink:0;">選換匯紀錄</button>
+          </div>
+          <div class="hint" id="f-fx-hint">USD→TWD ≈ 32.x　JPY→TWD ≈ 0.22　或選換匯紀錄自動平均</div>
         </div>
         <div class="fgrp"><label>台幣成本（自動 = 面額 × 匯率）</label>
           <input type="text" id="f-twd" readonly>
@@ -370,6 +375,46 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
   </div>
 </div>
 
+<!-- FXLOG -->
+<div id="sec-fxlog" class="sec">
+  <div class="ph">
+    <div><div class="pt">換外幣紀錄</div><div class="ps">記錄每次換匯，新增投資時可選取並自動計算平均匯率</div></div>
+    <button class="btn btnp" onclick="openFxForm()">＋ 新增換匯</button>
+  </div>
+  <!-- summary -->
+  <div id="fxlog-summary" style="margin-bottom:12px;"></div>
+  <!-- table -->
+  <div class="card">
+    <div class="tw">
+      <table id="fxlog-table" style="font-size:11px;">
+        <thead><tr>
+          <th>日期</th><th>幣別</th><th class="right">換匯金額（台幣）</th><th class="right">換匯匯率</th><th class="right">取得外幣</th><th>銀行 / 備註</th><th></th>
+        </tr></thead>
+        <tbody id="fxlog-tb"></tbody>
+      </table>
+    </div>
+  </div>
+  <!-- inline add/edit form -->
+  <div id="fxlog-form" style="display:none;" class="fs" style="max-width:600px;">
+    <div class="fst" id="fxlog-form-title">新增換匯紀錄</div>
+    <input type="hidden" id="fxf-id">
+    <div class="fg">
+      <div class="fgrp"><label>日期 *</label><input type="date" id="fxf-date"></div>
+      <div class="fgrp"><label>幣別</label>
+        <select id="fxf-ccy"><option value="USD">USD 美元</option><option value="JPY">JPY 日圓</option></select>
+      </div>
+      <div class="fgrp"><label>換匯金額（台幣 NT$）</label><input type="number" id="fxf-twd" placeholder="1000000" step="1" oninput="fxfCalc()"></div>
+      <div class="fgrp"><label>換匯匯率</label><input type="number" id="fxf-rate" placeholder="32.75" step="0.0001" oninput="fxfCalc()"></div>
+      <div class="fgrp"><label>取得外幣（自動）</label><input type="text" id="fxf-foreign" readonly style="background:var(--sur2)"></div>
+      <div class="fgrp"><label>銀行 / 備註</label><input type="text" id="fxf-note" placeholder="例：台銀、網銀換匯"></div>
+    </div>
+    <div class="fa" style="margin-top:10px;">
+      <button class="btn" onclick="closeFxForm()">取消</button>
+      <button class="btn btnp" onclick="saveFxLog()">儲存</button>
+    </div>
+  </div>
+</div>
+
 <!-- REPORT -->
 <div id="sec-report" class="sec">
   <div class="ph">
@@ -386,6 +431,38 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
       <thead><tr><th>買進日</th><th>帳戶</th><th class="right">面額</th><th>幣別</th><th class="right">台幣成本</th><th>Coupon</th><th>期限</th><th>到期日</th><th>出場日</th><th class="right">總配息 USD</th><th>報酬率</th><th>狀態</th></tr></thead>
       <tbody id="rep-tb"></tbody>
     </table></div>
+  </div>
+</div>
+
+<!-- FX PICKER MODAL -->
+<div class="mo" id="fxpicker-modal" onclick="if(event.target===this)closeFxPicker()">
+  <div class="mb2" style="width:540px;max-height:80vh;display:flex;flex-direction:column;">
+    <h3 style="margin-bottom:4px;">選取換匯紀錄</h3>
+    <p style="font-size:12px;color:var(--tx2);margin-bottom:12px;">勾選要使用的換匯紀錄，輸入本次使用金額，系統自動計算加權平均匯率</p>
+    <div style="flex:1;overflow-y:auto;border:1px solid var(--bdr);border-radius:var(--r);">
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <thead><tr style="background:var(--sur2);">
+          <th style="padding:6px 10px;font-size:10px;color:var(--tx3);font-weight:600;text-align:left;">選</th>
+          <th style="padding:6px 10px;font-size:10px;color:var(--tx3);font-weight:600;text-align:left;">日期</th>
+          <th style="padding:6px 10px;font-size:10px;color:var(--tx3);font-weight:600;text-align:right;">匯率</th>
+          <th style="padding:6px 10px;font-size:10px;color:var(--tx3);font-weight:600;text-align:right;">可用外幣</th>
+          <th style="padding:6px 10px;font-size:10px;color:var(--tx3);font-weight:600;text-align:left;">備註</th>
+          <th style="padding:6px 10px;font-size:10px;color:var(--tx3);font-weight:600;text-align:right;">本次使用金額</th>
+        </tr></thead>
+        <tbody id="fxpicker-rows"></tbody>
+      </table>
+    </div>
+    <div style="margin-top:12px;padding:10px 14px;background:var(--sur2);border-radius:var(--r);font-size:13px;display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <span style="color:var(--tx2)">加權平均匯率：</span>
+        <span id="fxpicker-avg" style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--ac)">—</span>
+      </div>
+      <div style="font-size:11px;color:var(--tx3)" id="fxpicker-detail"></div>
+    </div>
+    <div class="mba">
+      <button class="btn" onclick="closeFxPicker()">取消</button>
+      <button class="btn btnp" onclick="applyFxPicker()">套用平均匯率</button>
+    </div>
   </div>
 </div>
 
@@ -489,17 +566,17 @@ function showSec(n){
   document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.ni').forEach(x=>x.classList.remove('active'));
   document.getElementById('sec-'+n).classList.add('active');
-  const m={dashboard:0,list:1,interest:2,holdtrack:3,add:4,report:5};
+  const m={dashboard:0,list:1,interest:2,holdtrack:3,fxlog:4,add:5,report:6};
   if(m[n]!==undefined)document.querySelectorAll('.ni')[m[n]].classList.add('active');
   if(n==='dashboard')rdash();
   else if(n==='list')rlist();
   else if(n==='interest')rint();
   else if(n==='holdtrack'){
-    rHoldTrack(); // render immediately with cached prices
-    // fetch latest prices for hold stocks then re-render
+    rHoldTrack();
     const holdSyms=[...new Set(D.filter(d=>d.status==='hold').flatMap(d=>d.stocks.map(s=>s.name).filter(n=>!/^\d/.test(n))))];
     fetchPrices(holdSyms).then(()=>rHoldTrack());
   }
+  else if(n==='fxlog')rFxLog();
   else if(n==='add')resetF();
   else if(n==='report')rrep();
 }
@@ -1074,6 +1151,149 @@ function saveHoldDetail(){
   closeHoldPanel();
   if(document.getElementById('sec-list').classList.contains('active'))rlist();
   if(document.getElementById('sec-holdtrack').classList.contains('active'))rHoldTrack();
+}
+
+// ── FX LOG ──────────────────────────────────────────────────
+let FXL=JSON.parse(localStorage.getItem('fcnfxl')||'[]');
+function saveFXL(){localStorage.setItem('fcnfxl',JSON.stringify(FXL));}
+
+function rFxLog(){
+  const usdLogs=FXL.filter(r=>r.ccy==='USD');
+  const jpyLogs=FXL.filter(r=>r.ccy==='JPY');
+  const usdAvg=usdLogs.length?usdLogs.reduce((a,r)=>a+r.twd,0)/usdLogs.reduce((a,r)=>a+r.foreign,0):0;
+  const jpyAvg=jpyLogs.length?jpyLogs.reduce((a,r)=>a+r.twd,0)/jpyLogs.reduce((a,r)=>a+r.foreign,0):0;
+  document.getElementById('fxlog-summary').innerHTML=`
+    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+      <div class="mc" style="flex:1;min-width:180px;">
+        <div class="ml">USD 整體加權平均匯率</div>
+        <div class="mv mono">${usdAvg?usdAvg.toFixed(4):'—'}</div>
+        <div class="ms">${usdLogs.length} 筆換匯 · 共 $${F(usdLogs.reduce((a,r)=>a+r.foreign,0),0)} USD</div>
+      </div>
+      <div class="mc" style="flex:1;min-width:180px;">
+        <div class="ml">JPY 整體加權平均匯率</div>
+        <div class="mv mono">${jpyAvg?jpyAvg.toFixed(6):'—'}</div>
+        <div class="ms">${jpyLogs.length} 筆換匯 · 共 ¥${F(jpyLogs.reduce((a,r)=>a+r.foreign,0),0)} JPY</div>
+      </div>
+    </div>`;
+  const sorted=[...FXL].sort((a,b)=>b.date.localeCompare(a.date));
+  document.getElementById('fxlog-tb').innerHTML=sorted.length?sorted.map(r=>`<tr>
+    <td class="mono">${r.date}</td>
+    <td>${r.ccy}</td>
+    <td class="mono right">NT$${F(r.twd,0)}</td>
+    <td class="mono right">${r.rate}</td>
+    <td class="mono right">${r.ccy==='JPY'?'¥':'$'}${F(r.foreign,r.ccy==='JPY'?0:2)}</td>
+    <td style="color:var(--tx2)">${r.note||'—'}</td>
+    <td style="white-space:nowrap;">
+      <button class="btn btnsm" onclick="editFxLog(${r.id})">編輯</button>
+      <button class="btn btnsm" style="margin-left:3px" onclick="delFxLog(${r.id})">刪除</button>
+    </td>
+  </tr>`).join(''):`<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--tx3)">尚無換匯紀錄</td></tr>`;
+}
+
+function openFxForm(id){
+  const form=document.getElementById('fxlog-form');
+  form.style.display='block';
+  document.getElementById('fxf-id').value=id||'';
+  document.getElementById('fxlog-form-title').textContent=id?'編輯換匯紀錄':'新增換匯紀錄';
+  if(id){
+    const r=FXL.find(x=>x.id===id);
+    if(r){
+      document.getElementById('fxf-date').value=r.date;
+      document.getElementById('fxf-ccy').value=r.ccy;
+      document.getElementById('fxf-twd').value=r.twd;
+      document.getElementById('fxf-rate').value=r.rate;
+      document.getElementById('fxf-note').value=r.note||'';
+      fxfCalc();
+    }
+  } else {
+    document.getElementById('fxf-date').value=new Date().toISOString().slice(0,10);
+    document.getElementById('fxf-ccy').value='USD';
+    ['fxf-twd','fxf-rate','fxf-note'].forEach(x=>document.getElementById(x).value='');
+    document.getElementById('fxf-foreign').value='';
+  }
+  form.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function closeFxForm(){document.getElementById('fxlog-form').style.display='none';}
+function fxfCalc(){
+  const twd=parseFloat(document.getElementById('fxf-twd').value)||0;
+  const rate=parseFloat(document.getElementById('fxf-rate').value)||0;
+  const ccy=document.getElementById('fxf-ccy').value;
+  const foreign=rate?twd/rate:0;
+  document.getElementById('fxf-foreign').value=foreign?(ccy==='JPY'?'¥'+F(foreign,0):'$'+F(foreign,2)):'';
+}
+function saveFxLog(){
+  const date=document.getElementById('fxf-date').value;
+  const ccy=document.getElementById('fxf-ccy').value;
+  const twd=parseFloat(document.getElementById('fxf-twd').value)||0;
+  const rate=parseFloat(document.getElementById('fxf-rate').value)||0;
+  if(!date||!twd||!rate){alert('請填寫日期、台幣金額及匯率');return;}
+  const foreign=twd/rate;
+  const note=document.getElementById('fxf-note').value.trim();
+  const eid=document.getElementById('fxf-id').value;
+  if(eid){
+    const idx=FXL.findIndex(x=>x.id===parseInt(eid));
+    if(idx>=0)FXL[idx]={...FXL[idx],date,ccy,twd,rate,foreign,note};
+  } else {
+    const nid=Math.max(0,...FXL.map(x=>x.id),0)+1;
+    FXL.push({id:nid,date,ccy,twd,rate,foreign,note});
+  }
+  saveFXL();closeFxForm();rFxLog();
+}
+function editFxLog(id){openFxForm(id);}
+function delFxLog(id){
+  if(!confirm('確定刪除這筆換匯紀錄？'))return;
+  FXL=FXL.filter(x=>x.id!==id);saveFXL();rFxLog();
+}
+
+// ── FX PICKER ───────────────────────────────────────────────
+function openFxPicker(){
+  const ccy=document.getElementById('f-ccy').value;
+  const logs=FXL.filter(r=>r.ccy===ccy).sort((a,b)=>b.date.localeCompare(a.date));
+  if(!logs.length){alert('尚無'+ccy+'換匯紀錄，請先至「換外幣紀錄」新增。');return;}
+  const rows=logs.map(r=>`<tr style="border-bottom:1px solid var(--bdr)">
+    <td style="padding:7px 10px;"><input type="checkbox" class="fxp-chk" data-id="${r.id}" data-rate="${r.rate}" data-foreign="${r.foreign}" onchange="fxPickerCalc()"></td>
+    <td style="padding:7px 10px;font-family:var(--mono);font-size:11px;">${r.date}</td>
+    <td style="padding:7px 10px;font-family:var(--mono);text-align:right;">${r.rate}</td>
+    <td style="padding:7px 10px;font-family:var(--mono);text-align:right;">${ccy==='JPY'?'¥':'$'}${F(r.foreign,ccy==='JPY'?0:2)}</td>
+    <td style="padding:7px 10px;font-size:11px;color:var(--tx2);">${r.note||'—'}</td>
+    <td style="padding:7px 10px;">
+      <input type="number" class="fxp-use" data-id="${r.id}" placeholder="使用金額" step="0.01"
+        style="width:110px;padding:4px 7px;border:1px solid var(--bdr);border-radius:var(--r);font-family:var(--mono);font-size:11px;"
+        oninput="fxPickerCalc()">
+    </td>
+  </tr>`).join('');
+  document.getElementById('fxpicker-rows').innerHTML=rows;
+  document.getElementById('fxpicker-avg').textContent='—';
+  document.getElementById('fxpicker-detail').textContent='';
+  document.getElementById('fxpicker-modal').classList.add('open');
+}
+function closeFxPicker(){document.getElementById('fxpicker-modal').classList.remove('open');}
+function fxPickerCalc(){
+  const chks=document.querySelectorAll('.fxp-chk:checked');
+  let totalTWD=0,totalForeign=0,details=[];
+  chks.forEach(chk=>{
+    const id=parseInt(chk.dataset.id);
+    const useInput=document.querySelector(`.fxp-use[data-id="${id}"]`);
+    const usedForeign=parseFloat(useInput?.value)||0;
+    const rate=parseFloat(chk.dataset.rate)||0;
+    if(usedForeign&&rate){
+      const twdAmt=usedForeign*rate;
+      totalTWD+=twdAmt;
+      totalForeign+=usedForeign;
+      details.push(`${usedForeign}×${rate}`);
+    }
+  });
+  const avg=totalForeign>0?(totalTWD/totalForeign):0;
+  document.getElementById('fxpicker-avg').textContent=avg?avg.toFixed(4):'—';
+  document.getElementById('fxpicker-detail').textContent=details.length?`(${details.join(' + ')}) ÷ ${F(totalForeign,2)}`:'';
+}
+function applyFxPicker(){
+  const avg=parseFloat(document.getElementById('fxpicker-avg').textContent)||0;
+  if(!avg){alert('請勾選換匯紀錄並輸入使用金額');return;}
+  document.getElementById('f-fx').value=avg.toFixed(4);
+  document.getElementById('f-fx-hint').textContent=`✓ 已套用換匯紀錄加權平均匯率 ${avg.toFixed(4)}`;
+  updTWD();
+  closeFxPicker();
 }
 
 document.getElementById('last-update').textContent=localStorage.getItem('fcnlast')||'首次載入';

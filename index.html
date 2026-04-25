@@ -1318,36 +1318,63 @@ function rFxLog(){
     groups[tc].push(r);
   });
 
-  // summary cards: for each toCcy, total received minus what was spent as fromCcy elsewhere
-  // USD balance = TWD→USD received − USD→JPY spent − active investments
-  const usdIn=FXL.filter(r=>toCcy(r)==='USD').reduce((a,r)=>a+r.foreign,0);
-  const usdOut=FXL.filter(r=>fromCcy(r)==='USD').reduce((a,r)=>a+r.twd,0); // twd field = from amount
-  const jpyIn=FXL.filter(r=>toCcy(r)==='JPY').reduce((a,r)=>a+r.foreign,0);
-
-  // weighted avg per toCcy (only from records where fromCcy=TWD for meaningful TWD rate)
-  const avgUSD=(()=>{const l=FXL.filter(r=>toCcy(r)==='USD'&&fromCcy(r)==='TWD');const t=l.reduce((a,r)=>a+r.twd,0),f=l.reduce((a,r)=>a+r.foreign,0);return f?t/f:0;})();
-  const avgJPY=(()=>{const l=FXL.filter(r=>toCcy(r)==='JPY'&&fromCcy(r)==='TWD');const t=l.reduce((a,r)=>a+r.twd,0),f=l.reduce((a,r)=>a+r.foreign,0);return f?t/f:0;})();
-
-  const summaryCards=Object.keys(groups).map(ccy=>{
-    const sym=ccy==='JPY'?'¥':'$';
-    const total=groups[ccy].reduce((a,r)=>a+r.foreign,0);
-    const spent=FXL.filter(r=>fromCcy(r)===ccy).reduce((a,r)=>a+r.twd,0);
-    const net=total-spent;
-    const avg=ccy==='USD'?avgUSD:ccy==='JPY'?avgJPY:0;
-    return `<div class="mc" style="flex:1;min-width:160px;">
-      <div class="ml">取得 ${ccy} 合計</div>
-      <div class="mv mono">${sym}${F(total,ccy==='JPY'?0:2)}</div>
-      ${spent?`<div class="ms" style="color:var(--rd)">已轉出 ${sym}${F(spent,ccy==='JPY'?0:2)}</div>
-      <div class="ms">淨餘 ${sym}${F(net,ccy==='JPY'?0:2)}</div>`:''}
-      ${avg?`<div class="ms">兌台幣均匯 ${avg.toFixed(4)}</div>`:''}
-    </div>`;
-  }).join('');
-  document.getElementById('fxlog-summary').innerHTML=`<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:4px;">${summaryCards||'<div style="color:var(--tx3);font-size:12px;padding:8px">尚無換匯紀錄</div>'}</div>`;
-
-  // render one card+table per toCcy
+  // compute per-ccy stats
+  const fx=getFX();
+  const jpyFx=fx*0.0068||0.22;
   const ccyOrder=['USD','JPY','TWD','OTHER'];
   const orderedKeys=[...ccyOrder.filter(c=>groups[c]),...Object.keys(groups).filter(c=>!ccyOrder.includes(c))];
 
+  // active investments per ccy
+  const activeInvest={};
+  D.filter(d=>d.status==='active'||d.status==='hold').forEach(d=>{
+    activeInvest[d.ccy]=(activeInvest[d.ccy]||0)+d.face;
+  });
+
+  const summaryHtml=orderedKeys.map(ccy=>{
+    const sym=ccy==='JPY'?'¥':'$';
+    const isJPY=ccy==='JPY';
+    const rows=groups[ccy];
+    // total received into this ccy
+    const totalIn=rows.reduce((a,r)=>a+r.foreign,0);
+    // transferred OUT from this ccy (used as fromCcy in another exchange)
+    const transferOut=FXL.filter(r=>fromCcy(r)===ccy).reduce((a,r)=>a+r.twd,0); // twd = from amount
+    // currently in use as investments
+    const inUse=activeInvest[ccy]||0;
+    // remaining
+    const remaining=totalIn-transferOut-inUse;
+    // weighted avg rate vs TWD
+    const twdRows=FXL.filter(r=>toCcy(r)===ccy&&fromCcy(r)==='TWD');
+    const avgRate=twdRows.length?(twdRows.reduce((a,r)=>a+r.twd,0)/twdRows.reduce((a,r)=>a+r.foreign,0)):0;
+    // TWD equiv of remaining
+    const remTWD=ccy==='USD'?Math.round(remaining*fx):ccy==='JPY'?Math.round(remaining*jpyFx):remaining;
+    return `<div style="background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);padding:14px 20px;flex:1;min-width:220px;">
+      <div style="font-size:11px;font-weight:700;color:var(--tx3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--bdr);">${ccy} 外幣庫存</div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;">
+        <span style="font-size:12px;color:var(--tx2);">兌換金額</span>
+        <span style="font-family:var(--mono);font-size:13px;font-weight:600;">${sym}${F(totalIn,isJPY?0:2)}
+          ${avgRate?`<span style="font-size:10px;color:var(--tx3);margin-left:6px;">均匯 ${avgRate.toFixed(avgRate>10?3:5)}</span>`:''}
+        </span>
+      </div>
+      ${transferOut?`<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;">
+        <span style="font-size:12px;color:var(--tx2);">已轉出</span>
+        <span style="font-family:var(--mono);font-size:13px;color:var(--rd);">－ ${sym}${F(transferOut,isJPY?0:2)}</span>
+      </div>`:''}
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;">
+        <span style="font-size:12px;color:var(--tx2);">正在使用（投資中）</span>
+        <span style="font-family:var(--mono);font-size:13px;color:var(--bl);">－ ${sym}${F(inUse,isJPY?0:2)}</span>
+      </div>
+      <div style="border-top:1px solid var(--bdr);margin-top:8px;padding-top:10px;display:flex;justify-content:space-between;align-items:baseline;">
+        <span style="font-size:12px;font-weight:600;color:${remaining<0?'var(--rd)':'var(--tx)'};">剩餘可用</span>
+        <div style="text-align:right;">
+          <div style="font-family:var(--mono);font-size:20px;font-weight:700;color:${remaining<0?'var(--rd)':remaining===0?'var(--tx3)':'var(--rd)'};">${remaining<0?'−':''} ${sym}${F(Math.abs(remaining),isJPY?0:2)}</div>
+          ${remTWD&&ccy!=='TWD'?`<div style="font-size:10px;color:var(--tx3);margin-top:1px;">≈ NT$${F(Math.abs(remTWD))}</div>`:''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('fxlog-summary').innerHTML=`<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;">${summaryHtml||'<div style="color:var(--tx3);font-size:12px;padding:8px">尚無換匯紀錄</div>'}</div>`;
+
+  // render one card+table per toCcy
   document.getElementById('fxlog-tables').innerHTML=orderedKeys.map(ccy=>{
     const rows=groups[ccy];
     const sym=ccy==='JPY'?'¥':'$';

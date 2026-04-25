@@ -589,15 +589,45 @@ function dashFilt(v,btn){dashCF=v;document.querySelectorAll('#sec-dashboard .fb'
 async function rdash(){
   document.getElementById('dash-date').textContent=new Date().toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric'});
   const fx=getFX();
+  const jpyFx=parseFloat(document.getElementById('fx-rate')?.value||'32.5')*0.0068||0.22; // rough JPY/TWD
   const uF=D.filter(d=>d.ccy==='USD').reduce((a,d)=>a+d.face,0);
   const jF=D.filter(d=>d.ccy==='JPY').reduce((a,d)=>a+d.face,0);
   const tTWD=D.reduce((a,d)=>a+twd(d),0);
-  const tInt=D.filter(d=>d.ccy==='USD').reduce((a,d)=>a+(d.totalUSD||0),0);
+  const tIntUSD=D.filter(d=>d.ccy==='USD').reduce((a,d)=>a+(d.totalUSD||0),0);
+  const tIntJPY=D.filter(d=>d.ccy==='JPY').reduce((a,d)=>a+((d.paidDates||[]).length*d.monthly),0);
   const act=D.filter(d=>d.status==='active').length;
   document.getElementById('dash-m').innerHTML=`
-    <div class="mc"><div class="ml">USD 面額合計</div><div class="mv mono">$${F(uF)}</div><div class="ms">JPY ¥${F(jF)}</div></div>
+    <div class="mc" style="grid-column:span 1">
+      <div class="ml">投資面額合計</div>
+      <div style="margin-top:4px;">
+        <div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;">
+          <span class="mv mono">$${F(uF)}</span>
+          <span style="font-size:10px;color:var(--tx3)">USD</span>
+        </div>
+        <div style="font-size:10px;color:var(--tx3);margin-top:1px">≈ NT$${F(Math.round(uF*fx))}</div>
+        ${jF?`<div style="display:flex;align-items:baseline;gap:6px;margin-top:6px;flex-wrap:wrap;">
+          <span class="mv mono" style="font-size:16px">¥${F(jF)}</span>
+          <span style="font-size:10px;color:var(--tx3)">JPY</span>
+        </div>
+        <div style="font-size:10px;color:var(--tx3);margin-top:1px">≈ NT$${F(Math.round(jF*jpyFx))}</div>`:''}
+      </div>
+    </div>
     <div class="mc"><div class="ml">台幣成本合計</div><div class="mv mono">NT$${F(tTWD)}</div><div class="ms">${D.length} 筆投資</div></div>
-    <div class="mc"><div class="ml">累計配息 USD</div><div class="mv mono gn">$${F(tInt)}</div><div class="ms">≈ NT$${F(Math.round(tInt*fx))}</div></div>
+    <div class="mc" style="grid-column:span 1">
+      <div class="ml">累計配息合計</div>
+      <div style="margin-top:4px;">
+        <div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;">
+          <span class="mv mono gn">$${F(tIntUSD)}</span>
+          <span style="font-size:10px;color:var(--tx3)">USD</span>
+        </div>
+        <div style="font-size:10px;color:var(--gn);margin-top:1px">≈ NT$${F(Math.round(tIntUSD*fx))}</div>
+        ${tIntJPY?`<div style="display:flex;align-items:baseline;gap:6px;margin-top:6px;flex-wrap:wrap;">
+          <span class="mv mono gn" style="font-size:16px">¥${F(tIntJPY)}</span>
+          <span style="font-size:10px;color:var(--tx3)">JPY</span>
+        </div>
+        <div style="font-size:10px;color:var(--gn);margin-top:1px">≈ NT$${F(Math.round(tIntJPY*jpyFx))}</div>`:''}
+      </div>
+    </div>
     <div class="mc"><div class="ml">進行中筆數</div><div class="mv mono bl">${act}</div><div class="ms">已出場 ${D.filter(d=>d.status==='closed').length} 筆</div></div>`;
 
   let rows=dashCF==='all'?D:dashCF==='yin'?D.filter(d=>d.bank.includes('音')):dashCF==='lin'?D.filter(d=>d.bank.includes('林')):D.filter(d=>d.status===dashCF);

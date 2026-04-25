@@ -378,35 +378,43 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
 <!-- FXLOG -->
 <div id="sec-fxlog" class="sec">
   <div class="ph">
-    <div><div class="pt">換外幣紀錄</div><div class="ps">記錄每次換匯，新增投資時可選取並自動計算平均匯率</div></div>
+    <div><div class="pt">換外幣紀錄</div><div class="ps">依取得幣別分表顯示，美元換日幣會同步扣除美元庫存</div></div>
     <button class="btn btnp" onclick="openFxForm()">＋ 新增換匯</button>
   </div>
-  <!-- summary -->
   <div id="fxlog-summary" style="margin-bottom:12px;"></div>
-  <!-- table -->
-  <div class="card">
-    <div class="tw">
-      <table id="fxlog-table" style="font-size:11px;">
-        <thead><tr>
-          <th>日期</th><th>幣別</th><th class="right">換匯金額（台幣）</th><th class="right">換匯匯率</th><th class="right">取得外幣</th><th>銀行 / 備註</th><th></th>
-        </tr></thead>
-        <tbody id="fxlog-tb"></tbody>
-      </table>
-    </div>
-  </div>
+  <div id="fxlog-tables"></div>
   <!-- inline add/edit form -->
-  <div id="fxlog-form" style="display:none;" class="fs" style="max-width:600px;">
+  <div id="fxlog-form" style="display:none;" class="fs">
     <div class="fst" id="fxlog-form-title">新增換匯紀錄</div>
     <input type="hidden" id="fxf-id">
     <div class="fg">
       <div class="fgrp"><label>日期 *</label><input type="date" id="fxf-date"></div>
-      <div class="fgrp"><label>幣別</label>
-        <select id="fxf-ccy"><option value="USD">USD 美元</option><option value="JPY">JPY 日圓</option></select>
+      <div class="fgrp"><label>銀行 / 平台</label><input type="text" id="fxf-bank" placeholder="例：台銀、網銀、玉山"></div>
+      <div class="fgrp"><label>換匯方向 *</label>
+        <select id="fxf-pair" onchange="fxfPairChange()">
+          <option value="TWD-USD">台幣 → 美元（NT$ → $）</option>
+          <option value="TWD-JPY">台幣 → 日幣（NT$ → ¥）</option>
+          <option value="USD-JPY">美元 → 日幣（$ → ¥）</option>
+          <option value="JPY-USD">日幣 → 美元（¥ → $）</option>
+          <option value="custom">自訂</option>
+        </select>
       </div>
-      <div class="fgrp"><label>換匯金額（台幣 NT$）</label><input type="number" id="fxf-twd" placeholder="1000000" step="1" oninput="fxfCalc()"></div>
-      <div class="fgrp"><label>換匯匯率</label><input type="number" id="fxf-rate" placeholder="32.75" step="0.0001" oninput="fxfCalc()"></div>
-      <div class="fgrp"><label>取得外幣（自動）</label><input type="text" id="fxf-foreign" readonly style="background:var(--sur2)"></div>
-      <div class="fgrp"><label>銀行 / 備註</label><input type="text" id="fxf-note" placeholder="例：台銀、網銀換匯"></div>
+      <div class="fgrp"><label id="fxf-from-label">支出金額 *</label>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span id="fxf-from-sym" style="font-family:var(--mono);font-size:13px;color:var(--tx2);white-space:nowrap">NT$</span>
+          <input type="number" id="fxf-twd" placeholder="1000000" step="0.01" oninput="fxfCalc()" style="flex:1;">
+        </div>
+      </div>
+      <div class="fgrp"><label>匯率 *</label><input type="number" id="fxf-rate" placeholder="32.75" step="0.00001" oninput="fxfCalc()">
+        <div class="hint" id="fxf-rate-hint">每 1 支出幣 = 幾個取得幣</div>
+      </div>
+      <div class="fgrp"><label id="fxf-to-label">取得金額（自動）</label>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span id="fxf-to-sym" style="font-family:var(--mono);font-size:13px;color:var(--tx2);white-space:nowrap">$</span>
+          <input type="text" id="fxf-foreign" readonly style="background:var(--sur2);flex:1;">
+        </div>
+      </div>
+      <div class="fgrp"><label>備註</label><input type="text" id="fxf-note" placeholder="例：換匯用途說明"></div>
     </div>
     <div class="fa" style="margin-top:10px;">
       <button class="btn" onclick="closeFxForm()">取消</button>
@@ -674,12 +682,13 @@ async function rdash(){
   const tIntJPY=D.filter(d=>d.ccy==='JPY').reduce((a,d)=>a+((d.paidDates||[]).length*d.monthly),0);
   const act=D.filter(d=>d.status==='active').length;
 
-  // 剩餘外幣 = 換匯紀錄總額 − 目前進行中(active+hold)的投資面額
-  const fxlUSD=FXL.filter(r=>r.ccy==='USD').reduce((a,r)=>a+r.foreign,0);
-  const fxlJPY=FXL.filter(r=>r.ccy==='JPY').reduce((a,r)=>a+r.foreign,0);
+  // 剩餘外幣 = 換匯取得 − 換匯轉出 − 進行中投資面額
+  const fxlUSD=FXL.filter(r=>toCcy(r)==='USD').reduce((a,r)=>a+r.foreign,0);
+  const fxlUSDout=FXL.filter(r=>fromCcy(r)==='USD').reduce((a,r)=>a+r.twd,0); // twd = from amount
+  const fxlJPY=FXL.filter(r=>toCcy(r)==='JPY').reduce((a,r)=>a+r.foreign,0);
   const activeUSD=D.filter(d=>d.ccy==='USD'&&(d.status==='active'||d.status==='hold')).reduce((a,d)=>a+d.face,0);
   const activeJPY=D.filter(d=>d.ccy==='JPY'&&(d.status==='active'||d.status==='hold')).reduce((a,d)=>a+d.face,0);
-  const remUSD=fxlUSD-activeUSD;
+  const remUSD=fxlUSD-fxlUSDout-activeUSD;
   const remJPY=fxlJPY-activeJPY;
   const hasRem=fxlUSD>0||fxlJPY>0;
 
@@ -1182,37 +1191,115 @@ function saveHoldDetail(){
 let FXL=JSON.parse(localStorage.getItem('fcnfxl')||'[]');
 function saveFXL(){localStorage.setItem('fcnfxl',JSON.stringify(FXL));}
 
+const PAIRS={
+  'TWD-USD':{fromSym:'NT$',toSym:'$',fromLabel:'支出台幣 NT$',toLabel:'取得美元 $',hint:'每 1 NT$ 換幾 USD（或用 NT$/USD 匯率 e.g. 32.75 → 0.0305）',placeholder:'32.75',fromCcy:'TWD',toCcy:'USD'},
+  'TWD-JPY':{fromSym:'NT$',toSym:'¥',fromLabel:'支出台幣 NT$',toLabel:'取得日幣 ¥',hint:'每 1 NT$ 換幾 JPY（e.g. 4.5）',placeholder:'4.5',fromCcy:'TWD',toCcy:'JPY'},
+  'USD-JPY':{fromSym:'$',toSym:'¥',fromLabel:'支出美元 $',toLabel:'取得日幣 ¥',hint:'每 1 USD 換幾 JPY（e.g. 155.2）',placeholder:'155.2',fromCcy:'USD',toCcy:'JPY'},
+  'JPY-USD':{fromSym:'¥',toSym:'$',fromLabel:'支出日幣 ¥',toLabel:'取得美元 $',hint:'每 1 JPY 換幾 USD（e.g. 0.0064）',placeholder:'0.0064',fromCcy:'JPY',toCcy:'USD'},
+  'custom':{fromSym:'',toSym:'',fromLabel:'支出金額',toLabel:'取得金額',hint:'每 1 支出幣 = 幾個取得幣',placeholder:'',fromCcy:'OTHER',toCcy:'OTHER'},
+};
+
+function pairLabel(r){
+  if(r.pair&&PAIRS[r.pair]) return r.pair.replace('-',' → ');
+  // legacy records: ccy was the toCcy
+  return `TWD → ${r.ccy||'?'}`;
+}
+function fromSym(r){return r.fromSym||(r.pair?PAIRS[r.pair]?.fromSym:'NT$')||'NT$';}
+function toSym(r){return r.toSym||(r.pair?PAIRS[r.pair]?.toSym:(r.ccy==='JPY'?'¥':'$'))||'$';}
+function toCcy(r){return r.toCcy||(r.pair?PAIRS[r.pair]?.toCcy:r.ccy)||'USD';}
+function fromCcy(r){return r.fromCcy||(r.pair?PAIRS[r.pair]?.fromCcy:'TWD')||'TWD';}
+
 function rFxLog(){
-  const usdLogs=FXL.filter(r=>r.ccy==='USD');
-  const jpyLogs=FXL.filter(r=>r.ccy==='JPY');
-  const usdAvg=usdLogs.length?usdLogs.reduce((a,r)=>a+r.twd,0)/usdLogs.reduce((a,r)=>a+r.foreign,0):0;
-  const jpyAvg=jpyLogs.length?jpyLogs.reduce((a,r)=>a+r.twd,0)/jpyLogs.reduce((a,r)=>a+r.foreign,0):0;
-  document.getElementById('fxlog-summary').innerHTML=`
-    <div style="display:flex;gap:12px;flex-wrap:wrap;">
-      <div class="mc" style="flex:1;min-width:180px;">
-        <div class="ml">USD 整體加權平均匯率</div>
-        <div class="mv mono">${usdAvg?usdAvg.toFixed(4):'—'}</div>
-        <div class="ms">${usdLogs.length} 筆換匯 · 共 $${F(usdLogs.reduce((a,r)=>a+r.foreign,0),0)} USD</div>
-      </div>
-      <div class="mc" style="flex:1;min-width:180px;">
-        <div class="ml">JPY 整體加權平均匯率</div>
-        <div class="mv mono">${jpyAvg?jpyAvg.toFixed(6):'—'}</div>
-        <div class="ms">${jpyLogs.length} 筆換匯 · 共 ¥${F(jpyLogs.reduce((a,r)=>a+r.foreign,0),0)} JPY</div>
-      </div>
-    </div>`;
   const sorted=[...FXL].sort((a,b)=>b.date.localeCompare(a.date));
-  document.getElementById('fxlog-tb').innerHTML=sorted.length?sorted.map(r=>`<tr>
-    <td class="mono">${r.date}</td>
-    <td>${r.ccy}</td>
-    <td class="mono right">NT$${F(r.twd,0)}</td>
-    <td class="mono right">${r.rate}</td>
-    <td class="mono right">${r.ccy==='JPY'?'¥':'$'}${F(r.foreign,r.ccy==='JPY'?0:2)}</td>
-    <td style="color:var(--tx2)">${r.note||'—'}</td>
-    <td style="white-space:nowrap;">
-      <button class="btn btnsm" onclick="editFxLog(${r.id})">編輯</button>
-      <button class="btn btnsm" style="margin-left:3px" onclick="delFxLog(${r.id})">刪除</button>
-    </td>
-  </tr>`).join(''):`<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--tx3)">尚無換匯紀錄</td></tr>`;
+
+  // group by toCcy
+  const groups={};
+  sorted.forEach(r=>{
+    const tc=toCcy(r);
+    if(!groups[tc])groups[tc]=[];
+    groups[tc].push(r);
+  });
+
+  // summary cards: for each toCcy, total received minus what was spent as fromCcy elsewhere
+  // USD balance = TWD→USD received − USD→JPY spent − active investments
+  const usdIn=FXL.filter(r=>toCcy(r)==='USD').reduce((a,r)=>a+r.foreign,0);
+  const usdOut=FXL.filter(r=>fromCcy(r)==='USD').reduce((a,r)=>a+r.twd,0); // twd field = from amount
+  const jpyIn=FXL.filter(r=>toCcy(r)==='JPY').reduce((a,r)=>a+r.foreign,0);
+
+  // weighted avg per toCcy (only from records where fromCcy=TWD for meaningful TWD rate)
+  const avgUSD=(()=>{const l=FXL.filter(r=>toCcy(r)==='USD'&&fromCcy(r)==='TWD');const t=l.reduce((a,r)=>a+r.twd,0),f=l.reduce((a,r)=>a+r.foreign,0);return f?t/f:0;})();
+  const avgJPY=(()=>{const l=FXL.filter(r=>toCcy(r)==='JPY'&&fromCcy(r)==='TWD');const t=l.reduce((a,r)=>a+r.twd,0),f=l.reduce((a,r)=>a+r.foreign,0);return f?t/f:0;})();
+
+  const summaryCards=Object.keys(groups).map(ccy=>{
+    const sym=ccy==='JPY'?'¥':'$';
+    const total=groups[ccy].reduce((a,r)=>a+r.foreign,0);
+    const spent=FXL.filter(r=>fromCcy(r)===ccy).reduce((a,r)=>a+r.twd,0);
+    const net=total-spent;
+    const avg=ccy==='USD'?avgUSD:ccy==='JPY'?avgJPY:0;
+    return `<div class="mc" style="flex:1;min-width:160px;">
+      <div class="ml">取得 ${ccy} 合計</div>
+      <div class="mv mono">${sym}${F(total,ccy==='JPY'?0:2)}</div>
+      ${spent?`<div class="ms" style="color:var(--rd)">已轉出 ${sym}${F(spent,ccy==='JPY'?0:2)}</div>
+      <div class="ms">淨餘 ${sym}${F(net,ccy==='JPY'?0:2)}</div>`:''}
+      ${avg?`<div class="ms">兌台幣均匯 ${avg.toFixed(4)}</div>`:''}
+    </div>`;
+  }).join('');
+  document.getElementById('fxlog-summary').innerHTML=`<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:4px;">${summaryCards||'<div style="color:var(--tx3);font-size:12px;padding:8px">尚無換匯紀錄</div>'}</div>`;
+
+  // render one card+table per toCcy
+  const ccyOrder=['USD','JPY','TWD','OTHER'];
+  const orderedKeys=[...ccyOrder.filter(c=>groups[c]),...Object.keys(groups).filter(c=>!ccyOrder.includes(c))];
+
+  document.getElementById('fxlog-tables').innerHTML=orderedKeys.map(ccy=>{
+    const rows=groups[ccy];
+    const sym=ccy==='JPY'?'¥':'$';
+    const isJPY=ccy==='JPY';
+    const total=rows.reduce((a,r)=>a+r.foreign,0);
+    const totalFrom=rows.reduce((a,r)=>a+r.twd,0);
+    const avg=totalFrom&&total?totalFrom/total:0;
+    return `<div class="card" style="margin-bottom:14px;">
+      <div class="ch">
+        <span class="ct">取得 ${ccy}　<span style="font-family:var(--mono);color:var(--gn);">${sym}${F(total,isJPY?0:2)}</span>
+        ${avg?`<span style="font-size:10px;color:var(--tx3);margin-left:8px;">加權均匯 ${avg.toFixed(4)}</span>`:''}
+        </span>
+        <span style="font-size:11px;color:var(--tx3)">${rows.length} 筆</span>
+      </div>
+      <div class="tw"><table style="font-size:11px;">
+        <thead><tr>
+          <th>日期</th><th>銀行</th><th>換匯方向</th>
+          <th class="right">支出金額</th><th class="right">匯率</th><th class="right">取得金額</th>
+          <th>備註</th><th></th>
+        </tr></thead>
+        <tbody>
+          ${rows.map(r=>`<tr>
+            <td class="mono" style="white-space:nowrap">${r.date}</td>
+            <td style="white-space:nowrap;color:var(--tx2)">${r.bank||r.note?.split('、')[0]||'—'}</td>
+            <td><span style="font-size:10px;background:var(--sur2);padding:2px 6px;border-radius:4px;white-space:nowrap">${pairLabel(r)}</span></td>
+            <td class="mono right">${fromSym(r)}${F(r.twd,fromCcy(r)==='JPY'?0:2)}</td>
+            <td class="mono right">${r.rate}</td>
+            <td class="mono right" style="color:var(--gn);font-weight:600">${toSym(r)}${F(r.foreign,isJPY?0:2)}</td>
+            <td style="color:var(--tx2);font-size:11px">${r.note||'—'}</td>
+            <td style="white-space:nowrap">
+              <button class="btn btnsm" onclick="editFxLog(${r.id})">編輯</button>
+              <button class="btn btnsm" style="margin-left:3px" onclick="delFxLog(${r.id})">刪除</button>
+            </td>
+          </tr>`).join('')}
+        </tbody>
+      </table></div>
+    </div>`;
+  }).join('');
+}
+
+function fxfPairChange(){
+  const pair=document.getElementById('fxf-pair').value;
+  const p=PAIRS[pair]||PAIRS['TWD-USD'];
+  document.getElementById('fxf-from-label').textContent=p.fromLabel+' *';
+  document.getElementById('fxf-from-sym').textContent=p.fromSym;
+  document.getElementById('fxf-to-label').textContent=p.toLabel+'（自動）';
+  document.getElementById('fxf-to-sym').textContent=p.toSym;
+  document.getElementById('fxf-rate-hint').textContent=p.hint;
+  document.getElementById('fxf-rate').placeholder=p.placeholder;
+  fxfCalc();
 }
 
 function openFxForm(id){
@@ -1224,43 +1311,55 @@ function openFxForm(id){
     const r=FXL.find(x=>x.id===id);
     if(r){
       document.getElementById('fxf-date').value=r.date;
-      document.getElementById('fxf-ccy').value=r.ccy;
+      document.getElementById('fxf-bank').value=r.bank||'';
+      document.getElementById('fxf-pair').value=r.pair||'TWD-USD';
       document.getElementById('fxf-twd').value=r.twd;
       document.getElementById('fxf-rate').value=r.rate;
       document.getElementById('fxf-note').value=r.note||'';
-      fxfCalc();
+      fxfPairChange();fxfCalc();
     }
   } else {
     document.getElementById('fxf-date').value=new Date().toISOString().slice(0,10);
-    document.getElementById('fxf-ccy').value='USD';
+    document.getElementById('fxf-bank').value='';
+    document.getElementById('fxf-pair').value='TWD-USD';
     ['fxf-twd','fxf-rate','fxf-note'].forEach(x=>document.getElementById(x).value='');
     document.getElementById('fxf-foreign').value='';
+    fxfPairChange();
   }
   form.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 function closeFxForm(){document.getElementById('fxlog-form').style.display='none';}
+
 function fxfCalc(){
-  const twd=parseFloat(document.getElementById('fxf-twd').value)||0;
+  const from=parseFloat(document.getElementById('fxf-twd').value)||0;
   const rate=parseFloat(document.getElementById('fxf-rate').value)||0;
-  const ccy=document.getElementById('fxf-ccy').value;
-  const foreign=rate?twd/rate:0;
-  document.getElementById('fxf-foreign').value=foreign?(ccy==='JPY'?'¥'+F(foreign,0):'$'+F(foreign,2)):'';
+  const pair=document.getElementById('fxf-pair').value;
+  const p=PAIRS[pair]||PAIRS['TWD-USD'];
+  const foreign=from&&rate?from*rate:0;
+  const sym=p.toSym;
+  const isJPY=p.toCcy==='JPY';
+  document.getElementById('fxf-foreign').value=foreign?(sym+F(foreign,isJPY?0:4)):'';
 }
+
 function saveFxLog(){
   const date=document.getElementById('fxf-date').value;
-  const ccy=document.getElementById('fxf-ccy').value;
-  const twd=parseFloat(document.getElementById('fxf-twd').value)||0;
+  const bank=document.getElementById('fxf-bank').value.trim();
+  const pair=document.getElementById('fxf-pair').value;
+  const from=parseFloat(document.getElementById('fxf-twd').value)||0;
   const rate=parseFloat(document.getElementById('fxf-rate').value)||0;
-  if(!date||!twd||!rate){alert('請填寫日期、台幣金額及匯率');return;}
-  const foreign=twd/rate;
+  if(!date||!from||!rate){alert('請填寫日期、支出金額及匯率');return;}
+  const p=PAIRS[pair]||PAIRS['TWD-USD'];
+  const foreign=from*rate;
   const note=document.getElementById('fxf-note').value.trim();
   const eid=document.getElementById('fxf-id').value;
+  const rec={date,bank,pair,twd:from,rate,foreign,note,
+    fromCcy:p.fromCcy,toCcy:p.toCcy,fromSym:p.fromSym,toSym:p.toSym,ccy:p.toCcy};
   if(eid){
     const idx=FXL.findIndex(x=>x.id===parseInt(eid));
-    if(idx>=0)FXL[idx]={...FXL[idx],date,ccy,twd,rate,foreign,note};
+    if(idx>=0)FXL[idx]={...FXL[idx],...rec};
   } else {
     const nid=Math.max(0,...FXL.map(x=>x.id),0)+1;
-    FXL.push({id:nid,date,ccy,twd,rate,foreign,note});
+    FXL.push({id:nid,...rec});
   }
   saveFXL();closeFxForm();rFxLog();
 }

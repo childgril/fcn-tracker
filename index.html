@@ -917,6 +917,13 @@ function rHoldTrack(){
             <div style="color:var(--rd);font-size:14px">$${F(totalToRecover,0)}</div>
             <div style="font-size:9px;color:var(--rd);font-weight:400">≈ NT$${F(Math.round(totalToRecover*fx))}</div>
           </div>
+          ${curVal?`
+          <div style="color:var(--tx3);font-size:14px;font-weight:300">→</div>
+          <div style="text-align:center;background:${totalToRecover>curVal?'rgba(139,38,53,.08)':'rgba(45,106,79,.08)'};border-radius:6px;padding:4px 12px;">
+            <div style="font-size:9px;color:${totalToRecover>curVal?'var(--rd)':'var(--gn)'};font-weight:400;font-family:var(--sans);letter-spacing:.05em;margin-bottom:2px">${totalToRecover>curVal?'目前虧損':'目前獲利'}</div>
+            <div style="color:${totalToRecover>curVal?'var(--rd)':'var(--gn)'};font-size:14px;font-weight:700">${totalToRecover>curVal?'-':'+'} $${F(Math.abs(totalToRecover-curVal),0)}</div>
+            <div style="font-size:9px;color:${totalToRecover>curVal?'var(--rd)':'var(--gn)'};font-weight:400">≈ ${totalToRecover>curVal?'-':'+'}NT$${F(Math.round(Math.abs(totalToRecover-curVal)*fx))}</div>
+          </div>`:''}
         </div>
         <button class="btn btnsm" onclick="openHoldPanel(${d.id})" style="background:var(--gdl);border-color:var(--gd);color:var(--gd);white-space:nowrap;align-self:center">✎ 編輯</button>
       </div>

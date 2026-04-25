@@ -123,6 +123,40 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
 .rmb:hover{background:var(--rdl);border-color:var(--rd);color:var(--rd);}
 .fa{display:flex;gap:10px;justify-content:flex-end;margin-top:6px;}
 .rg{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px;}
+/* Hold Track */
+.ht-card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);margin-bottom:16px;overflow:hidden;}
+.ht-hd{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;background:var(--gdl);border-bottom:1px solid #e8cc9a;flex-wrap:wrap;gap:8px;}
+.ht-hd-left h3{font-size:14px;font-weight:600;color:var(--gd);}
+.ht-hd-left p{font-size:11px;color:var(--tx2);margin-top:2px;}
+.ht-hd-right{text-align:right;}
+.ht-hd-right .ht-face{font-size:13px;font-weight:600;font-family:var(--mono);}
+.ht-hd-right .ht-int{font-size:11px;color:var(--gn);margin-top:1px;}
+.ht-body{padding:0;}
+.ht-info-row{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-bottom:1px solid var(--bdr);}
+.ht-info-cell{padding:10px 14px;border-right:1px solid var(--bdr);}
+.ht-info-cell:last-child{border-right:none;}
+.ht-info-cell .lbl{font-size:9px;font-weight:600;color:var(--tx3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px;}
+.ht-info-cell .val{font-family:var(--mono);font-size:13px;font-weight:600;}
+.ht-info-cell .val.gn{color:var(--gn);}
+.ht-info-cell .val.rd{color:var(--rd);}
+.ht-info-cell .val.gd{color:var(--gd);}
+.ht-stock-row{display:grid;grid-template-columns:140px 1fr 1fr 1fr 1fr 1fr;border-bottom:1px solid var(--bdr);align-items:center;}
+.ht-stock-row:last-child{border-bottom:none;}
+.ht-stock-row.hdr{background:var(--sur2);}
+.ht-stock-row.hdr span{font-size:9px;font-weight:600;color:var(--tx3);letter-spacing:.05em;text-transform:uppercase;padding:6px 12px;}
+.ht-stock-row .sc{padding:10px 12px;font-size:12px;}
+.ht-stock-name{font-weight:600;font-size:12px;}
+.ht-price-bar{height:6px;border-radius:100px;background:var(--sur2);margin-top:4px;overflow:hidden;position:relative;}
+.ht-price-fill{height:100%;border-radius:100px;background:var(--gn);}
+.progress-danger .ht-price-fill{background:var(--rd);}
+.progress-warn .ht-price-fill{background:var(--gd);}
+.ht-breakeven-box{padding:12px 18px;background:var(--sur2);border-top:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.ht-be-item{text-align:center;}
+.ht-be-label{font-size:9px;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;}
+.ht-be-val{font-size:16px;font-weight:700;font-family:var(--mono);}
+.ht-be-val.gn{color:var(--gn);}
+.ht-be-val.rd{color:var(--rd);}
+.ht-be-val.gd{color:var(--gd);}
 .bg{margin-bottom:9px;}
 .bl2{display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;}
 .bl2 span:last-child{font-family:var(--mono);font-weight:500;}
@@ -147,6 +181,7 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
     <div class="ni active" onclick="showSec('dashboard')"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1" opacity=".9"/><rect x="9" y="1" width="6" height="6" rx="1" opacity=".5"/><rect x="1" y="9" width="6" height="6" rx="1" opacity=".5"/><rect x="9" y="9" width="6" height="6" rx="1" opacity=".9"/></svg>總覽</div>
     <div class="ni" onclick="showSec('list')"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="3" width="14" height="2" rx="1"/><rect x="1" y="7" width="14" height="2" rx="1" opacity=".6"/><rect x="1" y="11" width="9" height="2" rx="1" opacity=".4"/></svg>投資清單</div>
     <div class="ni" onclick="showSec('interest')"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2" stroke-linecap="round"/></svg>利息紀錄</div>
+    <div class="ni" onclick="showSec('holdtrack')"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12l4-4 3 3 5-6" stroke-linecap="round" stroke-linejoin="round"/></svg>承接股票追蹤</div>
     <div class="ni" onclick="showSec('add')"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v6M5 8h6" stroke-linecap="round"/></svg>新增投資</div>
     <div class="ni" onclick="showSec('report')"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="9" width="3" height="6" rx="1" opacity=".5"/><rect x="6" y="6" width="3" height="9" rx="1" opacity=".7"/><rect x="11" y="2" width="3" height="13" rx="1"/></svg>報表分析</div>
   </div>
@@ -249,6 +284,15 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
 <div id="sec-interest" class="sec">
   <div class="ph"><div><div class="pt">利息紀錄</div><div class="ps">點擊格子切換已收 / 待收</div></div></div>
   <div id="int-list"></div>
+</div>
+
+<!-- HOLD TRACK -->
+<div id="sec-holdtrack" class="sec">
+  <div class="ph">
+    <div><div class="pt">承接股票追蹤</div><div class="ps">狀態為「承接股票」的投資，即時比對回本價格</div></div>
+    <button class="btn btnsm" id="ht-refresh" onclick="refreshHoldTrack()">↻ 更新股價</button>
+  </div>
+  <div id="ht-list"></div>
 </div>
 
 <!-- ADD -->
@@ -445,11 +489,12 @@ function showSec(n){
   document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.ni').forEach(x=>x.classList.remove('active'));
   document.getElementById('sec-'+n).classList.add('active');
-  const m={dashboard:0,list:1,interest:2,add:3,report:4};
+  const m={dashboard:0,list:1,interest:2,holdtrack:3,add:4,report:5};
   if(m[n]!==undefined)document.querySelectorAll('.ni')[m[n]].classList.add('active');
   if(n==='dashboard')rdash();
   else if(n==='list')rlist();
   else if(n==='interest')rint();
+  else if(n==='holdtrack')rHoldTrack();
   else if(n==='add')resetF();
   else if(n==='report')rrep();
 }
@@ -787,6 +832,134 @@ function rrep(){
   </tr>`).join('');
 }
 
+// ── HOLD TRACK ───────────────────────────────────────────────
+async function refreshHoldTrack(){
+  const btn=document.getElementById('ht-refresh');
+  if(btn){btn.textContent='更新中…';btn.disabled=true;}
+  const holdItems=D.filter(d=>d.status==='hold');
+  const syms=[...new Set(holdItems.flatMap(d=>d.stocks.map(s=>s.name).filter(n=>!/^\d/.test(n))))];
+  priceCache={};
+  await Promise.all([fetchFX(), fetchPrices(syms)]);
+  if(btn){btn.textContent='↻ 更新股價';btn.disabled=false;}
+  rHoldTrack();
+}
+
+function rHoldTrack(){
+  const holdItems=D.filter(d=>d.status==='hold').sort((a,b)=>b.date.localeCompare(a.date));
+  const el=document.getElementById('ht-list');
+  const fx=getFX();
+  if(!holdItems.length){
+    el.innerHTML=`<div style="text-align:center;padding:48px;color:var(--tx3);font-size:13px">目前沒有承接股票的投資紀錄</div>`;
+    return;
+  }
+  el.innerHTML=holdItems.map(d=>{
+    const hd=d.holdDetail||{};
+    const paidUSD=(d.paidDates||[]).length*d.monthly;
+    const refund=hd.refund||0;
+    const shares=hd.shares||0;
+    const amt=hd.amt||0;
+    const totalToRecover=d.face-paidUSD-refund;
+    const breakevenPrice=shares>0?totalToRecover/shares:0;
+    const stockSym=hd.stock||'';
+    const curPrice=stockSym&&priceCache[stockSym]?priceCache[stockSym]:0;
+    const selStock=d.stocks.find(s=>s.name===stockSym);
+    const gap=curPrice&&breakevenPrice?curPrice-breakevenPrice:null;
+    const gapPct=gap!==null&&breakevenPrice?(gap/breakevenPrice*100):null;
+    const reached=gap!==null&&gap>=0;
+    const curVal=curPrice&&shares?curPrice*shares:0;
+    const curValTWD=curVal*fx;
+    const totalToRecoverTWD=totalToRecover*fx;
+    let barPct=0,barCls='progress-danger';
+    if(curPrice&&breakevenPrice){
+      barPct=Math.min((curPrice/breakevenPrice)*100,100);
+      if(barPct>=100)barCls='';
+      else if(barPct>=75)barCls='progress-warn';
+    }
+    const stockRows=d.stocks.map(s=>{
+      const sp=priceCache[s.name];
+      const isSel=s.name===stockSym;
+      const belowAki=sp&&s.aki&&sp<s.aki;
+      const belowStrike=sp&&s.strike&&sp<s.strike;
+      const pct=sp&&s.buy?((sp-s.buy)/s.buy*100):null;
+      const spColor=belowAki?'color:var(--rd);font-weight:700':belowStrike?'color:var(--gd)':'color:var(--gn)';
+      return `<div class="ht-stock-row" style="${isSel?'background:#fffbf2;':''}">
+        <div class="sc" style="font-weight:600;${belowAki?'color:var(--rd)':''}">
+          ${s.name}
+          ${isSel?'<span style="font-size:9px;background:var(--gdl);color:var(--gd);padding:1px 5px;border-radius:3px;margin-left:4px;font-weight:700">承接中</span>':''}
+          ${belowAki?'<div style="font-size:9px;color:var(--rd)">⚠ 破保護價</div>':''}
+        </div>
+        <div class="sc mono right" style="${spColor}">
+          ${sp?'$'+F(sp,2):'<span style="color:var(--tx3)">—</span>'}
+          ${pct!==null?`<div style="font-size:9px;color:${pct>=0?'var(--gn)':'var(--rd)'}">${pct>=0?'+':''}${pct.toFixed(1)}%</div>`:''}
+        </div>
+        <div class="sc mono right">${s.buy?'$'+F(s.buy,2):'—'}</div>
+        <div class="sc mono right" style="color:var(--rd)">${s.aki?'$'+F(s.aki,2):'—'}</div>
+        <div class="sc mono right" style="color:var(--bl)">${s.strike?'$'+F(s.strike,2):'—'}</div>
+        <div class="sc mono right" style="color:var(--tx2)">${s.exit?'$'+F(s.exit,2):'—'}</div>
+      </div>`;
+    }).join('');
+    const hasDetail=shares>0&&stockSym;
+    return `<div class="ht-card">
+      <div class="ht-hd">
+        <div class="ht-hd-left"><h3>${d.bank}</h3><p>買進 ${d.date}　到期 ${d.maturity||'—'}　${d.term}　Coupon ${d.coupon}%</p></div>
+        <div class="ht-hd-right">
+          <div class="ht-face">面額 $${F(d.face)}</div>
+          <div class="ht-int">已領利息 $${F(paidUSD,2)} ≈ NT$${F(Math.round(paidUSD*fx))}</div>
+        </div>
+      </div>
+      <div class="ht-info-row">
+        <div class="ht-info-cell"><div class="lbl">承接股票</div><div class="val ${stockSym?'':'cmu'}">${stockSym||'未填'}</div></div>
+        <div class="ht-info-cell"><div class="lbl">承接股數</div><div class="val">${shares?F(shares)+' 股':'—'}</div></div>
+        <div class="ht-info-cell"><div class="lbl">承接金額</div><div class="val">${amt?'$'+F(amt,0):'—'}</div></div>
+        <div class="ht-info-cell"><div class="lbl">退款餘額</div><div class="val gn">${refund?'$'+F(refund,0):'—'}</div></div>
+      </div>
+      <div class="ht-stock-row hdr">
+        <span>股票</span><span style="text-align:right">目前股價</span><span style="text-align:right">買進價</span>
+        <span style="text-align:right;color:var(--rd)">保護價</span><span style="text-align:right;color:var(--bl)">執行價</span><span style="text-align:right">出場價</span>
+      </div>
+      ${stockRows}
+      ${hasDetail?`
+      <div class="ht-breakeven-box">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;flex:1;">
+          <div class="ht-be-item">
+            <div class="ht-be-label">需回本金額</div>
+            <div class="ht-be-val" style="font-size:14px">$${F(totalToRecover,0)}</div>
+            <div style="font-size:9px;color:var(--tx3)">≈ NT$${F(Math.round(totalToRecoverTWD))}</div>
+          </div>
+          <div class="ht-be-item">
+            <div class="ht-be-label">回本需要股價</div>
+            <div class="ht-be-val ${reached?'gn':'rd'}" style="font-size:18px">$${F(breakevenPrice,2)}</div>
+            <div style="font-size:9px;color:var(--tx3)">${shares}股 × $${F(breakevenPrice,2)}</div>
+          </div>
+          <div class="ht-be-item">
+            <div class="ht-be-label">目前持股市值</div>
+            <div class="ht-be-val ${reached?'gn':curVal>totalToRecover*0.85?'gd':'rd'}" style="font-size:14px">${curPrice?'$'+F(curVal,0):'—'}</div>
+            <div style="font-size:9px;color:var(--tx3)">${curPrice?'≈ NT$'+F(Math.round(curValTWD)):'—'}</div>
+          </div>
+        </div>
+        <div style="flex:1;max-width:320px;padding-left:18px;border-left:1px solid var(--bdr);">
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--tx3);margin-bottom:4px;">
+            <span>目前 ${curPrice?'$'+F(curPrice,2):'—'}</span>
+            <span>回本 $${F(breakevenPrice,2)}</span>
+          </div>
+          <div class="ht-price-bar ${barCls}"><div class="ht-price-fill" style="width:${barPct.toFixed(1)}%;transition:width .4s ease"></div></div>
+          <div style="font-size:11px;font-weight:600;margin-top:8px;text-align:center;padding:6px 12px;border-radius:var(--r);background:${reached?'var(--gnl)':barPct>=75?'var(--gdl)':'var(--rdl)'};color:${reached?'var(--gn)':barPct>=75?'var(--gd)':'var(--rd)'}">
+            ${gap!==null?(reached?`✓ 已超過回本價 $${F(Math.abs(gap),2)}（+${gapPct.toFixed(1)}%）`:`距回本還差 $${F(Math.abs(gap),2)}（${gapPct.toFixed(1)}%）`):'目前股價未取得'}
+          </div>
+          ${curPrice&&selStock?.aki?`<div style="font-size:10px;color:var(--tx3);margin-top:4px;text-align:center">保護價 $${F(selStock.aki,2)} · ${curPrice<selStock.aki?'<span style="color:var(--rd)">⚠ 已破保護價</span>':'<span style="color:var(--gn)">✓ 高於保護價</span>'}</div>`:''}
+        </div>
+        <div style="padding-left:12px;"><button class="btn btnsm" onclick="openHoldPanel(${d.id})" style="background:var(--gdl);border-color:var(--gd);color:var(--gd);white-space:nowrap">✎ 編輯明細</button></div>
+      </div>
+      ${hd.note?`<div style="padding:8px 18px;font-size:11px;color:var(--tx2);border-top:1px solid var(--bdr);background:var(--sur2)">備註：${hd.note}</div>`:''}
+      `:`
+      <div class="ht-breakeven-box" style="justify-content:center;gap:12px;">
+        <span style="font-size:12px;color:var(--tx3)">尚未填入承接明細</span>
+        <button class="btn btnsm" onclick="openHoldPanel(${d.id})" style="background:var(--gdl);border-color:var(--gd);color:var(--gd)">填入承接明細 →</button>
+      </div>`}
+    </div>`;
+  }).join('');
+}
+
 // ── HOLD PANEL ──────────────────────────────────────────────
 let hpId=null;
 function openHoldPanel(id){
@@ -863,6 +1036,7 @@ function saveHoldDetail(){
   save();
   closeHoldPanel();
   if(document.getElementById('sec-list').classList.contains('active'))rlist();
+  if(document.getElementById('sec-holdtrack').classList.contains('active'))rHoldTrack();
 }
 
 document.getElementById('last-update').textContent=localStorage.getItem('fcnlast')||'首次載入';

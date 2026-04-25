@@ -168,6 +168,29 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
 .mb2 h3{font-size:16px;font-weight:600;margin-bottom:10px;}
 .mba{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;}
 .cg{color:var(--gn);}.cr{color:var(--rd);}.cb{color:var(--bl);}.cgd{color:var(--gd);}.cmu{color:var(--tx3);}
+/* interest cross-table */
+.int-wrap{overflow-x:auto;border:1px solid var(--bdr);border-radius:var(--rl);background:var(--sur);margin-bottom:0;}
+.int-table{border-collapse:collapse;font-size:11px;white-space:nowrap;}
+.int-table th,.int-table td{border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);padding:0;}
+.int-table tr:last-child td,.int-table tr:last-child th{border-bottom:none;}
+.int-table th:last-child,.int-table td:last-child{border-right:none;}
+/* frozen left columns */
+.int-table .fc{position:sticky;left:0;z-index:2;background:var(--sur2);}
+.int-table .fc2{position:sticky;left:var(--fc1w,160px);z-index:2;background:var(--sur2);}
+.int-table thead th.fc,.int-table thead th.fc2{z-index:4;background:var(--sur2);}
+.int-sidebar-cell{padding:5px 10px;font-size:11px;min-width:60px;}
+.int-info-hd{padding:5px 10px;font-size:9px;font-weight:700;color:var(--tx3);letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;background:var(--sur2);}
+.int-month-hd{padding:5px 10px;font-size:10px;font-weight:600;text-align:center;background:var(--sur2);min-width:64px;}
+.int-cell{padding:0;width:64px;min-width:64px;text-align:center;cursor:pointer;vertical-align:middle;}
+.int-cell-inner{padding:6px 4px;font-size:10px;line-height:1.3;height:100%;}
+.int-cell.paid .int-cell-inner{background:var(--gnl);}
+.int-cell.pend .int-cell-inner{background:var(--gdl);}
+.int-cell.skip .int-cell-inner{background:var(--sur2);}
+.int-cell.paid .int-cell-inner .ia{color:var(--gn);font-weight:600;}
+.int-cell.pend .int-cell-inner .ia{color:var(--gd);font-weight:600;}
+.int-cell.skip .int-cell-inner .ia{color:var(--tx3);}
+.int-cell:hover .int-cell-inner{filter:brightness(.96);}
+.int-sep td,.int-sep th{border-top:2px solid var(--bdr)!important;}
 @media(max-width:900px){.sb{width:180px;}.main{margin-left:180px;padding:18px;}.mr{grid-template-columns:1fr 1fr;}}
 @media(max-width:600px){.sb{display:none;}.main{margin-left:0;padding:14px;}.mr{grid-template-columns:1fr 1fr;}.fg,.fg3,.fg4{grid-template-columns:1fr;}}
 @media print{.sb{display:none;}.main{margin-left:0;}.btn{display:none;}}
@@ -268,8 +291,8 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
       <th>帳戶</th>
       <th>買進日</th>
       <th>到期日</th>
-      <th class="right">投資面額</th>
-      <th>連結股票</th>
+      <th class="right" style="width:90px">投資面額</th>
+      <th style="width:120px;text-align:center">連結股票</th>
       <th class="right">目前價格</th>
       <th class="right">買進價格</th>
       <th class="right" style="color:var(--rd)">保護價 E/AKI</th>
@@ -283,7 +306,7 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
 
 <!-- INTEREST -->
 <div id="sec-interest" class="sec">
-  <div class="ph"><div><div class="pt">利息紀錄</div><div class="ps">點擊格子切換已收 / 待收</div></div></div>
+  <div class="ph"><div><div class="pt">利息紀錄</div><div class="ps">點擊月份格子切換已收 / 待收　左側欄凍結，橫向滾動查看月份</div></div></div>
   <div id="int-list"></div>
 </div>
 
@@ -828,9 +851,9 @@ function renderListTable(rows){
         <td style="white-space:nowrap;font-size:11px">${i===0?d.bank:''}</td>
         <td class="mono" style="white-space:nowrap;font-size:11px">${i===0?d.date:''}</td>
         <td class="mono" style="white-space:nowrap;font-size:11px;color:var(--tx2)">${i===0?(d.maturity||'—'):''}</td>
-        <td class="mono right" style="white-space:nowrap">${i===0?(SY(d.ccy)+F(d.face)):''}</td>
-        <td style="font-weight:600;${belowAki?'color:var(--rd)':''}">${s.name}
-          ${belowAki?'<span style="font-size:9px;background:#faeaec;color:var(--rd);padding:1px 5px;border-radius:4px;margin-left:4px;font-weight:700">⚠ 破保護價</span>':''}
+        <td class="mono right" style="white-space:nowrap;width:88px;font-size:11px">${i===0?(SY(d.ccy)+F(d.face)):''}</td>
+        <td style="font-weight:600;text-align:center;width:110px;${belowAki?'color:var(--rd)':''}">${s.name}
+          ${belowAki?'<div style="font-size:9px;background:#faeaec;color:var(--rd);padding:1px 5px;border-radius:4px;font-weight:700">⚠ 破保護價</div>':''}
         </td>
         <td class="mono right" style="${priceColor}white-space:nowrap">
           <input type="number"
@@ -857,22 +880,85 @@ function filt(v,btn){cf=v;document.querySelectorAll('.fb').forEach(b=>b.classLis
 
 function rint(){
   const rows=[...D].sort((a,b)=>b.date.localeCompare(a.date));
-  document.getElementById('int-list').innerHTML=rows.map(d=>{
-    const cells=d.payDates.map(dt=>{
-      const paid=(d.paidDates||[]).includes(dt);
-      return `<div class="ic ${paid?'paid':'pend'}" onclick="togPaid(${d.id},'${dt}')">
-        <div class="im">${dt}</div><div class="ia">${SY(d.ccy)}${F(d.monthly,0)}</div>
-        <div class="is">${paid?'✓ 已收':'待收'}</div></div>`;
-    }).join('');
-    const pAmt=(d.paidDates||[]).length*d.monthly;
-    return `<div class="ib">
-      <div class="ibh">
-        <div><span class="ibt">${d.date}</span>&nbsp;${tags(d.stocks)}<span style="font-size:11px;color:var(--tx3);margin-left:6px">${d.bank}</span></div>
-        <div class="ibm">已收 ${SY(d.ccy)}${F(pAmt,0)} / 預計 ${SY(d.ccy)}${F(d.payDates.length*d.monthly,0)} · ${d.payDates.length}期</div>
-      </div>
-      <div class="ig">${cells}</div>
-    </div>`;
-  }).join('');
+  if(!rows.length){document.getElementById('int-list').innerHTML='<div style="text-align:center;padding:48px;color:var(--tx3)">尚無投資紀錄</div>';return;}
+
+  // collect all unique payDates across all investments, sort chronologically
+  const allDatesSet=new Set();
+  rows.forEach(d=>d.payDates.forEach(dt=>allDatesSet.add(dt)));
+  // sort dates: parse M/D
+  const parseDate=s=>{const[m,day]=s.split('/');return parseInt(m)*100+parseInt(day);};
+  const allDates=[...allDatesSet].sort((a,b)=>parseDate(a)-parseDate(b));
+
+  // sidebar info columns: 8 fields
+  const sideFields=[
+    {key:'status', label:'狀態', render:d=>bdg(d.status)},
+    {key:'bank',   label:'帳戶', render:d=>`<span style="font-size:10px">${d.bank}</span>`},
+    {key:'date',   label:'買進日', render:d=>`<span class="mono" style="font-size:10px">${d.date}</span>`},
+    {key:'ccy',    label:'幣別', render:d=>d.ccy==='JPY'?'<span class="badge bj" style="font-size:9px">JPY</span>':d.ccy},
+    {key:'face',   label:'投資面額', render:d=>`<span class="mono" style="font-size:10px">${SY(d.ccy)}${F(d.face)}</span>`},
+    {key:'coupon', label:'利率', render:d=>`<span style="color:var(--bl);font-size:10px">${d.coupon}%</span>`},
+    {key:'term',   label:'期限', render:d=>`<span style="font-size:10px">${d.term}</span>`},
+    {key:'monthly',label:'月配息', render:d=>`<span class="mono" style="font-size:10px;color:var(--gn)">${SY(d.ccy)}${F(d.monthly,0)}</span>`},
+    {key:'paid',   label:'已收利息', render:d=>{const p=(d.paidDates||[]).length*d.monthly;return`<span class="mono" style="font-size:10px;color:var(--gn)">${SY(d.ccy)}${F(p,0)}</span>`;}},
+    {key:'pdates', label:'配息日', render:d=>`<span style="font-size:9px;color:var(--tx2);line-height:1.4">${d.payDates.join('、')}</span>`},
+  ];
+
+  // each sideField = 1 row in the table; sidebar cell width
+  const SW=150; // px for the label column
+  const DW=64;  // px per month column
+
+  let html=`<div class="int-wrap"><table class="int-table" style="--fc1w:${SW}px">`;
+
+  // HEADER ROW: sidebar label + month headers
+  html+=`<thead><tr>
+    <th class="int-info-hd fc" style="min-width:${SW}px;width:${SW}px">投資資訊</th>
+    ${allDates.map(dt=>`<th class="int-month-hd">${dt}</th>`).join('')}
+  </tr></thead>`;
+
+  html+=`<tbody>`;
+  rows.forEach((d,ri)=>{
+    const paidSet=new Set(d.paidDates||[]);
+    const paySet=new Set(d.payDates||[]);
+
+    sideFields.forEach((sf,fi)=>{
+      const isFirst=fi===0;
+      const isLast=fi===sideFields.length-1;
+      html+=`<tr${isFirst?' class="int-sep"':''}>`;
+      // sidebar cell
+      html+=`<td class="fc int-sidebar-cell" style="min-width:${SW}px;width:${SW}px;border-left:${isFirst?'3px solid var(--gd)':'3px solid transparent'};${isFirst?'padding-top:8px':''}${isLast?';padding-bottom:8px':''}">`;
+      if(fi===0){
+        html+=`<div style="font-size:9px;font-weight:600;color:var(--tx3);letter-spacing:.05em;text-transform:uppercase;margin-bottom:3px">${sf.label}</div>`;
+        html+=`<div>${sf.render(d)}</div>`;
+      } else {
+        html+=`<div style="display:flex;align-items:flex-start;gap:6px"><span style="font-size:9px;color:var(--tx3);white-space:nowrap;min-width:48px;padding-top:1px">${sf.label}</span><span>${sf.render(d)}</span></div>`;
+      }
+      html+=`</td>`;
+
+      // month cells — only show on first sideField row (rowspan behaviour via JS)
+      allDates.forEach(dt=>{
+        if(fi===0){
+          const isPay=paySet.has(dt);
+          const isPaid=paidSet.has(dt);
+          if(isPay){
+            html+=`<td class="int-cell ${isPaid?'paid':'pend'}" rowspan="${sideFields.length}" onclick="togPaid(${d.id},'${dt}')" style="vertical-align:middle">
+              <div class="int-cell-inner">
+                <div class="ia" style="font-family:var(--mono)">${SY(d.ccy)}${F(d.monthly,0)}</div>
+                <div style="font-size:9px;margin-top:2px;color:${isPaid?'var(--gn)':'var(--gd)'}">${isPaid?'✓ 已收':'待收'}</div>
+              </div>
+            </td>`;
+          } else {
+            html+=`<td class="int-cell skip" rowspan="${sideFields.length}" style="vertical-align:middle">
+              <div class="int-cell-inner"><span style="font-size:10px;color:var(--tx3)">—</span></div>
+            </td>`;
+          }
+        }
+        // fi>0: cells already covered by rowspan
+      });
+      html+=`</tr>`;
+    });
+  });
+  html+=`</tbody></table></div>`;
+  document.getElementById('int-list').innerHTML=html;
 }
 function togPaid(id,dt){const d=D.find(x=>x.id===id);if(!d)return;if(!d.paidDates)d.paidDates=[];if(d.paidDates.includes(dt))d.paidDates=d.paidDates.filter(x=>x!==dt);else d.paidDates.push(dt);save();rint();}
 

@@ -494,7 +494,12 @@ function showSec(n){
   if(n==='dashboard')rdash();
   else if(n==='list')rlist();
   else if(n==='interest')rint();
-  else if(n==='holdtrack')rHoldTrack();
+  else if(n==='holdtrack'){
+    rHoldTrack(); // render immediately with cached prices
+    // fetch latest prices for hold stocks then re-render
+    const holdSyms=[...new Set(D.filter(d=>d.status==='hold').flatMap(d=>d.stocks.map(s=>s.name).filter(n=>!/^\d/.test(n))))];
+    fetchPrices(holdSyms).then(()=>rHoldTrack());
+  }
   else if(n==='add')resetF();
   else if(n==='report')rrep();
 }
@@ -849,7 +854,7 @@ function rHoldTrack(){
   const el=document.getElementById('ht-list');
   const fx=getFX();
   if(!holdItems.length){
-    el.innerHTML=`<div style="text-align:center;padding:48px;color:var(--tx3);font-size:13px">目前沒有承接股票的投資紀錄</div>`;
+    el.innerHTML='<div style="text-align:center;padding:48px;color:var(--tx3);font-size:13px">目前沒有承接股票的投資紀錄</div>';
     return;
   }
   el.innerHTML=holdItems.map(d=>{
@@ -862,100 +867,95 @@ function rHoldTrack(){
     const breakevenPrice=shares>0?totalToRecover/shares:0;
     const stockSym=hd.stock||'';
     const curPrice=stockSym&&priceCache[stockSym]?priceCache[stockSym]:0;
-    const selStock=d.stocks.find(s=>s.name===stockSym);
     const gap=curPrice&&breakevenPrice?curPrice-breakevenPrice:null;
     const gapPct=gap!==null&&breakevenPrice?(gap/breakevenPrice*100):null;
     const reached=gap!==null&&gap>=0;
     const curVal=curPrice&&shares?curPrice*shares:0;
-    const curValTWD=curVal*fx;
-    const totalToRecoverTWD=totalToRecover*fx;
-    let barPct=0,barCls='progress-danger';
-    if(curPrice&&breakevenPrice){
-      barPct=Math.min((curPrice/breakevenPrice)*100,100);
-      if(barPct>=100)barCls='';
-      else if(barPct>=75)barCls='progress-warn';
-    }
-    const stockRows=d.stocks.map(s=>{
-      const sp=priceCache[s.name];
-      const isSel=s.name===stockSym;
-      const belowAki=sp&&s.aki&&sp<s.aki;
-      const belowStrike=sp&&s.strike&&sp<s.strike;
-      const pct=sp&&s.buy?((sp-s.buy)/s.buy*100):null;
-      const spColor=belowAki?'color:var(--rd);font-weight:700':belowStrike?'color:var(--gd)':'color:var(--gn)';
-      return `<div class="ht-stock-row" style="${isSel?'background:#fffbf2;':''}">
-        <div class="sc" style="font-weight:600;${belowAki?'color:var(--rd)':''}">
-          ${s.name}
-          ${isSel?'<span style="font-size:9px;background:var(--gdl);color:var(--gd);padding:1px 5px;border-radius:3px;margin-left:4px;font-weight:700">承接中</span>':''}
-          ${belowAki?'<div style="font-size:9px;color:var(--rd)">⚠ 破保護價</div>':''}
-        </div>
-        <div class="sc mono right" style="${spColor}">
-          ${sp?'$'+F(sp,2):'<span style="color:var(--tx3)">—</span>'}
-          ${pct!==null?`<div style="font-size:9px;color:${pct>=0?'var(--gn)':'var(--rd)'}">${pct>=0?'+':''}${pct.toFixed(1)}%</div>`:''}
-        </div>
-        <div class="sc mono right">${s.buy?'$'+F(s.buy,2):'—'}</div>
-        <div class="sc mono right" style="color:var(--rd)">${s.aki?'$'+F(s.aki,2):'—'}</div>
-        <div class="sc mono right" style="color:var(--bl)">${s.strike?'$'+F(s.strike,2):'—'}</div>
-        <div class="sc mono right" style="color:var(--tx2)">${s.exit?'$'+F(s.exit,2):'—'}</div>
-      </div>`;
-    }).join('');
     const hasDetail=shares>0&&stockSym;
+
+    // gap display
+    let gapHtml='—';
+    if(gap!==null){
+      const col=reached?'var(--gn)':Math.abs(gapPct)<15?'var(--gd)':'var(--rd)';
+      gapHtml=`<span style="color:${col};font-weight:600">${reached?'+':''}$${F(Math.abs(gap),2)}</span>`
+              +`<div style="font-size:9px;color:${col}">${reached?'✓ 已超回本':''} ${gapPct!==null?(reached?'+':'')+gapPct.toFixed(1)+'%':''}</div>`;
+    }
+
+    // progress bar for gap column
+    let barHtml='';
+    if(curPrice&&breakevenPrice){
+      const pct=Math.min((curPrice/breakevenPrice)*100,100);
+      const barCol=pct>=100?'var(--gn)':pct>=75?'var(--gd)':'var(--rd)';
+      barHtml=`<div style="height:4px;background:var(--sur2);border-radius:2px;margin-top:4px;overflow:hidden"><div style="height:100%;width:${pct.toFixed(0)}%;background:${barCol};border-radius:2px"></div></div>`;
+    }
+
     return `<div class="ht-card">
-      <div class="ht-hd">
-        <div class="ht-hd-left"><h3>${d.bank}</h3><p>買進 ${d.date}　到期 ${d.maturity||'—'}　${d.term}　Coupon ${d.coupon}%</p></div>
-        <div class="ht-hd-right">
-          <div class="ht-face">面額 $${F(d.face)}</div>
-          <div class="ht-int">已領利息 $${F(paidUSD,2)} ≈ NT$${F(Math.round(paidUSD*fx))}</div>
+      <!-- Header row -->
+      <div class="ht-hd" style="padding:10px 16px;gap:0;align-items:stretch;">
+        <div class="ht-hd-left" style="min-width:150px;padding-right:16px;border-right:1px solid rgba(200,150,62,.3);">
+          <h3 style="font-size:13px">${d.bank}</h3>
+          <p style="font-size:10px;color:var(--tx2);margin-top:3px;">買進 ${d.date}<br>到期 ${d.maturity||'—'}　${d.term}<br>利率 Coupon ${d.coupon}%</p>
         </div>
-      </div>
-      <div class="ht-info-row">
-        <div class="ht-info-cell"><div class="lbl">承接股票</div><div class="val ${stockSym?'':'cmu'}">${stockSym||'未填'}</div></div>
-        <div class="ht-info-cell"><div class="lbl">承接股數</div><div class="val">${shares?F(shares)+' 股':'—'}</div></div>
-        <div class="ht-info-cell"><div class="lbl">承接金額</div><div class="val">${amt?'$'+F(amt,0):'—'}</div></div>
-        <div class="ht-info-cell"><div class="lbl">退款餘額</div><div class="val gn">${refund?'$'+F(refund,0):'—'}</div></div>
-      </div>
-      <div class="ht-stock-row hdr">
-        <span>股票</span><span style="text-align:right">目前股價</span><span style="text-align:right">買進價</span>
-        <span style="text-align:right;color:var(--rd)">保護價</span><span style="text-align:right;color:var(--bl)">執行價</span><span style="text-align:right">出場價</span>
-      </div>
-      ${stockRows}
-      ${hasDetail?`
-      <div class="ht-breakeven-box">
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;flex:1;">
-          <div class="ht-be-item">
-            <div class="ht-be-label">需回本金額</div>
-            <div class="ht-be-val" style="font-size:14px">$${F(totalToRecover,0)}</div>
-            <div style="font-size:9px;color:var(--tx3)">≈ NT$${F(Math.round(totalToRecoverTWD))}</div>
+        <div style="display:flex;align-items:center;flex:1;padding:0 16px;gap:6px;font-family:var(--mono);font-size:12px;font-weight:600;flex-wrap:wrap;">
+          <div style="text-align:center;padding:0 10px;">
+            <div style="font-size:9px;color:var(--tx3);font-weight:400;font-family:var(--sans);letter-spacing:.05em;margin-bottom:2px">面額</div>
+            <div style="color:var(--gd)">$${F(d.face,0)}</div>
           </div>
-          <div class="ht-be-item">
-            <div class="ht-be-label">回本需要股價</div>
-            <div class="ht-be-val ${reached?'gn':'rd'}" style="font-size:18px">$${F(breakevenPrice,2)}</div>
-            <div style="font-size:9px;color:var(--tx3)">${shares}股 × $${F(breakevenPrice,2)}</div>
+          <div style="color:var(--tx3);font-size:14px;font-weight:300">－</div>
+          <div style="text-align:center;padding:0 10px;">
+            <div style="font-size:9px;color:var(--tx3);font-weight:400;font-family:var(--sans);letter-spacing:.05em;margin-bottom:2px">已領利息</div>
+            <div style="color:var(--gn)">$${F(paidUSD,2)}</div>
           </div>
-          <div class="ht-be-item">
-            <div class="ht-be-label">目前持股市值</div>
-            <div class="ht-be-val ${reached?'gn':curVal>totalToRecover*0.85?'gd':'rd'}" style="font-size:14px">${curPrice?'$'+F(curVal,0):'—'}</div>
-            <div style="font-size:9px;color:var(--tx3)">${curPrice?'≈ NT$'+F(Math.round(curValTWD)):'—'}</div>
+          <div style="color:var(--tx3);font-size:14px;font-weight:300">－</div>
+          <div style="text-align:center;padding:0 10px;">
+            <div style="font-size:9px;color:var(--tx3);font-weight:400;font-family:var(--sans);letter-spacing:.05em;margin-bottom:2px">已退款</div>
+            <div style="color:var(--gn)">$${F(refund,0)}</div>
+          </div>
+          <div style="color:var(--tx3);font-size:14px;font-weight:300">=</div>
+          <div style="text-align:center;background:rgba(139,38,53,.06);border-radius:6px;padding:4px 12px;">
+            <div style="font-size:9px;color:var(--rd);font-weight:400;font-family:var(--sans);letter-spacing:.05em;margin-bottom:2px">需回本</div>
+            <div style="color:var(--rd);font-size:14px">$${F(totalToRecover,0)}</div>
+            <div style="font-size:9px;color:var(--rd);font-weight:400">≈ NT$${F(Math.round(totalToRecover*fx))}</div>
           </div>
         </div>
-        <div style="flex:1;max-width:320px;padding-left:18px;border-left:1px solid var(--bdr);">
-          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--tx3);margin-bottom:4px;">
-            <span>目前 ${curPrice?'$'+F(curPrice,2):'—'}</span>
-            <span>回本 $${F(breakevenPrice,2)}</span>
-          </div>
-          <div class="ht-price-bar ${barCls}"><div class="ht-price-fill" style="width:${barPct.toFixed(1)}%;transition:width .4s ease"></div></div>
-          <div style="font-size:11px;font-weight:600;margin-top:8px;text-align:center;padding:6px 12px;border-radius:var(--r);background:${reached?'var(--gnl)':barPct>=75?'var(--gdl)':'var(--rdl)'};color:${reached?'var(--gn)':barPct>=75?'var(--gd)':'var(--rd)'}">
-            ${gap!==null?(reached?`✓ 已超過回本價 $${F(Math.abs(gap),2)}（+${gapPct.toFixed(1)}%）`:`距回本還差 $${F(Math.abs(gap),2)}（${gapPct.toFixed(1)}%）`):'目前股價未取得'}
-          </div>
-          ${curPrice&&selStock?.aki?`<div style="font-size:10px;color:var(--tx3);margin-top:4px;text-align:center">保護價 $${F(selStock.aki,2)} · ${curPrice<selStock.aki?'<span style="color:var(--rd)">⚠ 已破保護價</span>':'<span style="color:var(--gn)">✓ 高於保護價</span>'}</div>`:''}
-        </div>
-        <div style="padding-left:12px;"><button class="btn btnsm" onclick="openHoldPanel(${d.id})" style="background:var(--gdl);border-color:var(--gd);color:var(--gd);white-space:nowrap">✎ 編輯明細</button></div>
+        <button class="btn btnsm" onclick="openHoldPanel(${d.id})" style="background:var(--gdl);border-color:var(--gd);color:var(--gd);white-space:nowrap;align-self:center">✎ 編輯</button>
       </div>
-      ${hd.note?`<div style="padding:8px 18px;font-size:11px;color:var(--tx2);border-top:1px solid var(--bdr);background:var(--sur2)">備註：${hd.note}</div>`:''}
-      `:`
-      <div class="ht-breakeven-box" style="justify-content:center;gap:12px;">
-        <span style="font-size:12px;color:var(--tx3)">尚未填入承接明細</span>
-        <button class="btn btnsm" onclick="openHoldPanel(${d.id})" style="background:var(--gdl);border-color:var(--gd);color:var(--gd)">填入承接明細 →</button>
-      </div>`}
+      <!-- Table -->
+      <div class="tw">
+        <table style="font-size:11px;">
+          <thead><tr>
+            <th>承接股票</th>
+            <th class="right">承接股數</th>
+            <th class="right">承接金額</th>
+            <th class="right">回本股價</th>
+            <th class="right">目前股價</th>
+            <th class="right">回本總金額</th>
+            <th class="right">目前市值</th>
+            <th class="right">差距</th>
+          </tr></thead>
+          <tbody>
+            ${hasDetail?`<tr>
+              <td style="font-weight:600">${stockSym}</td>
+              <td class="mono right">${F(shares)} 股</td>
+              <td class="mono right">$${F(amt,0)}</td>
+              <td class="mono right ${reached?'cg':'cr'}" style="font-weight:700">$${F(breakevenPrice,2)}</td>
+              <td class="mono right" style="color:${curPrice?(reached?'var(--gn)':Math.abs(gapPct||0)<15?'var(--gd)':'var(--rd)'):'var(--tx3)'}">
+                ${curPrice?'$'+F(curPrice,2):'—'}
+              </td>
+              <td class="mono right">$${F(totalToRecover,0)}<div style="font-size:9px;color:var(--tx3)">≈ NT$${F(Math.round(totalToRecover*fx))}</div></td>
+              <td class="mono right" style="color:${curVal?(reached?'var(--gn)':curVal>totalToRecover*0.85?'var(--gd)':'var(--rd)'):'var(--tx3)'}">
+                ${curVal?'$'+F(curVal,0):'—'}
+                ${curVal?`<div style="font-size:9px;color:var(--tx3)">≈ NT$${F(Math.round(curVal*fx))}</div>`:''}
+              </td>
+              <td class="mono right">${gapHtml}${barHtml}</td>
+            </tr>
+            ${hd.note?`<tr><td colspan="8" style="font-size:10px;color:var(--tx2);background:var(--sur2);padding:5px 10px">備註：${hd.note}</td></tr>`:''}
+            `:`<tr><td colspan="8" style="text-align:center;color:var(--tx3);padding:14px 0">
+              尚未填入承接明細　<button class="btn btnsm" onclick="openHoldPanel(${d.id})" style="background:var(--gdl);border-color:var(--gd);color:var(--gd)">填入 →</button>
+            </td></tr>`}
+          </tbody>
+        </table>
+      </div>
     </div>`;
   }).join('');
 }

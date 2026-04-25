@@ -6,723 +6,571 @@
 <title>FCN 投資管理系統</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg: #f5f4f0;
-  --surface: #ffffff;
-  --surface2: #f0ede8;
-  --border: #e0dbd3;
-  --text: #1a1816;
-  --text2: #6b6560;
-  --text3: #a09a94;
-  --accent: #2a4a3e;
-  --accent2: #4a7c6a;
-  --gold: #c8963e;
-  --gold-light: #fdf3e3;
-  --green: #2d6a4f;
-  --green-light: #eaf4ee;
-  --red: #8b2635;
-  --red-light: #faeaec;
-  --blue: #1e3a5f;
-  --blue-light: #e8f0f8;
-  --mono: 'DM Mono', monospace;
-  --sans: 'Noto Sans TC', sans-serif;
-  --radius: 8px;
-  --radius-lg: 14px;
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: var(--sans); background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; line-height: 1.6; }
-
-/* LAYOUT */
-.shell { display: flex; min-height: 100vh; }
-.sidebar { width: 220px; background: var(--accent); padding: 0; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; bottom: 0; z-index: 100; }
-.sidebar-logo { padding: 24px 20px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-.sidebar-logo h1 { font-size: 15px; font-weight: 700; color: #fff; letter-spacing: 0.05em; }
-.sidebar-logo p { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 2px; }
-.sidebar-nav { padding: 16px 0; flex: 1; }
-.nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 20px; cursor: pointer; color: rgba(255,255,255,0.65); font-size: 13px; font-weight: 400; transition: all 0.15s; border-left: 3px solid transparent; }
-.nav-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
-.nav-item.active { background: rgba(255,255,255,0.12); color: #fff; border-left-color: var(--gold); font-weight: 500; }
-.nav-icon { width: 16px; height: 16px; opacity: 0.8; }
-.sidebar-footer { padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 11px; color: rgba(255,255,255,0.35); }
-.main { margin-left: 220px; padding: 32px 36px; min-height: 100vh; }
-
-/* HEADER */
-.page-header { margin-bottom: 28px; display: flex; align-items: flex-end; justify-content: space-between; }
-.page-title { font-size: 22px; font-weight: 700; color: var(--text); }
-.page-sub { font-size: 13px; color: var(--text2); margin-top: 3px; }
-.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; font-size: 13px; font-family: var(--sans); font-weight: 500; transition: all 0.15s; }
-.btn:hover { background: var(--surface2); }
-.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
-.btn-primary:hover { background: var(--accent2); border-color: var(--accent2); }
-
-/* METRICS */
-.metric-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
-.metric { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; }
-.metric-label { font-size: 11px; font-weight: 500; color: var(--text3); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 8px; }
-.metric-value { font-size: 24px; font-weight: 700; color: var(--text); font-family: var(--mono); }
-.metric-sub { font-size: 11px; color: var(--text3); margin-top: 6px; }
-.metric-value.green { color: var(--green); }
-.metric-value.gold { color: var(--gold); }
-.metric-value.blue { color: var(--blue); }
-
-/* CARD */
-.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 24px; }
-.card-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-.card-title { font-size: 14px; font-weight: 600; color: var(--text); }
-.card-body { padding: 0; }
-
-/* TABLE */
-.table-wrap { overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; }
-th { padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text3); letter-spacing: 0.05em; text-transform: uppercase; background: var(--surface2); border-bottom: 1px solid var(--border); white-space: nowrap; }
-td { padding: 11px 14px; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--text); vertical-align: middle; }
-tr:last-child td { border-bottom: none; }
-tr:hover td { background: #fafaf8; }
-.mono { font-family: var(--mono); }
-.right { text-align: right; }
-
-/* BADGES */
-.badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 100px; letter-spacing: 0.04em; }
-.badge-active { background: var(--green-light); color: var(--green); }
-.badge-closed { background: var(--surface2); color: var(--text3); }
-.badge-hold { background: var(--gold-light); color: var(--gold); }
-.badge-ko { background: var(--blue-light); color: var(--blue); }
-.tag { display: inline-block; font-size: 11px; padding: 2px 7px; background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; color: var(--text2); margin: 1px; }
-
-/* COLORS */
-.c-green { color: var(--green); }
-.c-red { color: var(--red); }
-.c-blue { color: var(--blue); }
-.c-gold { color: var(--gold); }
-.c-muted { color: var(--text3); }
-
-/* SECTIONS */
-.section { display: none; }
-.section.active { display: block; }
-
-/* FILTER ROW */
-.filter-row { display: flex; gap: 8px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
-.filter-btn { padding: 5px 14px; border-radius: 100px; border: 1px solid var(--border); background: var(--surface); font-size: 12px; font-weight: 500; color: var(--text2); cursor: pointer; transition: all 0.15s; font-family: var(--sans); }
-.filter-btn.active, .filter-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
-
-/* INTEREST GRID */
-.interest-block { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 16px; overflow: hidden; }
-.interest-block-header { padding: 14px 18px; background: var(--surface2); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
-.interest-block-title { font-size: 13px; font-weight: 600; }
-.interest-block-meta { font-size: 12px; color: var(--text2); }
-.interest-months { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; padding: 16px 18px; }
-@media (max-width: 700px) { .interest-months { grid-template-columns: repeat(3, 1fr); } }
-.int-cell { border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 8px; text-align: center; }
-.int-cell.paid { background: var(--green-light); border-color: #b7dfc9; }
-.int-cell.pending { background: var(--gold-light); border-color: #e8cc9a; }
-.int-cell .m { font-size: 10px; color: var(--text3); margin-bottom: 4px; }
-.int-cell.paid .m { color: var(--green); }
-.int-cell .a { font-size: 13px; font-weight: 600; font-family: var(--mono); }
-.int-cell.paid .a { color: var(--green); }
-.int-cell.pending .a { color: var(--gold); }
-.int-cell .s { font-size: 10px; margin-top: 3px; }
-.int-cell.paid .s { color: var(--green); }
-.int-cell.pending .s { color: var(--gold); }
-
-/* FORM */
-.form-page { max-width: 780px; }
-.form-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px 24px; margin-bottom: 16px; }
-.form-section-title { font-size: 12px; font-weight: 600; color: var(--text3); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 16px; }
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
-.form-group { display: flex; flex-direction: column; gap: 5px; }
-.form-group.span2 { grid-column: span 2; }
-.form-group label { font-size: 11px; font-weight: 600; color: var(--text2); letter-spacing: 0.04em; }
-input, select, textarea { width: 100%; padding: 8px 11px; border: 1px solid var(--border); border-radius: var(--radius); font-family: var(--sans); font-size: 13px; color: var(--text); background: var(--bg); transition: border 0.15s; outline: none; }
-input:focus, select:focus, textarea:focus { border-color: var(--accent2); background: var(--surface); }
-.stock-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px; align-items: end; }
-.stock-row-header { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 10px; margin-bottom: 6px; }
-.stock-row-header span { font-size: 10px; font-weight: 600; color: var(--text3); letter-spacing: 0.04em; text-transform: uppercase; }
-.remove-btn { background: none; border: 1px solid var(--border); color: var(--text3); cursor: pointer; padding: 8px 10px; border-radius: var(--radius); font-size: 12px; }
-.remove-btn:hover { background: var(--red-light); border-color: var(--red); color: var(--red); }
-.form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px; }
-
-/* REPORT */
-.report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
-.chart-bar-group { margin-bottom: 12px; }
-.chart-bar-label { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; }
-.chart-bar-label span:first-child { color: var(--text2); }
-.chart-bar-label span:last-child { font-family: var(--mono); font-weight: 500; }
-.chart-bar-track { height: 7px; background: var(--surface2); border-radius: 100px; overflow: hidden; }
-.chart-bar-fill { height: 100%; border-radius: 100px; background: var(--accent2); }
-
-/* MODAL */
-.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 200; align-items: center; justify-content: center; }
-.modal-overlay.open { display: flex; }
-.modal { background: var(--surface); border-radius: var(--radius-lg); padding: 24px; width: 480px; max-width: 95vw; max-height: 90vh; overflow-y: auto; }
-.modal h3 { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
-.modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
-
-/* EMPTY */
-.empty-state { text-align: center; padding: 48px 24px; color: var(--text3); }
-.empty-state p { font-size: 14px; margin-top: 8px; }
-
-/* RESPONSIVE */
-@media (max-width: 900px) {
-  .sidebar { width: 180px; }
-  .main { margin-left: 180px; padding: 20px; }
-  .metric-row { grid-template-columns: 1fr 1fr; }
-}
-@media (max-width: 600px) {
-  .sidebar { display: none; }
-  .main { margin-left: 0; padding: 16px; }
-  .metric-row { grid-template-columns: 1fr 1fr; }
-  .form-grid, .form-grid-3 { grid-template-columns: 1fr; }
-}
-
-/* PRINT */
-@media print {
-  .sidebar { display: none; }
-  .main { margin-left: 0; }
-  .btn { display: none; }
-}
+:root{--bg:#f5f4f0;--sur:#fff;--sur2:#f0ede8;--bdr:#e0dbd3;--tx:#1a1816;--tx2:#6b6560;--tx3:#a09a94;--ac:#2a4a3e;--ac2:#4a7c6a;--gd:#c8963e;--gdl:#fdf3e3;--gn:#2d6a4f;--gnl:#eaf4ee;--rd:#8b2635;--rdl:#faeaec;--bl:#1e3a5f;--bll:#e8f0f8;--pu:#4a2d6a;--pul:#f0eaf8;--mono:'DM Mono',monospace;--sans:'Noto Sans TC',sans-serif;--r:8px;--rl:14px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--sans);background:var(--bg);color:var(--tx);min-height:100vh;font-size:14px;line-height:1.6;}
+.shell{display:flex;min-height:100vh;}
+.sb{width:220px;background:var(--ac);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;}
+.sbl{padding:22px 20px 16px;border-bottom:1px solid rgba(255,255,255,.1);}
+.sbl h1{font-size:15px;font-weight:700;color:#fff;letter-spacing:.05em;}
+.sbl p{font-size:11px;color:rgba(255,255,255,.4);margin-top:2px;}
+.sbn{padding:12px 0;flex:1;}
+.ni{display:flex;align-items:center;gap:10px;padding:10px 20px;cursor:pointer;color:rgba(255,255,255,.6);font-size:13px;transition:all .15s;border-left:3px solid transparent;}
+.ni:hover{background:rgba(255,255,255,.08);color:#fff;}
+.ni.active{background:rgba(255,255,255,.12);color:#fff;border-left-color:var(--gd);font-weight:500;}
+.ni svg{width:15px;height:15px;flex-shrink:0;}
+.sbf{padding:12px 20px;border-top:1px solid rgba(255,255,255,.1);font-size:11px;color:rgba(255,255,255,.3);}
+.main{margin-left:220px;padding:30px 34px;min-height:100vh;}
+.ph{margin-bottom:24px;display:flex;align-items:flex-end;justify-content:space-between;}
+.pt{font-size:21px;font-weight:700;}
+.ps{font-size:13px;color:var(--tx2);margin-top:3px;}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:8px 16px;border-radius:var(--r);border:1px solid var(--bdr);background:var(--sur);color:var(--tx);cursor:pointer;font-size:13px;font-family:var(--sans);font-weight:500;transition:all .15s;}
+.btn:hover{background:var(--sur2);}
+.btnp{background:var(--ac);color:#fff;border-color:var(--ac);}
+.btnp:hover{background:var(--ac2);border-color:var(--ac2);}
+.btnsm{padding:4px 10px;font-size:11px;}
+.mr{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
+.mc{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);padding:16px 18px;}
+.ml{font-size:10px;font-weight:600;color:var(--tx3);letter-spacing:.07em;text-transform:uppercase;margin-bottom:6px;}
+.mv{font-size:21px;font-weight:700;font-family:var(--mono);}
+.ms{font-size:11px;color:var(--tx3);margin-top:4px;}
+.mv.gn{color:var(--gn);}.mv.gd{color:var(--gd);}.mv.bl{color:var(--bl);}
+.card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);overflow:hidden;margin-bottom:20px;}
+.ch{padding:12px 18px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;}
+.ct{font-size:13px;font-weight:600;}
+.tw{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+th{padding:8px 12px;text-align:left;font-size:10px;font-weight:600;color:var(--tx3);letter-spacing:.05em;text-transform:uppercase;background:var(--sur2);border-bottom:1px solid var(--bdr);white-space:nowrap;}
+th[rowspan]{border-right:1px solid var(--bdr);}
+td{padding:9px 12px;border-bottom:1px solid var(--bdr);font-size:12px;color:var(--tx);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#fafaf8;}
+.mono{font-family:var(--mono);}
+.right{text-align:right;}
+.badge{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:100px;letter-spacing:.04em;white-space:nowrap;}
+.ba{background:var(--gnl);color:var(--gn);}
+.bc{background:var(--sur2);color:var(--tx3);}
+.bh{background:var(--gdl);color:var(--gd);}
+.bj{background:var(--pul);color:var(--pu);}
+.tag{display:inline-block;font-size:10px;padding:1px 6px;background:var(--sur2);border:1px solid var(--bdr);border-radius:4px;color:var(--tx2);margin:1px;white-space:nowrap;}
+.sec{display:none;}
+.sec.active{display:block;}
+.fr{display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap;}
+.fb{padding:5px 13px;border-radius:100px;border:1px solid var(--bdr);background:var(--sur);font-size:12px;font-weight:500;color:var(--tx2);cursor:pointer;transition:all .15s;font-family:var(--sans);}
+.fb.active,.fb:hover{background:var(--ac);color:#fff;border-color:var(--ac);}
+.ib{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);margin-bottom:12px;overflow:hidden;}
+.ibh{padding:11px 16px;background:var(--sur2);border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;}
+.ibt{font-size:13px;font-weight:600;}
+.ibm{font-size:11px;color:var(--tx2);}
+.ig{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;padding:12px 16px;}
+.ic{border:1px solid var(--bdr);border-radius:var(--r);padding:8px 6px;text-align:center;cursor:pointer;transition:all .15s;}
+.ic.paid{background:var(--gnl);border-color:#b7dfc9;}
+.ic.pend{background:var(--gdl);border-color:#e8cc9a;}
+.ic .im{font-size:10px;color:var(--tx3);margin-bottom:3px;}
+.ic.paid .im{color:var(--gn);}
+.ic .ia{font-size:11px;font-weight:600;font-family:var(--mono);}
+.ic.paid .ia{color:var(--gn);}
+.ic.pend .ia{color:var(--gd);}
+.ic .is{font-size:10px;margin-top:2px;}
+.ic.paid .is{color:var(--gn);}
+.ic.pend .is{color:var(--gd);}
+.fp{max-width:820px;}
+.fs{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);padding:16px 20px;margin-bottom:12px;}
+.fst{font-size:10px;font-weight:700;color:var(--tx3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+.fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px;}
+.fg4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:11px;}
+.fgrp{display:flex;flex-direction:column;gap:4px;}
+.fgrp.s2{grid-column:span 2;}
+.fgrp.s3{grid-column:span 3;}
+.fgrp.s4{grid-column:span 4;}
+.fgrp label{font-size:10px;font-weight:700;color:var(--tx2);letter-spacing:.03em;}
+.hint{font-size:10px;color:var(--tx3);margin-top:1px;}
+.twdpv{font-size:11px;color:var(--gn);font-weight:500;margin-top:2px;font-family:var(--mono);}
+input,select{width:100%;padding:7px 10px;border:1px solid var(--bdr);border-radius:var(--r);font-family:var(--sans);font-size:13px;color:var(--tx);background:var(--bg);transition:border .15s;outline:none;}
+input:focus,select:focus{border-color:var(--ac2);background:var(--sur);}
+input[readonly]{background:var(--sur2);color:var(--tx2);}
+.srh{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 28px;gap:8px;margin-bottom:4px;}
+.srh span{font-size:10px;font-weight:600;color:var(--tx3);letter-spacing:.04em;text-transform:uppercase;}
+.sr{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 28px;gap:8px;margin-bottom:8px;align-items:center;}
+.rmb{background:none;border:1px solid var(--bdr);color:var(--tx3);cursor:pointer;padding:5px 7px;border-radius:var(--r);font-size:11px;width:28px;}
+.rmb:hover{background:var(--rdl);border-color:var(--rd);color:var(--rd);}
+.fa{display:flex;gap:10px;justify-content:flex-end;margin-top:6px;}
+.rg{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px;}
+.bg{margin-bottom:9px;}
+.bl2{display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;}
+.bl2 span:last-child{font-family:var(--mono);font-weight:500;}
+.bt{height:6px;background:var(--sur2);border-radius:100px;overflow:hidden;}
+.bf{height:100%;border-radius:100px;background:var(--ac2);}
+.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:200;align-items:center;justify-content:center;}
+.mo.open{display:flex;}
+.mb2{background:var(--sur);border-radius:var(--rl);padding:22px;width:420px;max-width:95vw;}
+.mb2 h3{font-size:16px;font-weight:600;margin-bottom:10px;}
+.mba{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;}
+.cg{color:var(--gn);}.cr{color:var(--rd);}.cb{color:var(--bl);}.cgd{color:var(--gd);}.cmu{color:var(--tx3);}
+@media(max-width:900px){.sb{width:180px;}.main{margin-left:180px;padding:18px;}.mr{grid-template-columns:1fr 1fr;}}
+@media(max-width:600px){.sb{display:none;}.main{margin-left:0;padding:14px;}.mr{grid-template-columns:1fr 1fr;}.fg,.fg3,.fg4{grid-template-columns:1fr;}}
+@media print{.sb{display:none;}.main{margin-left:0;}.btn{display:none;}}
 </style>
 </head>
 <body>
-
 <div class="shell">
-<!-- SIDEBAR -->
-<nav class="sidebar">
-  <div class="sidebar-logo">
-    <h1>FCN 管理系統</h1>
-    <p>音－元大 投資追蹤</p>
+<nav class="sb">
+  <div class="sbl"><h1>FCN 管理系統</h1><p>音・林 投資追蹤</p></div>
+  <div class="sbn">
+    <div class="ni active" onclick="showSec('dashboard')"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1" opacity=".9"/><rect x="9" y="1" width="6" height="6" rx="1" opacity=".5"/><rect x="1" y="9" width="6" height="6" rx="1" opacity=".5"/><rect x="9" y="9" width="6" height="6" rx="1" opacity=".9"/></svg>總覽</div>
+    <div class="ni" onclick="showSec('list')"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="3" width="14" height="2" rx="1"/><rect x="1" y="7" width="14" height="2" rx="1" opacity=".6"/><rect x="1" y="11" width="9" height="2" rx="1" opacity=".4"/></svg>投資清單</div>
+    <div class="ni" onclick="showSec('interest')"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2" stroke-linecap="round"/></svg>利息紀錄</div>
+    <div class="ni" onclick="showSec('add')"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v6M5 8h6" stroke-linecap="round"/></svg>新增投資</div>
+    <div class="ni" onclick="showSec('report')"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="9" width="3" height="6" rx="1" opacity=".5"/><rect x="6" y="6" width="3" height="9" rx="1" opacity=".7"/><rect x="11" y="2" width="3" height="13" rx="1"/></svg>報表分析</div>
   </div>
-  <div class="sidebar-nav">
-    <div class="nav-item active" onclick="showSection('dashboard')">
-      <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6" height="6" rx="1" fill="currentColor" opacity="0.8"/><rect x="9" y="1" width="6" height="6" rx="1" fill="currentColor" opacity="0.5"/><rect x="1" y="9" width="6" height="6" rx="1" fill="currentColor" opacity="0.5"/><rect x="9" y="9" width="6" height="6" rx="1" fill="currentColor" opacity="0.8"/></svg>
-      總覽
-    </div>
-    <div class="nav-item" onclick="showSection('list')">
-      <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="2" rx="1" fill="currentColor"/><rect x="1" y="7" width="14" height="2" rx="1" fill="currentColor" opacity="0.6"/><rect x="1" y="11" width="9" height="2" rx="1" fill="currentColor" opacity="0.4"/></svg>
-      投資清單
-    </div>
-    <div class="nav-item" onclick="showSection('interest')">
-      <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-      利息紀錄
-    </div>
-    <div class="nav-item" onclick="showSection('add')">
-      <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v6M5 8h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-      新增投資
-    </div>
-    <div class="nav-item" onclick="showSection('report')">
-      <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><rect x="1" y="8" width="3" height="7" rx="1" fill="currentColor" opacity="0.5"/><rect x="6" y="5" width="3" height="10" rx="1" fill="currentColor" opacity="0.7"/><rect x="11" y="2" width="3" height="13" rx="1" fill="currentColor"/></svg>
-      報表分析
-    </div>
-  </div>
-  <div class="sidebar-footer">資料存於本機瀏覽器<br>最後更新：<span id="last-update">—</span></div>
+  <div class="sbf">資料存於本機瀏覽器<br>最後更新：<span id="last-update">—</span></div>
 </nav>
-
-<!-- MAIN -->
 <main class="main">
 
 <!-- DASHBOARD -->
-<div id="sec-dashboard" class="section active">
-  <div class="page-header">
-    <div>
-      <div class="page-title">投資總覽</div>
-      <div class="page-sub" id="dash-date">載入中…</div>
-    </div>
-    <button class="btn btn-primary" onclick="showSection('add')">＋ 新增投資</button>
+<div id="sec-dashboard" class="sec active">
+  <div class="ph">
+    <div><div class="pt">投資總覽</div><div class="ps" id="dash-date"></div></div>
+    <button class="btn btnp" onclick="showSec('add')">＋ 新增投資</button>
   </div>
-  <div class="metric-row" id="dash-metrics"></div>
+  <div class="mr" id="dash-m"></div>
+  <div class="fr">
+    <button class="fb active" onclick="dashFilt('all',this)">全部</button>
+    <button class="fb" onclick="dashFilt('active',this)">持有中</button>
+    <button class="fb" onclick="dashFilt('closed',this)">已出場</button>
+    <button class="fb" onclick="dashFilt('hold',this)">承接股票</button>
+    <button class="fb" onclick="dashFilt('yin',this)">音－帳戶</button>
+    <button class="fb" onclick="dashFilt('lin',this)">林－帳戶</button>
+  </div>
   <div class="card">
-    <div class="card-header">
-      <span class="card-title">最近投資紀錄</span>
-      <button class="btn" onclick="showSection('list')">查看全部 →</button>
+    <div class="ch">
+      <span class="ct">全部投資明細（最新在上）</span>
+      <span style="font-size:11px;color:var(--tx3)" id="dash-cnt"></span>
     </div>
-    <div class="card-body table-wrap">
+    <div class="tw">
       <table id="dash-table">
-        <thead><tr>
-          <th>狀態</th><th>買進日</th><th>連結股票</th><th>面額 USD</th><th>Coupon</th><th>月配息</th><th>報酬率</th>
-        </tr></thead>
-        <tbody id="dash-tbody"></tbody>
+        <thead>
+          <tr>
+            <th rowspan="2" style="vertical-align:middle">狀態</th>
+            <th rowspan="2" style="vertical-align:middle">帳戶</th>
+            <th rowspan="2" style="vertical-align:middle">買進日</th>
+            <th rowspan="2" style="vertical-align:middle">到期日</th>
+            <th rowspan="2" style="vertical-align:middle">賣出日</th>
+            <th rowspan="2" style="vertical-align:middle">連結股票</th>
+            <th rowspan="2" style="vertical-align:middle">幣別</th>
+            <th rowspan="2" class="right" style="vertical-align:middle">投資面額</th>
+            <th rowspan="2" class="right" style="vertical-align:middle">台幣成本</th>
+            <th rowspan="2" class="right" style="vertical-align:middle">匯率</th>
+            <th rowspan="2" class="right" style="vertical-align:middle">AKI</th>
+            <th rowspan="2" class="right" style="vertical-align:middle">Strike</th>
+            <th rowspan="2" class="right" style="vertical-align:middle">KO</th>
+            <th rowspan="2" class="right" style="vertical-align:middle">Coupon</th>
+            <th rowspan="2" style="vertical-align:middle">期限</th>
+            <th colspan="4" style="text-align:center;border-bottom:1px solid var(--bdr)">配息</th>
+            <th rowspan="2" class="right" style="vertical-align:middle">報酬率</th>
+          </tr>
+          <tr>
+            <th>配息日</th>
+            <th class="right">月配息</th>
+            <th class="right">總配息</th>
+            <th class="right">已領配息</th>
+          </tr>
+        </thead>
+        <tbody id="dash-tb"></tbody>
       </table>
     </div>
   </div>
 </div>
 
 <!-- LIST -->
-<div id="sec-list" class="section">
-  <div class="page-header">
-    <div>
-      <div class="page-title">投資清單</div>
-      <div class="page-sub" id="list-count">—</div>
-    </div>
-    <button class="btn btn-primary" onclick="showSection('add')">＋ 新增投資</button>
+<div id="sec-list" class="sec">
+  <div class="ph">
+    <div><div class="pt">投資清單</div><div class="ps" id="list-cnt"></div></div>
+    <button class="btn btnp" onclick="showSec('add')">＋ 新增投資</button>
   </div>
-  <div class="filter-row">
-    <button class="filter-btn active" onclick="filterList('all',this)">全部</button>
-    <button class="filter-btn" onclick="filterList('active',this)">持有中</button>
-    <button class="filter-btn" onclick="filterList('closed',this)">已出場</button>
-    <button class="filter-btn" onclick="filterList('hold',this)">承接股票</button>
+  <div class="fr">
+    <button class="fb active" onclick="filt('all',this)">全部</button>
+    <button class="fb" onclick="filt('active',this)">持有中</button>
+    <button class="fb" onclick="filt('closed',this)">已出場</button>
+    <button class="fb" onclick="filt('hold',this)">承接股票</button>
+    <button class="fb" onclick="filt('yin',this)">音－帳戶</button>
+    <button class="fb" onclick="filt('lin',this)">林－帳戶</button>
   </div>
-  <div class="card">
-    <div class="card-body table-wrap">
-      <table>
-        <thead><tr>
-          <th>狀態</th><th>買進日</th><th>銀行</th><th>連結股票</th>
-          <th class="right">面額 USD</th><th class="right">台幣成本</th><th class="right">匯率</th>
-          <th>Coupon</th><th>期限</th><th>Strike</th><th>KO</th>
-          <th class="right">總配息 USD</th><th class="right">總配息 TWD</th>
-          <th>出場狀況</th><th>報酬率</th><th></th>
-        </tr></thead>
-        <tbody id="list-tbody"></tbody>
-      </table>
-    </div>
-  </div>
+  <div class="card"><div class="tw"><table>
+    <thead><tr>
+      <th>狀態</th><th>買進日</th><th>帳戶</th><th>連結股票</th>
+      <th class="right">面額</th><th>幣別</th><th class="right">匯率</th><th class="right">台幣成本</th>
+      <th>Coupon</th><th>期限</th><th>到期日</th><th>實際出場日</th>
+      <th>AKI</th><th>Strike</th><th>KO</th>
+      <th class="right">月配息</th><th class="right">總配息</th><th>報酬率</th><th>備註</th><th></th>
+    </tr></thead>
+    <tbody id="list-tb"></tbody>
+  </table></div></div>
 </div>
 
 <!-- INTEREST -->
-<div id="sec-interest" class="section">
-  <div class="page-header">
-    <div>
-      <div class="page-title">利息紀錄</div>
-      <div class="page-sub">點擊月份格子可切換已收 / 待收</div>
-    </div>
-  </div>
-  <div id="interest-list"></div>
+<div id="sec-interest" class="sec">
+  <div class="ph"><div><div class="pt">利息紀錄</div><div class="ps">點擊格子切換已收 / 待收</div></div></div>
+  <div id="int-list"></div>
 </div>
 
 <!-- ADD -->
-<div id="sec-add" class="section">
-  <div class="page-header">
-    <div>
-      <div class="page-title" id="add-title">新增投資</div>
-      <div class="page-sub">填寫完整資料後儲存至本機</div>
-    </div>
-  </div>
-  <div class="form-page">
-    <input type="hidden" id="edit-id" value="">
-
-    <div class="form-section">
-      <div class="form-section-title">基本資訊</div>
-      <div class="form-grid">
-        <div class="form-group"><label>買進日期 *</label><input type="date" id="f-date"></div>
-        <div class="form-group"><label>投資銀行 *</label><input type="text" id="f-bank" placeholder="例：音－元大"></div>
-        <div class="form-group"><label>投資面額 (USD) *</label><input type="number" id="f-face" placeholder="10000"></div>
-        <div class="form-group"><label>換匯匯率</label><input type="number" id="f-fx" placeholder="32.75" step="0.01"></div>
-        <div class="form-group"><label>期限</label>
-          <select id="f-term"><option>3M</option><option>4M</option><option selected>6M</option><option>9M</option><option>12M</option></select>
-        </div>
-        <div class="form-group"><label>狀態</label>
-          <select id="f-status">
-            <option value="active">持有中</option>
-            <option value="closed">已出場</option>
-            <option value="hold">承接股票</option>
+<div id="sec-add" class="sec">
+  <div class="ph"><div><div class="pt" id="add-title">新增投資</div><div class="ps">填寫後儲存至本機瀏覽器</div></div></div>
+  <div class="fp">
+    <input type="hidden" id="eid">
+    <div class="fs">
+      <div class="fst">基本資訊</div>
+      <div class="fg">
+        <div class="fgrp"><label>買進日期 *</label><input type="date" id="f-date"></div>
+        <div class="fgrp"><label>帳戶 / 銀行 *</label><input type="text" id="f-bank" placeholder="例：音－元大"></div>
+        <div class="fgrp"><label>投資幣別</label>
+          <select id="f-ccy" onchange="updTWD()">
+            <option value="USD">USD 美元</option>
+            <option value="JPY">JPY 日圓</option>
+            <option value="TWD">TWD 台幣</option>
           </select>
         </div>
-        <div class="form-group"><label>評價日</label><input type="date" id="f-eval-date"></div>
-        <div class="form-group"><label>出場日</label><input type="date" id="f-exit-date"></div>
-        <div class="form-group span2"><label>備註</label><input type="text" id="f-note" placeholder="例：5/15 開始比價，9/15 評價日"></div>
+        <div class="fgrp"><label>投資面額 *</label><input type="number" id="f-face" placeholder="10000" oninput="updTWD()"></div>
+        <div class="fgrp"><label>換匯匯率</label><input type="number" id="f-fx" placeholder="32.75" step="0.0001" oninput="updTWD()">
+          <div class="hint">USD→TWD ≈ 32.x　JPY→TWD ≈ 0.22</div>
+        </div>
+        <div class="fgrp"><label>台幣成本（自動 = 面額 × 匯率）</label>
+          <input type="text" id="f-twd" readonly>
+          <div class="twdpv" id="twd-pv"></div>
+        </div>
+        <div class="fgrp"><label>期限</label>
+          <select id="f-term"><option>3M</option><option>4M</option><option selected>6M</option><option>9M</option><option>12M</option></select>
+        </div>
+        <div class="fgrp"><label>狀態</label>
+          <select id="f-status"><option value="active">持有中</option><option value="closed">已出場</option><option value="hold">承接股票</option></select>
+        </div>
+        <div class="fgrp"><label>合約到期日</label><input type="date" id="f-mat"></div>
+        <div class="fgrp"><label>實際出場日（提早 KO 等）</label><input type="date" id="f-exit"></div>
+        <div class="fgrp"><label>KO 比價開始日</label><input type="date" id="f-kos"></div>
+        <div class="fgrp"><label>評價日</label><input type="date" id="f-eval"></div>
+        <div class="fgrp s2"><label>備註</label><input type="text" id="f-note" placeholder="例：保息2個月、7/2開始比價"></div>
+        <div class="fgrp"><label>ISIN</label><input type="text" id="f-isin" placeholder="XS..."></div>
       </div>
     </div>
-
-    <div class="form-section">
-      <div class="form-section-title">票券條件</div>
-      <div class="form-grid-3">
-        <div class="form-group"><label>利率 Coupon (年化%)</label><input type="number" id="f-coupon" placeholder="12" step="0.01"></div>
-        <div class="form-group"><label>保護價 AKI (%)</label><input type="number" id="f-aki" placeholder="65" step="0.01"></div>
-        <div class="form-group"><label>承購價 Strike (%)</label><input type="number" id="f-strike" placeholder="76.55" step="0.01"></div>
-        <div class="form-group"><label>KO 比價 (%)</label><input type="number" id="f-ko" placeholder="105" step="0.01"></div>
-        <div class="form-group"><label>KO 比價開始日</label><input type="date" id="f-ko-start"></div>
-        <div class="form-group"><label>ISIN</label><input type="text" id="f-isin" placeholder="XS..."></div>
+    <div class="fs">
+      <div class="fst">票券條件</div>
+      <div class="fg4">
+        <div class="fgrp"><label>Coupon 年化 (%)</label><input type="number" id="f-coupon" placeholder="12" step="0.01"></div>
+        <div class="fgrp"><label>保護價 AKI (%)</label><input type="number" id="f-aki" placeholder="65" step="0.01"></div>
+        <div class="fgrp"><label>承購價 Strike (%)</label><input type="number" id="f-strike" placeholder="75" step="0.01"></div>
+        <div class="fgrp"><label>KO 比價 (%)</label><input type="number" id="f-ko" placeholder="105" step="0.01"></div>
       </div>
     </div>
-
-    <div class="form-section">
-      <div class="form-section-title">連結股票</div>
-      <div class="stock-row-header">
-        <span>股票名稱</span><span>買進價</span><span>下限價 AKI</span><span>執行價 Strike</span><span>出廠價</span>
-      </div>
-      <div id="stocks-container"></div>
-      <button class="btn" onclick="addStockRow()" style="margin-top:4px; font-size:12px;">＋ 新增股票</button>
+    <div class="fs">
+      <div class="fst">連結股票</div>
+      <div class="srh"><span>股票名稱</span><span>買進價</span><span>下限價 AKI</span><span>執行價 Strike</span><span>出廠價</span><span></span></div>
+      <div id="stocks-con"></div>
+      <button class="btn btnsm" onclick="addSR()">＋ 新增股票</button>
     </div>
-
-    <div class="form-section">
-      <div class="form-section-title">配息設定</div>
-      <div class="form-grid">
-        <div class="form-group"><label>月配息金額 (USD)</label><input type="number" id="f-monthly" placeholder="100" step="0.01"></div>
-        <div class="form-group"><label>配息頻率</label>
+    <div class="fs">
+      <div class="fst">配息設定</div>
+      <div class="fg">
+        <div class="fgrp"><label>月配息金額（原幣）</label><input type="number" id="f-mo" placeholder="100" step="0.01" oninput="calcTot()"></div>
+        <div class="fgrp"><label>配息頻率</label>
           <select id="f-freq"><option value="monthly">月配</option><option value="quarterly">季配</option><option value="maturity">到期一次</option></select>
         </div>
-        <div class="form-group span2"><label>配息日（逗號分隔，如 2/21, 3/20, 4/18）</label><input type="text" id="f-dates" placeholder="2/21, 3/20, 4/18, 5/20"></div>
-        <div class="form-group span2"><label>已收配息日期（逗號分隔）</label><input type="text" id="f-paid-dates" placeholder="2/21, 3/20"></div>
+        <div class="fgrp s2"><label>配息日（逗號分隔，如 2/21, 3/20）</label><input type="text" id="f-pd" placeholder="2/21, 3/20, 4/18"></div>
+        <div class="fgrp s2"><label>已收配息日（逗號分隔）</label><input type="text" id="f-paid" placeholder="2/21, 3/20" oninput="calcTot()"></div>
+        <div class="fgrp"><label>總配息（原幣，自動）</label><input type="text" id="f-tot" readonly></div>
+        <div class="fgrp"><label>總配息台幣（自動）</label><input type="text" id="f-tottwd" readonly></div>
+        <div class="fgrp"><label>實際報酬率（自動）</label><input type="text" id="f-rate" readonly></div>
       </div>
     </div>
-
-    <div class="form-actions">
+    <div class="fa">
       <button class="btn" onclick="cancelEdit()">取消</button>
-      <button class="btn btn-primary" onclick="saveRecord()">儲存紀錄</button>
+      <button class="btn btnp" onclick="saveRec()">儲存紀錄</button>
     </div>
   </div>
 </div>
 
 <!-- REPORT -->
-<div id="sec-report" class="section">
-  <div class="page-header">
-    <div>
-      <div class="page-title">報表分析</div>
-      <div class="page-sub">歷史投資績效匯總</div>
-    </div>
-    <button class="btn" onclick="window.print()">列印報表</button>
+<div id="sec-report" class="sec">
+  <div class="ph">
+    <div><div class="pt">報表分析</div><div class="ps">歷史績效匯總</div></div>
+    <button class="btn" onclick="window.print()">列印</button>
   </div>
-  <div class="metric-row" id="report-metrics"></div>
-  <div class="report-grid">
-    <div class="card">
-      <div class="card-header"><span class="card-title">各筆報酬率比較</span></div>
-      <div class="card-body" style="padding:20px;" id="report-bars"></div>
-    </div>
-    <div class="card">
-      <div class="card-header"><span class="card-title">連結股票出現次數</span></div>
-      <div class="card-body" style="padding:20px;" id="report-stocks"></div>
-    </div>
+  <div class="mr" id="rep-m"></div>
+  <div class="rg">
+    <div class="card"><div class="ch"><span class="ct">各筆報酬率</span></div><div style="padding:16px" id="rep-bars"></div></div>
+    <div class="card"><div class="ch"><span class="ct">連結股票出現次數</span></div><div style="padding:16px" id="rep-stk"></div></div>
   </div>
-  <div class="card">
-    <div class="card-header"><span class="card-title">完整績效紀錄</span></div>
-    <div class="card-body table-wrap">
-      <table>
-        <thead><tr>
-          <th>買進日</th><th>面額 USD</th><th>Coupon</th><th>期限</th>
-          <th class="right">台幣成本</th><th class="right">總配息 USD</th><th class="right">總配息 TWD</th>
-          <th>報酬率</th><th>出場類型</th>
-        </tr></thead>
-        <tbody id="report-tbody"></tbody>
-      </table>
-    </div>
+  <div class="card"><div class="ch"><span class="ct">完整績效紀錄</span></div>
+    <div class="tw"><table>
+      <thead><tr><th>買進日</th><th>帳戶</th><th class="right">面額</th><th>幣別</th><th class="right">台幣成本</th><th>Coupon</th><th>期限</th><th>到期日</th><th>出場日</th><th class="right">總配息 USD</th><th>報酬率</th><th>狀態</th></tr></thead>
+      <tbody id="rep-tb"></tbody>
+    </table></div>
   </div>
 </div>
 
 </main>
 </div>
 
-<!-- MODAL -->
-<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
-  <div class="modal">
-    <h3 id="modal-title">確認刪除</h3>
-    <p id="modal-body" style="font-size:13px; color:var(--text2);">確定要刪除這筆投資紀錄嗎？此操作無法復原。</p>
-    <div class="modal-actions">
-      <button class="btn" onclick="closeModal()">取消</button>
-      <button class="btn" style="background:var(--red);color:#fff;border-color:var(--red);" id="modal-confirm">確認刪除</button>
+<div class="mo" id="modal" onclick="closeMo(event)">
+  <div class="mb2">
+    <h3>確認刪除</h3>
+    <p style="font-size:13px;color:var(--tx2)">確定刪除這筆投資紀錄？此操作無法復原。</p>
+    <div class="mba">
+      <button class="btn" onclick="closeMo()">取消</button>
+      <button class="btn" style="background:var(--rd);color:#fff;border-color:var(--rd)" id="mo-ok">確認刪除</button>
     </div>
   </div>
 </div>
 
 <script>
-// ─── DATA ───────────────────────────────────────────────────
-const DEFAULT_DATA = [
-  { id:1, date:'2025-01-07', bank:'音－元大', stocks:[{name:'台積電',buy:211.42,aki:137.423,strike:161.842,exit:221.991},{name:'輝達',buy:140.14,aki:91.091,strike:107.277,exit:147.147}], face:10000, fx:32.75, coupon:12, aki:65, strikeP:76.55, ko:105, term:'6M', status:'closed', note:'5/20提早出場', isin:'XS2970819269', monthly:100, freq:'monthly', payDates:['2/21','3/20','4/18','5/20','6/20','7/18'], paidDates:['2/21','3/20','4/18','5/20','6/20','7/18'], evalDate:'', exitDate:'2025-05-20', totalUSD:600, totalTWD:19200, rate:4.0 },
-  { id:2, date:'2025-02-25', bank:'音－元大', stocks:[{name:'台積電',buy:189.37,aki:113.622,strike:132.559,exit:179.9},{name:'輝達',buy:126.63,aki:75.978,strike:88.641,exit:120.3},{name:'PLTR',buy:87.84,aki:52.704,strike:61.488,exit:83.448}], face:10000, fx:32.82, coupon:20.11, aki:60, strikeP:70, ko:95, term:'6M', status:'closed', note:'5/5提早出場', isin:'', monthly:168, freq:'monthly', payDates:['4/9','5/7','6/9','7/9','8/7','9/9'], paidDates:['4/9','5/7','6/9','7/9','8/7','9/9'], evalDate:'', exitDate:'2025-05-05', totalUSD:1006, totalTWD:32179, rate:3.4 },
-  { id:3, date:'2025-04-08', bank:'音－元大', stocks:[{name:'台積電',buy:96.3,aki:52.965,strike:63.558,exit:96.3},{name:'PLTR',buy:77.32,aki:42.526,strike:51.031,exit:77.32},{name:'ARM',buy:85.82,aki:47.201,strike:56.641,exit:85.82},{name:'AVGO',buy:156.03,aki:85.817,strike:102.98,exit:156.03}], face:110000, fx:32.46, coupon:44.23, aki:55, strikeP:66, ko:100, term:'5M', status:'closed', note:'5/20提早出場', isin:'', monthly:4054.42, freq:'monthly', payDates:['5/20','6/20','7/18','8/20','9/18'], paidDates:['5/20','6/20','7/18','8/20','9/18'], evalDate:'', exitDate:'2025-05-20', totalUSD:20272, totalTWD:648706, rate:3.69 },
-  { id:4, date:'2025-05-23', bank:'音－元大', stocks:[{name:'台積電',buy:191.98,aki:0,strike:143.985,exit:201.579},{name:'輝達',buy:131.29,aki:0,strike:98.468,exit:137.855},{name:'特斯拉',buy:339.34,aki:0,strike:254.505,exit:356.307},{name:'AVGO',buy:228.72,aki:0,strike:171.54,exit:240.156}], face:130000, fx:32.51, coupon:24.09, aki:0, strikeP:75, ko:105, term:'6M', status:'closed', note:'9/8提早出場', isin:'', monthly:2609.75, freq:'monthly', payDates:['7/7','8/6','9/7','10/6','11/5','12/4'], paidDates:['7/7','8/6','9/7','10/6','11/5','12/4'], evalDate:'', exitDate:'2025-09-08', totalUSD:15659, totalTWD:501072, rate:6.66 },
-  { id:5, date:'2025-08-06', bank:'音－元大', stocks:[{name:'台積電',buy:231.37,aki:0,strike:185.096,exit:242.939},{name:'輝達',buy:179.42,aki:0,strike:143.536,exit:188.391},{name:'特斯拉',buy:319.91,aki:0,strike:255.928,exit:335.906},{name:'Hood',buy:105.65,aki:0,strike:84.52,exit:110.933},{name:'RKLB',buy:44.1,aki:0,strike:35.28,exit:46.305}], face:200000, fx:32.46, coupon:37.74, aki:0, strikeP:80, ko:105, term:'6M', status:'closed', note:'10/6提早出場', isin:'', monthly:6290, freq:'monthly', payDates:['9/17','10/15','11/17','12/17','1/15','2/18'], paidDates:['9/17','10/15','11/17','12/17','1/15','2/18'], evalDate:'', exitDate:'2025-10-06', totalUSD:37740, totalTWD:1207680, rate:5.0 },
-  { id:6, date:'2025-10-14', bank:'音－元大', stocks:[{name:'AMD',buy:218.09,aki:130.854,strike:163.568,exit:228.995},{name:'AVGO',buy:344.13,aki:206.478,strike:258.098,exit:361.337},{name:'OKLO',buy:174.14,aki:104.484,strike:130.605,exit:182.847},{name:'TSLA',buy:429.24,aki:257.544,strike:321.93,exit:450.702}], face:250000, fx:32.48, coupon:43.23, aki:65, strikeP:75, ko:100, term:'4M', status:'hold', note:'最後一天比，承接股票', isin:'', monthly:9006.25, freq:'monthly', payDates:['11/26','12/26','1/26','2/26'], paidDates:['11/26','12/26','1/26','2/26'], evalDate:'', exitDate:'', totalUSD:54038, totalTWD:1729200, rate:0 },
-  { id:7, date:'2026-05-13', bank:'音－元大/開心果', stocks:[{name:'TSM',buy:338.89,aki:220.279,strike:271.112,exit:372.779},{name:'NVDA',buy:177.82,aki:115.583,strike:142.256,exit:195.602}], face:10000, fx:0, coupon:16, aki:65, strikeP:80, ko:110, term:'12M', status:'active', note:'保息2個月，2027/5/12到期', isin:'', monthly:135, freq:'monthly', payDates:['4/16','5/18','6/18','7/16','8/18','9/17','10/16','11/18','12/7','1/19','2/19','3/18'], paidDates:[], evalDate:'', exitDate:'2027-05-12', totalUSD:1620, totalTWD:51840, rate:0 },
+const DEF=[
+  {id:1,date:'2025-01-07',bank:'音－元大',ccy:'USD',face:10000,fx:32.75,coupon:12,aki:65,strike:76.55,ko:105,term:'6M',status:'closed',maturity:'2025-07-07',exitDate:'2025-05-20',koStart:'',evalDate:'',note:'5/20提早出場，開心果的',isin:'XS2970819269',monthly:100,freq:'monthly',payDates:['2/21','3/20','4/18','5/20','6/20','7/18'],paidDates:['2/21','3/20','4/18','5/20','6/20','7/18'],totalUSD:600,totalTWD:19200,rate:4.0,stocks:[{name:'TSM',buy:211.42,aki:137.423,strike:161.842,exit:221.991},{name:'NVDA',buy:140.14,aki:91.091,strike:107.277,exit:147.147}]},
+  {id:2,date:'2025-02-25',bank:'音－元大',ccy:'USD',face:10000,fx:32.82,coupon:20.11,aki:60,strike:70,ko:95,term:'6M',status:'closed',maturity:'2025-08-25',exitDate:'2025-05-05',koStart:'2025-05-05',evalDate:'2025-09-05',note:'5/5提早出場，9/5評價日',isin:'',monthly:168,freq:'monthly',payDates:['4/9','5/7','6/9','7/9','8/7','9/9'],paidDates:['4/9','5/7','6/9','7/9','8/7','9/9'],totalUSD:1006,totalTWD:32179,rate:3.4,stocks:[{name:'TSM',buy:189.37,aki:113.622,strike:132.559,exit:179.902},{name:'NVDA',buy:126.63,aki:75.978,strike:88.641,exit:120.299},{name:'PLTR',buy:87.84,aki:52.704,strike:61.488,exit:83.448}]},
+  {id:3,date:'2025-04-08',bank:'音－元大',ccy:'USD',face:110000,fx:32.46,coupon:44.23,aki:55,strike:66,ko:100,term:'5M',status:'closed',maturity:'2025-09-15',exitDate:'2025-05-20',koStart:'2025-05-15',evalDate:'2025-09-15',note:'5/20提早出場，5/15開始比價',isin:'',monthly:4054.42,freq:'monthly',payDates:['5/20','6/20','7/18','8/20','9/18'],paidDates:['5/20','6/20','7/18','8/20','9/18'],totalUSD:20272,totalTWD:648707,rate:3.69,stocks:[{name:'NVDA',buy:96.3,aki:52.965,strike:63.558,exit:96.3},{name:'PLTR',buy:77.32,aki:42.526,strike:51.031,exit:77.32},{name:'ARM',buy:85.82,aki:47.201,strike:56.641,exit:85.82},{name:'AVGO',buy:156.03,aki:85.817,strike:102.98,exit:156.03}]},
+  {id:4,date:'2025-05-23',bank:'音－元大',ccy:'USD',face:130000,fx:32.51,coupon:24.09,aki:0,strike:75,ko:105,term:'6M',status:'closed',maturity:'2025-11-23',exitDate:'2025-09-08',koStart:'2025-07-02',evalDate:'2025-12-02',note:'9/8提早出場，600給開心果，7/2開始比價',isin:'',monthly:2609.75,freq:'monthly',payDates:['7/7','8/6','9/7','10/6','11/5','12/4'],paidDates:['7/7','8/6','9/7','10/6','11/5','12/4'],totalUSD:15659,totalTWD:501072,rate:6.66,stocks:[{name:'TSM',buy:191.98,aki:0,strike:143.985,exit:201.579},{name:'NVDA',buy:131.29,aki:0,strike:98.468,exit:137.855},{name:'TSLA',buy:339.34,aki:0,strike:254.505,exit:356.307},{name:'AVGO',buy:228.72,aki:0,strike:171.54,exit:240.156}]},
+  {id:5,date:'2025-08-06',bank:'音－元大',ccy:'USD',face:200000,fx:32.46,coupon:37.74,aki:0,strike:80,ko:105,term:'6M',status:'closed',maturity:'2026-02-06',exitDate:'2025-10-06',koStart:'2025-09-16',evalDate:'',note:'10/6提早出場，續作，林老爸轉20',isin:'',monthly:6290,freq:'monthly',payDates:['9/17','10/15','11/17','12/17','1/15','2/18'],paidDates:['9/17','10/15','11/17','12/17','1/15','2/18'],totalUSD:37740,totalTWD:1207680,rate:5.0,stocks:[{name:'TSM',buy:231.37,aki:0,strike:185.096,exit:242.939},{name:'NVDA',buy:179.42,aki:0,strike:143.536,exit:188.391},{name:'TSLA',buy:319.91,aki:0,strike:255.928,exit:335.906},{name:'HOOD',buy:105.65,aki:0,strike:84.52,exit:110.933},{name:'RKLB',buy:44.1,aki:0,strike:35.28,exit:46.305}]},
+  {id:6,date:'2025-10-14',bank:'音－元大',ccy:'USD',face:250000,fx:32.48,coupon:43.23,aki:65,strike:75,ko:100,term:'4M',status:'hold',maturity:'2026-02-14',exitDate:'',koStart:'',evalDate:'',note:'最後一天比，承接股票',isin:'',monthly:9006.25,freq:'monthly',payDates:['11/26','12/26','1/26','2/26'],paidDates:['11/26','12/26','1/26','2/26'],totalUSD:54038,totalTWD:1729200,rate:0,stocks:[{name:'AMD',buy:218.09,aki:130.854,strike:163.568,exit:228.995},{name:'AVGO',buy:344.13,aki:206.478,strike:258.098,exit:361.337},{name:'OKLO',buy:174.14,aki:104.484,strike:130.605,exit:182.847},{name:'TSLA',buy:429.24,aki:257.544,strike:321.93,exit:450.702}]},
+  {id:7,date:'2026-05-13',bank:'音－元大/開心果',ccy:'USD',face:10000,fx:0,coupon:16,aki:65,strike:80,ko:110,term:'12M',status:'active',maturity:'2027-05-12',exitDate:'',koStart:'',evalDate:'',note:'保息2個月',isin:'',monthly:135,freq:'monthly',payDates:['4/16','5/18','6/18','7/16','8/18','9/17','10/16','11/18','12/7','1/19','2/19','3/18'],paidDates:[],totalUSD:1620,totalTWD:51840,rate:0,stocks:[{name:'TSM',buy:338.89,aki:220.279,strike:271.112,exit:372.779},{name:'NVDA',buy:177.82,aki:115.583,strike:142.256,exit:195.602}]},
+  {id:8,date:'2026-03-11',bank:'音－元大',ccy:'USD',face:40000,fx:0,coupon:24.5,aki:0,strike:55,ko:100,term:'6M',status:'active',maturity:'2026-09-23',exitDate:'',koStart:'2026-06-22',evalDate:'',note:'保息3個月，6/22開始比價',isin:'',monthly:816.3,freq:'monthly',payDates:['4/23','5/21','6/24','7/23','8/21','9/23'],paidDates:[],totalUSD:4898,totalTWD:156736,rate:0,stocks:[{name:'TSM',buy:354.56,aki:0,strike:195.008,exit:354.56},{name:'NVDA',buy:186.03,aki:0,strike:102.317,exit:186.03},{name:'LITE',buy:672,aki:0,strike:369.6,exit:672}]},
+  {id:9,date:'2026-03-23',bank:'音－元大',ccy:'JPY',face:16000000,fx:0,coupon:23.3,aki:60,strike:70,ko:100,term:'3M',status:'active',maturity:'2026-07-02',exitDate:'',koStart:'',evalDate:'',note:'日圓面額，EKI到期比',isin:'',monthly:311040,freq:'monthly',payDates:['5/7','6/3','7/2'],paidDates:[],totalUSD:0,totalTWD:0,rate:0,stocks:[{name:'6857 愛德萬測試',buy:22730,aki:13638,strike:15911,exit:22730},{name:'8035 東京威力科創',buy:38300,aki:22980,strike:26810,exit:38300},{name:'9984 軟銀',buy:3507,aki:2104.2,strike:2454.9,exit:3507}]},
+  {id:10,date:'2026-03-24',bank:'音－兆豐',ccy:'USD',face:10000,fx:0,coupon:32.9,aki:0,strike:80,ko:100,term:'6M',status:'active',maturity:'2026-10-05',exitDate:'',koStart:'',evalDate:'',note:'',isin:'',monthly:274,freq:'monthly',payDates:['5/5','6/4','7/6','8/5','9/3','10/5'],paidDates:[],totalUSD:1644,totalTWD:0,rate:0,stocks:[{name:'HOOD',buy:69.08,aki:0,strike:55.264,exit:69.08},{name:'TSLA',buy:383.03,aki:0,strike:306.424,exit:383.03},{name:'PLTR',buy:154.78,aki:0,strike:123.824,exit:154.78}]},
+  {id:11,date:'2026-04-15',bank:'音－元大',ccy:'USD',face:50000,fx:0,coupon:23.04,aki:55,strike:70,ko:105,term:'6M',status:'active',maturity:'2026-10-26',exitDate:'',koStart:'',evalDate:'',note:'保息1個月',isin:'',monthly:960,freq:'monthly',payDates:['5/27','6/24','7/24','8/26','9/24','10/26'],paidDates:[],totalUSD:5760,totalTWD:0,rate:0,stocks:[{name:'AMD',buy:258.12,aki:141.966,strike:180.684,exit:271.026},{name:'MU',buy:456.23,aki:250.927,strike:319.361,exit:479.042},{name:'INTC',buy:64.94,aki:35.717,strike:45.458,exit:68.187},{name:'NVDA',buy:198.87,aki:109.379,strike:139.209,exit:208.814},{name:'TSM',buy:375.1,aki:206.305,strike:262.57,exit:393.855}]},
+  {id:12,date:'2025-01-22',bank:'林－元大',ccy:'USD',face:200000,fx:32.775,coupon:15.6,aki:60,strike:75,ko:100,term:'4M',status:'closed',maturity:'2025-05-22',exitDate:'2025-06-03',koStart:'',evalDate:'2025-05-29',note:'6/3正常出場，5/29評價日',isin:'',monthly:2600,freq:'monthly',payDates:['3/6','4/3','5/2','6/3'],paidDates:['3/6','4/3','5/2','6/3'],totalUSD:10400,totalTWD:332800,rate:5.2,stocks:[{name:'TSM',buy:223.2,aki:133.92,strike:167.4,exit:223.2},{name:'NVDA',buy:147.07,aki:88.242,strike:110.303,exit:147.07},{name:'TSLA',buy:415.11,aki:249.066,strike:311.333,exit:415.11}]},
+  {id:13,date:'2025-04-11',bank:'林－元大',ccy:'USD',face:210000,fx:32.761,coupon:36.42,aki:60,strike:75,ko:100,term:'3M',status:'closed',maturity:'2025-07-11',exitDate:'2025-05-22',koStart:'2025-05-19',evalDate:'',note:'5/22提早出場，5/19比價',isin:'',monthly:6373.5,freq:'monthly',payDates:['5/22','6/24','7/23'],paidDates:['5/22','6/24','7/23'],totalUSD:19121,totalTWD:611856,rate:3.0,stocks:[{name:'TSM',buy:157.08,aki:94.248,strike:117.81,exit:157.08},{name:'NVDA',buy:110.93,aki:66.558,strike:83.198,exit:110.93},{name:'PLTR',buy:88.55,aki:53.13,strike:66.413,exit:88.55}]},
+  {id:14,date:'2025-04-17',bank:'林－元大',ccy:'USD',face:110000,fx:31.29,coupon:36.97,aki:60,strike:75,ko:100,term:'6M',status:'closed',maturity:'2025-10-17',exitDate:'2025-05-29',koStart:'2025-05-28',evalDate:'',note:'5/29提早出場，5/28比價',isin:'',monthly:3388.92,freq:'monthly',payDates:['5/29','6/26','7/28','8/27','9/26','10/28'],paidDates:['5/29','6/26','7/28','8/27','9/26','10/28'],totalUSD:16945,totalTWD:542227,rate:3.1,stocks:[{name:'TSLA',buy:241.37,aki:144.822,strike:181.028,exit:241.37},{name:'NVDA',buy:101.49,aki:60.894,strike:76.118,exit:101.49},{name:'PLTR',buy:93.78,aki:56.268,strike:70.335,exit:93.78},{name:'AVGO',buy:170.99,aki:102.594,strike:128.243,exit:170.99}]},
+  {id:15,date:'2025-01-12',bank:'林－元大',ccy:'USD',face:200000,fx:32.775,coupon:20.0,aki:60,strike:77,ko:100,term:'6M',status:'closed',maturity:'2025-07-12',exitDate:'2025-07-29',koStart:'',evalDate:'2025-07-29',note:'7/29出場，7/29評價日，8/1看接股',isin:'',monthly:3333,freq:'monthly',payDates:['3/6','4/3','5/2','6/3','7/3','8/1'],paidDates:['3/6','4/3','5/2','6/3','7/3','8/1'],totalUSD:20000,totalTWD:640000,rate:10.0,stocks:[{name:'TSM',buy:223.2,aki:133.92,strike:171.864,exit:223.2},{name:'NVDA',buy:147.07,aki:88.242,strike:113.244,exit:147.07},{name:'TSLA',buy:415.11,aki:249.066,strike:319.635,exit:415.11}]},
+  {id:16,date:'2025-06-17',bank:'林－元大',ccy:'USD',face:200000,fx:32.46,coupon:27.0,aki:65,strike:75,ko:100,term:'6M',status:'closed',maturity:'2025-12-17',exitDate:'2025-07-30',koStart:'2025-07-28',evalDate:'',note:'7/30提早出場，續作，KO比價開始2025/07/28',isin:'',monthly:4500,freq:'monthly',payDates:['7/29','8/27','9/29','10/29','11/28','12/30'],paidDates:['7/29','8/27','9/29','10/29','11/28','12/30'],totalUSD:27000,totalTWD:864000,rate:2.3,stocks:[{name:'TSM',buy:213.9,aki:139.035,strike:160.425,exit:213.9},{name:'NVDA',buy:144.12,aki:93.678,strike:108.09,exit:144.12},{name:'TSLA',buy:316.35,aki:205.628,strike:237.263,exit:316.35},{name:'HOOD',buy:74.95,aki:48.718,strike:56.213,exit:74.95}]},
+  {id:17,date:'2025-08-22',bank:'林－元大',ccy:'USD',face:200000,fx:32.46,coupon:32.73,aki:0,strike:80,ko:105,term:'6M',status:'closed',maturity:'2026-02-22',exitDate:'2025-10-06',koStart:'2025-09-29',evalDate:'',note:'10/6提早出場，續作，KO比價開始2025/09/29',isin:'',monthly:5950.9,freq:'monthly',payDates:['10/2','11/3','12/3','1/2','2/3','3/4'],paidDates:['10/2','11/3','12/3','1/2','2/3','3/4'],totalUSD:35705,totalTWD:1142560,rate:3.0,stocks:[{name:'NVDA',buy:177.99,aki:0,strike:142.392,exit:177.99},{name:'PLTR',buy:158.74,aki:0,strike:126.992,exit:158.74},{name:'HOOD',buy:109.32,aki:0,strike:87.456,exit:109.32},{name:'TSM',buy:232.99,aki:0,strike:186.392,exit:232.99},{name:'TSLA',buy:340.01,aki:0,strike:272.008,exit:340.01}]},
+  {id:18,date:'2025-10-15',bank:'林－元大',ccy:'USD',face:250000,fx:32.46,coupon:31.65,aki:0,strike:82,ko:105,term:'6M',status:'hold',maturity:'2026-04-22',exitDate:'2026-04-22',koStart:'2025-11-24',evalDate:'',note:'2026/4/22接股票，KO比價開始2025/11/24',isin:'',monthly:6593.75,freq:'monthly',payDates:['11/28','12/26','1/27','2/26','3/26','4/27'],paidDates:['11/28','12/26','1/27','2/26','3/26','4/27'],totalUSD:39563,totalTWD:1284023,rate:0,stocks:[{name:'TSM',buy:304.71,aki:0,strike:249.862,exit:0},{name:'NVDA',buy:179.83,aki:0,strike:147.461,exit:0},{name:'TSLA',buy:435.15,aki:0,strike:356.823,exit:0},{name:'PLTR',buy:179.62,aki:0,strike:147.288,exit:0},{name:'ORCL',buy:303.62,aki:0,strike:248.968,exit:0}]},
 ];
 
-let DATA = JSON.parse(localStorage.getItem('fcn_data') || 'null') || DEFAULT_DATA;
-let deleteId = null;
-let currentFilter = 'all';
+let D=JSON.parse(localStorage.getItem('fcnv3')||'null')||DEF;
+if(!localStorage.getItem('fcnv3'))localStorage.setItem('fcnv3',JSON.stringify(D));
+let delId=null,cf='all',sc=0;
 
-function save() {
-  localStorage.setItem('fcn_data', JSON.stringify(DATA));
-  localStorage.setItem('fcn_last', new Date().toLocaleDateString('zh-TW'));
-  document.getElementById('last-update').textContent = localStorage.getItem('fcn_last') || '—';
+function save(){localStorage.setItem('fcnv3',JSON.stringify(D));localStorage.setItem('fcnlast',new Date().toLocaleDateString('zh-TW'));document.getElementById('last-update').textContent=localStorage.getItem('fcnlast')||'—';}
+const F=(n,d=0)=>Number(n||0).toLocaleString('zh-TW',{minimumFractionDigits:d,maximumFractionDigits:d});
+const SY=c=>c==='JPY'?'¥':c==='TWD'?'NT$':'$';
+function bdg(s){if(s==='active')return'<span class="badge ba">持有中</span>';if(s==='hold')return'<span class="badge bh">承接股票</span>';return'<span class="badge bc">已出場</span>';}
+function tags(st){return st.map(s=>`<span class="tag">${s.name}</span>`).join('');}
+function twd(d){return d.ccy==='TWD'?d.face:(d.fx&&d.face?d.face*d.fx:0);}
+
+function showSec(n){
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(x=>x.classList.remove('active'));
+  document.getElementById('sec-'+n).classList.add('active');
+  const m={dashboard:0,list:1,interest:2,add:3,report:4};
+  if(m[n]!==undefined)document.querySelectorAll('.ni')[m[n]].classList.add('active');
+  if(n==='dashboard')rdash();else if(n==='list')rlist();else if(n==='interest')rint();else if(n==='add')resetF();else if(n==='report')rrep();
 }
 
-// ─── NAV ────────────────────────────────────────────────────
-function showSection(name) {
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('sec-' + name).classList.add('active');
-  const items = document.querySelectorAll('.nav-item');
-  const map = {dashboard:0, list:1, interest:2, add:3, report:4};
-  if (map[name] !== undefined) items[map[name]].classList.add('active');
-  if (name === 'dashboard') renderDashboard();
-  else if (name === 'list') renderList();
-  else if (name === 'interest') renderInterest();
-  else if (name === 'report') renderReport();
-  else if (name === 'add') { resetForm(); }
-}
+let dashCF='all';
+function dashFilt(v,btn){dashCF=v;document.querySelectorAll('#sec-dashboard .fb').forEach(b=>b.classList.remove('active'));btn.classList.add('active');rdash();}
 
-// ─── HELPERS ────────────────────────────────────────────────
-function fmt(n, dec=0) { return Number(n||0).toLocaleString('zh-TW', {minimumFractionDigits:dec, maximumFractionDigits:dec}); }
-function statusBadge(s) {
-  if (s==='active') return '<span class="badge badge-active">持有中</span>';
-  if (s==='hold') return '<span class="badge badge-hold">承接股票</span>';
-  return '<span class="badge badge-closed">已出場</span>';
-}
-function tags(stocks) { return stocks.map(s=>`<span class="tag">${s.name}</span>`).join(''); }
+function rdash(){
+  document.getElementById('dash-date').textContent=new Date().toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric'});
+  const uF=D.filter(d=>d.ccy==='USD').reduce((a,d)=>a+d.face,0);
+  const jF=D.filter(d=>d.ccy==='JPY').reduce((a,d)=>a+d.face,0);
+  const tTWD=D.reduce((a,d)=>a+twd(d),0);
+  const tInt=D.filter(d=>d.ccy==='USD').reduce((a,d)=>a+(d.totalUSD||0),0);
+  const act=D.filter(d=>d.status==='active').length;
+  document.getElementById('dash-m').innerHTML=`
+    <div class="mc"><div class="ml">USD 面額合計</div><div class="mv mono">$${F(uF)}</div><div class="ms">JPY ¥${F(jF)}</div></div>
+    <div class="mc"><div class="ml">台幣成本合計</div><div class="mv mono">$${F(tTWD)}</div><div class="ms">${D.length} 筆投資</div></div>
+    <div class="mc"><div class="ml">累計配息 USD</div><div class="mv mono gn">$${F(tInt)}</div><div class="ms">歷史累計</div></div>
+    <div class="mc"><div class="ml">進行中筆數</div><div class="mv mono bl">${act}</div><div class="ms">已出場 ${D.filter(d=>d.status==='closed').length} 筆</div></div>`;
 
-// ─── DASHBOARD ──────────────────────────────────────────────
-function renderDashboard() {
-  document.getElementById('dash-date').textContent = new Date().toLocaleDateString('zh-TW', {year:'numeric',month:'long',day:'numeric'});
-  const totalFace = DATA.reduce((a,d)=>a+d.face,0);
-  const totalTWD = DATA.reduce((a,d)=>a+(d.face*(d.fx||0)),0);
-  const totalInt = DATA.reduce((a,d)=>a+(d.totalUSD||0),0);
-  const active = DATA.filter(d=>d.status==='active').length;
-  document.getElementById('dash-metrics').innerHTML = `
-    <div class="metric"><div class="metric-label">投資總面額 (USD)</div><div class="metric-value mono">$${fmt(totalFace)}</div><div class="metric-sub">${DATA.length} 筆投資</div></div>
-    <div class="metric"><div class="metric-label">台幣成本</div><div class="metric-value mono">$${fmt(totalTWD)}</div><div class="metric-sub">加權匯率 ${DATA.filter(d=>d.fx).length ? (totalTWD/DATA.filter(d=>d.fx).reduce((a,d)=>a+d.face,0)).toFixed(2) : '—'}</div></div>
-    <div class="metric"><div class="metric-label">總配息收入 (USD)</div><div class="metric-value mono green">$${fmt(totalInt)}</div><div class="metric-sub">歷史累計</div></div>
-    <div class="metric"><div class="metric-label">進行中筆數</div><div class="metric-value mono blue">${active}</div><div class="metric-sub">已出場 ${DATA.filter(d=>d.status==='closed').length} 筆</div></div>`;
-  const recent = [...DATA].reverse().slice(0,5);
-  document.getElementById('dash-tbody').innerHTML = recent.map(d=>`
-    <tr>
-      <td>${statusBadge(d.status)}</td>
-      <td class="mono" style="font-size:12px;">${d.date}</td>
+  let rows=dashCF==='all'?D:dashCF==='yin'?D.filter(d=>d.bank.includes('音')):dashCF==='lin'?D.filter(d=>d.bank.includes('林')):D.filter(d=>d.status===dashCF);
+  rows=[...rows].sort((a,b)=>b.date.localeCompare(a.date));
+  document.getElementById('dash-cnt').textContent=`共 ${rows.length} 筆`;
+
+  document.getElementById('dash-tb').innerHTML=rows.map(d=>{
+    const paidAmt=(d.paidDates||[]).length*d.monthly;
+    const totalAmt=d.payDates.length*d.monthly;
+    const pdStr=d.payDates.join('、');
+    return `<tr>
+      <td>${bdg(d.status)}</td>
+      <td style="font-size:11px;white-space:nowrap">${d.bank}</td>
+      <td class="mono" style="font-size:11px;white-space:nowrap">${d.date}</td>
+      <td class="mono" style="font-size:11px;white-space:nowrap">${d.maturity||'—'}</td>
+      <td class="mono" style="font-size:11px;white-space:nowrap">${d.exitDate||'—'}</td>
       <td>${tags(d.stocks)}</td>
-      <td class="mono right">$${fmt(d.face)}</td>
-      <td class="c-blue">${d.coupon}%</td>
-      <td class="mono">$${fmt(d.monthly,2)}</td>
-      <td class="${d.rate>0?'c-green':'c-muted'}">${d.rate>0?d.rate+'%':'—'}</td>
-    </tr>`).join('');
-}
-
-// ─── LIST ───────────────────────────────────────────────────
-function renderList() {
-  const filtered = currentFilter==='all' ? DATA : DATA.filter(d=>d.status===currentFilter);
-  document.getElementById('list-count').textContent = `共 ${filtered.length} 筆`;
-  document.getElementById('list-tbody').innerHTML = filtered.map(d=>`
-    <tr>
-      <td>${statusBadge(d.status)}</td>
-      <td class="mono" style="font-size:12px;">${d.date}</td>
-      <td style="font-size:12px;">${d.bank}</td>
-      <td>${tags(d.stocks)}</td>
-      <td class="mono right">$${fmt(d.face)}</td>
-      <td class="mono right">${d.fx ? '$'+fmt(d.face*d.fx) : '—'}</td>
-      <td class="mono right">${d.fx || '—'}</td>
-      <td class="c-blue">${d.coupon}%</td>
-      <td>${d.term}</td>
-      <td>${d.strikeP}%</td>
-      <td>${d.ko}%</td>
-      <td class="mono right c-green">$${fmt(d.totalUSD)}</td>
-      <td class="mono right c-green">${d.totalTWD ? '$'+fmt(d.totalTWD) : '—'}</td>
-      <td style="font-size:11px; color:var(--text2);">${d.note||'—'}</td>
-      <td class="${d.rate>0?'c-green':'c-muted'}">${d.rate>0?d.rate+'%':'—'}</td>
-      <td>
-        <button class="btn" style="font-size:11px; padding:4px 10px;" onclick="editRecord(${d.id})">編輯</button>
-        <button class="btn" style="font-size:11px; padding:4px 10px; margin-left:4px;" onclick="confirmDelete(${d.id})">刪除</button>
+      <td style="white-space:nowrap">${d.ccy==='JPY'?'<span class="badge bj">JPY</span>':d.ccy}</td>
+      <td class="mono right" style="white-space:nowrap">${SY(d.ccy)}${F(d.face)}</td>
+      <td class="mono right" style="white-space:nowrap">${twd(d)?'$'+F(twd(d)):'—'}</td>
+      <td class="mono right">${d.fx||'—'}</td>
+      <td class="mono right">${d.aki||'—'}%</td>
+      <td class="mono right">${d.strike||'—'}%</td>
+      <td class="mono right">${d.ko||'—'}%</td>
+      <td class="cb mono right">${d.coupon}%</td>
+      <td style="white-space:nowrap">${d.term}</td>
+      <td style="font-size:11px;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${pdStr}">${pdStr}</td>
+      <td class="mono right" style="white-space:nowrap">${SY(d.ccy)}${F(d.monthly,0)}</td>
+      <td class="mono right cg" style="white-space:nowrap">${SY(d.ccy)}${F(totalAmt,0)}</td>
+      <td class="mono right" style="white-space:nowrap">
+        <span class="${paidAmt>=totalAmt&&totalAmt>0?'cg':paidAmt>0?'cgd':'cmu'}">${SY(d.ccy)}${F(paidAmt,0)}</span>
+        <span style="font-size:10px;color:var(--tx3);margin-left:3px">${(d.paidDates||[]).length}/${d.payDates.length}</span>
       </td>
-    </tr>`).join('');
-}
-
-function filterList(val, btn) {
-  currentFilter = val;
-  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  renderList();
-}
-
-// ─── INTEREST ───────────────────────────────────────────────
-function renderInterest() {
-  document.getElementById('interest-list').innerHTML = DATA.map(d => {
-    const cells = d.payDates.map(dt => {
-      const paid = (d.paidDates||[]).includes(dt);
-      return `<div class="int-cell ${paid?'paid':'pending'}" onclick="togglePaid(${d.id},'${dt}')">
-        <div class="m">${dt}</div>
-        <div class="a">$${fmt(d.monthly,0)}</div>
-        <div class="s">${paid?'✓ 已收':'待收'}</div>
-      </div>`;
-    }).join('');
-    const paidTotal = (d.paidDates||[]).length * d.monthly;
-    return `<div class="interest-block">
-      <div class="interest-block-header">
-        <div>
-          <span class="interest-block-title">${d.date} &nbsp;</span>
-          ${tags(d.stocks)}
-        </div>
-        <div class="interest-block-meta">已收 $${fmt(paidTotal,0)} / 預計 $${fmt(d.payDates.length*d.monthly,0)} USD &nbsp;·&nbsp; ${d.payDates.length} 期</div>
-      </div>
-      <div class="interest-months">${cells}</div>
-    </div>`;
+      <td class="${d.rate>0?'cg':'cmu'} mono" style="white-space:nowrap">${d.rate>0?d.rate+'%':'—'}</td>
+    </tr>`;
   }).join('');
 }
 
-function togglePaid(id, dt) {
-  const d = DATA.find(x=>x.id===id);
-  if (!d) return;
-  if (!d.paidDates) d.paidDates = [];
-  if (d.paidDates.includes(dt)) d.paidDates = d.paidDates.filter(x=>x!==dt);
-  else d.paidDates.push(dt);
-  save();
-  renderInterest();
+function rlist(){
+  let rows=cf==='all'?D:cf==='yin'?D.filter(d=>d.bank.includes('音')):cf==='lin'?D.filter(d=>d.bank.includes('林')):D.filter(d=>d.status===cf);
+  rows=[...rows].sort((a,b)=>b.date.localeCompare(a.date));
+  document.getElementById('list-cnt').textContent=`共 ${rows.length} 筆`;
+  document.getElementById('list-tb').innerHTML=rows.map(d=>`<tr>
+    <td>${bdg(d.status)}</td><td class="mono" style="font-size:11px">${d.date}</td><td style="font-size:11px">${d.bank}</td>
+    <td>${tags(d.stocks)}</td>
+    <td class="mono right">${SY(d.ccy)}${F(d.face)}</td>
+    <td>${d.ccy==='JPY'?'<span class="badge bj">JPY</span>':d.ccy}</td>
+    <td class="mono right">${d.fx||'—'}</td>
+    <td class="mono right">${twd(d)?'$'+F(twd(d)):'—'}</td>
+    <td class="cb">${d.coupon}%</td><td>${d.term}</td>
+    <td style="font-size:11px">${d.maturity||'—'}</td>
+    <td style="font-size:11px">${d.exitDate||'—'}</td>
+    <td>${d.aki||'—'}%</td><td>${d.strike||'—'}%</td><td>${d.ko||'—'}%</td>
+    <td class="mono right">${SY(d.ccy)}${F(d.monthly,0)}</td>
+    <td class="mono right cg">${d.ccy!=='JPY'&&d.totalUSD?'$'+F(d.totalUSD):'—'}</td>
+    <td class="${d.rate>0?'cg':'cmu'}">${d.rate>0?d.rate+'%':'—'}</td>
+    <td style="font-size:11px;color:var(--tx2);max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${d.note||''}">${d.note||'—'}</td>
+    <td style="white-space:nowrap">
+      <button class="btn btnsm" onclick="editRec(${d.id})">編輯</button>
+      <button class="btn btnsm" style="margin-left:3px" onclick="confDel(${d.id})">刪除</button>
+    </td>
+  </tr>`).join('');
+}
+function filt(v,btn){cf=v;document.querySelectorAll('.fb').forEach(b=>b.classList.remove('active'));btn.classList.add('active');rlist();}
+
+function rint(){
+  const rows=[...D].sort((a,b)=>b.date.localeCompare(a.date));
+  document.getElementById('int-list').innerHTML=rows.map(d=>{
+    const cells=d.payDates.map(dt=>{
+      const paid=(d.paidDates||[]).includes(dt);
+      return `<div class="ic ${paid?'paid':'pend'}" onclick="togPaid(${d.id},'${dt}')">
+        <div class="im">${dt}</div><div class="ia">${SY(d.ccy)}${F(d.monthly,0)}</div>
+        <div class="is">${paid?'✓ 已收':'待收'}</div></div>`;
+    }).join('');
+    const pAmt=(d.paidDates||[]).length*d.monthly;
+    return `<div class="ib">
+      <div class="ibh">
+        <div><span class="ibt">${d.date}</span>&nbsp;${tags(d.stocks)}<span style="font-size:11px;color:var(--tx3);margin-left:6px">${d.bank}</span></div>
+        <div class="ibm">已收 ${SY(d.ccy)}${F(pAmt,0)} / 預計 ${SY(d.ccy)}${F(d.payDates.length*d.monthly,0)} · ${d.payDates.length}期</div>
+      </div>
+      <div class="ig">${cells}</div>
+    </div>`;
+  }).join('');
+}
+function togPaid(id,dt){const d=D.find(x=>x.id===id);if(!d)return;if(!d.paidDates)d.paidDates=[];if(d.paidDates.includes(dt))d.paidDates=d.paidDates.filter(x=>x!==dt);else d.paidDates.push(dt);save();rint();}
+
+function updTWD(){
+  const face=parseFloat(document.getElementById('f-face').value)||0;
+  const fx=parseFloat(document.getElementById('f-fx').value)||0;
+  const ccy=document.getElementById('f-ccy').value;
+  let t=ccy==='TWD'?face:(face&&fx?face*fx:0);
+  document.getElementById('f-twd').value=t?'$'+F(t):'';
+  document.getElementById('twd-pv').textContent=t?`${F(face)} × ${fx} = ${F(t)} 元`:'（請輸入面額與匯率）';
+  calcTot();
+}
+function calcTot(){
+  const mo=parseFloat(document.getElementById('f-mo').value)||0;
+  const paid=document.getElementById('f-paid').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const fx=parseFloat(document.getElementById('f-fx').value)||0;
+  const face=parseFloat(document.getElementById('f-face').value)||0;
+  const tot=paid.length*mo;
+  const totTWD=fx?tot*fx:0;
+  const rate=face?parseFloat((tot/face*100).toFixed(2)):0;
+  document.getElementById('f-tot').value=tot?F(tot,2):'';
+  document.getElementById('f-tottwd').value=totTWD?'$'+F(totTWD):'';
+  document.getElementById('f-rate').value=rate>0?rate+'%':'';
+}
+function addSR(s){
+  sc++;const id='sr-'+sc;const div=document.createElement('div');
+  div.className='sr';div.id=id;
+  div.innerHTML=`<input type="text" placeholder="股票名稱" value="${s?s.name:''}" class="sr-n"><input type="number" placeholder="買進價" step="0.01" value="${s?s.buy:''}" class="sr-b"><input type="number" placeholder="下限價" step="0.01" value="${s&&s.aki?s.aki:''}" class="sr-a"><input type="number" placeholder="執行價" step="0.01" value="${s?s.strike:''}" class="sr-s"><input type="number" placeholder="出廠價" step="0.01" value="${s&&s.exit?s.exit:''}" class="sr-e"><button class="rmb" onclick="document.getElementById('${id}').remove()">✕</button>`;
+  document.getElementById('stocks-con').appendChild(div);
+}
+function getStocks(){return Array.from(document.querySelectorAll('.sr')).map(r=>({name:r.querySelector('.sr-n').value.trim(),buy:parseFloat(r.querySelector('.sr-b').value)||0,aki:parseFloat(r.querySelector('.sr-a').value)||0,strike:parseFloat(r.querySelector('.sr-s').value)||0,exit:parseFloat(r.querySelector('.sr-e').value)||0})).filter(s=>s.name);}
+function resetF(){
+  document.getElementById('eid').value='';
+  document.getElementById('add-title').textContent='新增投資';
+  ['f-date','f-bank','f-face','f-fx','f-twd','f-coupon','f-aki','f-strike','f-ko','f-isin','f-note','f-mat','f-exit','f-kos','f-eval','f-mo','f-pd','f-paid','f-tot','f-tottwd','f-rate'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('f-ccy').value='USD';document.getElementById('f-term').value='6M';document.getElementById('f-status').value='active';document.getElementById('f-freq').value='monthly';document.getElementById('twd-pv').textContent='';document.getElementById('stocks-con').innerHTML='';sc=0;addSR();
+}
+function editRec(id){
+  const d=D.find(x=>x.id===id);if(!d)return;
+  showSec('add');
+  document.getElementById('eid').value=id;document.getElementById('add-title').textContent='編輯投資';
+  document.getElementById('f-date').value=d.date;document.getElementById('f-bank').value=d.bank;
+  document.getElementById('f-ccy').value=d.ccy||'USD';document.getElementById('f-face').value=d.face;
+  document.getElementById('f-fx').value=d.fx||'';document.getElementById('f-coupon').value=d.coupon;
+  document.getElementById('f-aki').value=d.aki||'';document.getElementById('f-strike').value=d.strike||'';
+  document.getElementById('f-ko').value=d.ko||'';document.getElementById('f-isin').value=d.isin||'';
+  document.getElementById('f-term').value=d.term;document.getElementById('f-status').value=d.status;
+  document.getElementById('f-mat').value=d.maturity||'';document.getElementById('f-exit').value=d.exitDate||'';
+  document.getElementById('f-kos').value=d.koStart||'';document.getElementById('f-eval').value=d.evalDate||'';
+  document.getElementById('f-note').value=d.note||'';document.getElementById('f-mo').value=d.monthly||'';
+  document.getElementById('f-freq').value=d.freq||'monthly';
+  document.getElementById('f-pd').value=(d.payDates||[]).join(', ');
+  document.getElementById('f-paid').value=(d.paidDates||[]).join(', ');
+  document.getElementById('stocks-con').innerHTML='';sc=0;(d.stocks||[]).forEach(s=>addSR(s));updTWD();
+}
+function saveRec(){
+  const date=document.getElementById('f-date').value;const bank=document.getElementById('f-bank').value.trim();const face=parseFloat(document.getElementById('f-face').value)||0;
+  if(!date||!bank||!face){alert('請填寫買進日期、帳戶及投資面額');return;}
+  const ccy=document.getElementById('f-ccy').value;const fx=parseFloat(document.getElementById('f-fx').value)||0;
+  const coupon=parseFloat(document.getElementById('f-coupon').value)||0;const aki=parseFloat(document.getElementById('f-aki').value)||0;
+  const strike=parseFloat(document.getElementById('f-strike').value)||0;const ko=parseFloat(document.getElementById('f-ko').value)||0;
+  const isin=document.getElementById('f-isin').value.trim();const term=document.getElementById('f-term').value;
+  const status=document.getElementById('f-status').value;const maturity=document.getElementById('f-mat').value;
+  const exitDate=document.getElementById('f-exit').value;const koStart=document.getElementById('f-kos').value;
+  const evalDate=document.getElementById('f-eval').value;const note=document.getElementById('f-note').value.trim();
+  const monthly=parseFloat(document.getElementById('f-mo').value)||0;const freq=document.getElementById('f-freq').value;
+  const payDates=document.getElementById('f-pd').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const paidDates=document.getElementById('f-paid').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const totalUSD=paidDates.length*monthly;const totalTWD=fx?totalUSD*fx:0;
+  const rate=face?parseFloat((totalUSD/face*100).toFixed(2)):0;const stocks=getStocks();
+  const eid=document.getElementById('eid').value;
+  if(eid){const idx=D.findIndex(x=>x.id===parseInt(eid));if(idx>=0)D[idx]={...D[idx],date,bank,ccy,face,fx,coupon,aki,strike,ko,isin,term,status,maturity,exitDate,koStart,evalDate,note,monthly,freq,payDates,paidDates,totalUSD,totalTWD,rate,stocks};}
+  else{const nid=Math.max(0,...D.map(d=>d.id))+1;D.push({id:nid,date,bank,ccy,face,fx,coupon,aki,strike,ko,isin,term,status,maturity,exitDate,koStart,evalDate,note,monthly,freq,payDates,paidDates,totalUSD,totalTWD,rate,stocks});}
+  save();showSec('list');
+}
+function cancelEdit(){showSec('list');}
+function confDel(id){delId=id;document.getElementById('modal').classList.add('open');document.getElementById('mo-ok').onclick=()=>{D=D.filter(d=>d.id!==delId);save();closeMo();rlist();};}
+function closeMo(e){if(!e||e.target===document.getElementById('modal')){document.getElementById('modal').classList.remove('open');delId=null;}}
+
+function rrep(){
+  const uR=D.filter(d=>d.ccy==='USD');const tF=uR.reduce((a,d)=>a+d.face,0);const tI=uR.reduce((a,d)=>a+(d.totalUSD||0),0);const tTWD=D.reduce((a,d)=>a+(d.totalTWD||0),0);
+  const cl=D.filter(d=>d.status==='closed'&&d.rate>0);const avg=cl.length?(cl.reduce((a,d)=>a+(d.rate||0),0)/cl.length).toFixed(2):0;
+  document.getElementById('rep-m').innerHTML=`
+    <div class="mc"><div class="ml">USD 面額合計</div><div class="mv mono">$${F(tF)}</div><div class="ms">${uR.length} 筆</div></div>
+    <div class="mc"><div class="ml">累計配息 USD</div><div class="mv mono gn">$${F(tI)}</div></div>
+    <div class="mc"><div class="ml">累計配息 TWD</div><div class="mv mono gn">$${F(tTWD)}</div></div>
+    <div class="mc"><div class="ml">平均報酬率（已出場）</div><div class="mv mono gd">${avg}%</div><div class="ms">${cl.length} 筆計算</div></div>`;
+  const rr=D.filter(d=>d.rate>0).sort((a,b)=>b.rate-a.rate);const mx=Math.max(...rr.map(d=>d.rate),1);
+  document.getElementById('rep-bars').innerHTML=rr.map(d=>`<div class="bg"><div class="bl2"><span>${d.date.slice(5)} ${d.stocks.slice(0,2).map(s=>s.name).join('/')}</span><span>${d.rate}%</span></div><div class="bt"><div class="bf" style="width:${(d.rate/mx)*100}%"></div></div></div>`).join('');
+  const sc2={};D.forEach(d=>d.stocks.forEach(s=>{sc2[s.name]=(sc2[s.name]||0)+1;}));
+  const ss=Object.entries(sc2).sort((a,b)=>b[1]-a[1]);const mc=ss[0]?.[1]||1;
+  document.getElementById('rep-stk').innerHTML=ss.map(([n,c])=>`<div class="bg"><div class="bl2"><span>${n}</span><span>${c} 次</span></div><div class="bt"><div class="bf" style="width:${(c/mc)*100}%;background:var(--gd)"></div></div></div>`).join('');
+  const sr=[...D].sort((a,b)=>b.date.localeCompare(a.date));
+  document.getElementById('rep-tb').innerHTML=sr.map(d=>`<tr>
+    <td class="mono" style="font-size:11px">${d.date}</td><td style="font-size:11px">${d.bank}</td>
+    <td class="mono right">${SY(d.ccy)}${F(d.face)}</td>
+    <td>${d.ccy==='JPY'?'<span class="badge bj">JPY</span>':d.ccy}</td>
+    <td class="mono right">${twd(d)?'$'+F(twd(d)):'—'}</td>
+    <td class="cb">${d.coupon}%</td><td>${d.term}</td>
+    <td style="font-size:11px">${d.maturity||'—'}</td>
+    <td style="font-size:11px">${d.exitDate||'—'}</td>
+    <td class="mono right cg">${d.ccy!=='JPY'&&d.totalUSD?'$'+F(d.totalUSD):'—'}</td>
+    <td class="${d.rate>0?'cg':'cmu'}">${d.rate>0?d.rate+'%':'—'}</td>
+    <td>${bdg(d.status)}</td>
+  </tr>`).join('');
 }
 
-// ─── FORM ───────────────────────────────────────────────────
-let stockCount = 0;
-function addStockRow(s) {
-  stockCount++;
-  const id = 'sr-' + stockCount;
-  const div = document.createElement('div');
-  div.className = 'stock-row';
-  div.id = id;
-  div.innerHTML = `
-    <input type="text" placeholder="股票名稱" value="${s?s.name:''}" class="sr-name">
-    <input type="number" placeholder="買進價" step="0.01" value="${s?s.buy:''}" class="sr-buy">
-    <input type="number" placeholder="下限價" step="0.01" value="${s?s.aki:''}" class="sr-aki">
-    <input type="number" placeholder="執行價" step="0.01" value="${s?s.strike:''}" class="sr-strike">
-    <input type="number" placeholder="出廠價" step="0.01" value="${s?s.exit:''}" class="sr-exit">
-    <button class="remove-btn" onclick="document.getElementById('${id}').remove()">✕</button>`;
-  document.getElementById('stocks-container').appendChild(div);
-}
-
-function getStocks() {
-  return Array.from(document.querySelectorAll('.stock-row')).map(row => ({
-    name: row.querySelector('.sr-name').value.trim(),
-    buy: parseFloat(row.querySelector('.sr-buy').value)||0,
-    aki: parseFloat(row.querySelector('.sr-aki').value)||0,
-    strike: parseFloat(row.querySelector('.sr-strike').value)||0,
-    exit: parseFloat(row.querySelector('.sr-exit').value)||0,
-  })).filter(s=>s.name);
-}
-
-function resetForm() {
-  document.getElementById('edit-id').value = '';
-  document.getElementById('add-title').textContent = '新增投資';
-  ['f-date','f-bank','f-face','f-fx','f-coupon','f-aki','f-strikeP','f-ko','f-isin','f-monthly','f-dates','f-paid-dates','f-note','f-eval-date','f-exit-date'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = '';
-  });
-  document.getElementById('f-term').value = '6M';
-  document.getElementById('f-status').value = 'active';
-  document.getElementById('f-freq').value = 'monthly';
-  document.getElementById('stocks-container').innerHTML = '';
-  stockCount = 0;
-  addStockRow();
-}
-
-function editRecord(id) {
-  const d = DATA.find(x=>x.id===id);
-  if (!d) return;
-  showSection('add');
-  document.getElementById('edit-id').value = id;
-  document.getElementById('add-title').textContent = '編輯投資';
-  document.getElementById('f-date').value = d.date;
-  document.getElementById('f-bank').value = d.bank;
-  document.getElementById('f-face').value = d.face;
-  document.getElementById('f-fx').value = d.fx||'';
-  document.getElementById('f-coupon').value = d.coupon;
-  document.getElementById('f-aki').value = d.aki||'';
-  document.getElementById('f-ko').value = d.ko||'';
-  document.getElementById('f-isin').value = d.isin||'';
-  document.getElementById('f-term').value = d.term;
-  document.getElementById('f-status').value = d.status;
-  document.getElementById('f-monthly').value = d.monthly||'';
-  document.getElementById('f-freq').value = d.freq||'monthly';
-  document.getElementById('f-dates').value = (d.payDates||[]).join(', ');
-  document.getElementById('f-paid-dates').value = (d.paidDates||[]).join(', ');
-  document.getElementById('f-note').value = d.note||'';
-  document.getElementById('f-eval-date').value = d.evalDate||'';
-  document.getElementById('f-exit-date').value = d.exitDate||'';
-  document.getElementById('stocks-container').innerHTML = '';
-  stockCount = 0;
-  (d.stocks||[]).forEach(s=>addStockRow(s));
-}
-
-function saveRecord() {
-  const date = document.getElementById('f-date').value;
-  const bank = document.getElementById('f-bank').value.trim();
-  const face = parseFloat(document.getElementById('f-face').value)||0;
-  if (!date || !bank || !face) { alert('請填寫買進日期、投資銀行及投資面額'); return; }
-  const fx = parseFloat(document.getElementById('f-fx').value)||0;
-  const coupon = parseFloat(document.getElementById('f-coupon').value)||0;
-  const aki = parseFloat(document.getElementById('f-aki').value)||0;
-  const ko = parseFloat(document.getElementById('f-ko').value)||0;
-  const isin = document.getElementById('f-isin').value.trim();
-  const term = document.getElementById('f-term').value;
-  const status = document.getElementById('f-status').value;
-  const monthly = parseFloat(document.getElementById('f-monthly').value)||0;
-  const freq = document.getElementById('f-freq').value;
-  const payDates = document.getElementById('f-dates').value.split(',').map(s=>s.trim()).filter(Boolean);
-  const paidDates = document.getElementById('f-paid-dates').value.split(',').map(s=>s.trim()).filter(Boolean);
-  const note = document.getElementById('f-note').value.trim();
-  const evalDate = document.getElementById('f-eval-date').value;
-  const exitDate = document.getElementById('f-exit-date').value;
-  const stocks = getStocks();
-  const totalUSD = paidDates.length * monthly;
-  const totalTWD = totalUSD * (fx||32.5);
-  const rate = face ? parseFloat(((totalUSD/face)*100).toFixed(2)) : 0;
-  const editId = document.getElementById('edit-id').value;
-  if (editId) {
-    const idx = DATA.findIndex(x=>x.id===parseInt(editId));
-    if (idx>=0) DATA[idx] = {...DATA[idx], date, bank, face, fx, coupon, aki, ko, isin, term, status, monthly, freq, payDates, paidDates, note, evalDate, exitDate, stocks, totalUSD, totalTWD, rate};
-  } else {
-    const newId = Math.max(0,...DATA.map(d=>d.id))+1;
-    DATA.push({ id:newId, date, bank, face, fx, coupon, aki, ko, isin, term, status, monthly, freq, payDates, paidDates, note, evalDate, exitDate, stocks, totalUSD, totalTWD, rate, strikeP: parseFloat(document.getElementById('f-ko').value)||0 });
-  }
-  save();
-  showSection('list');
-}
-
-function cancelEdit() { showSection('list'); }
-
-// ─── DELETE ─────────────────────────────────────────────────
-function confirmDelete(id) {
-  deleteId = id;
-  document.getElementById('modal-overlay').classList.add('open');
-  document.getElementById('modal-confirm').onclick = () => {
-    DATA = DATA.filter(d=>d.id!==deleteId);
-    save();
-    closeModal();
-    renderList();
-  };
-}
-function closeModal(e) {
-  if (!e || e.target===document.getElementById('modal-overlay')) {
-    document.getElementById('modal-overlay').classList.remove('open');
-    deleteId = null;
-  }
-}
-
-// ─── REPORT ─────────────────────────────────────────────────
-function renderReport() {
-  const totalFace = DATA.reduce((a,d)=>a+d.face,0);
-  const totalInt = DATA.reduce((a,d)=>a+(d.totalUSD||0),0);
-  const totalTWD = DATA.reduce((a,d)=>a+(d.totalTWD||0),0);
-  const closed = DATA.filter(d=>d.status==='closed');
-  const avgRate = closed.length ? (closed.reduce((a,d)=>a+(d.rate||0),0)/closed.length).toFixed(2) : 0;
-  document.getElementById('report-metrics').innerHTML = `
-    <div class="metric"><div class="metric-label">總投入面額 USD</div><div class="metric-value mono">$${fmt(totalFace)}</div><div class="metric-sub">${DATA.length} 筆</div></div>
-    <div class="metric"><div class="metric-label">累計配息 USD</div><div class="metric-value mono green">$${fmt(totalInt)}</div></div>
-    <div class="metric"><div class="metric-label">累計配息 TWD</div><div class="metric-value mono green">$${fmt(totalTWD)}</div></div>
-    <div class="metric"><div class="metric-label">平均報酬率（已出場）</div><div class="metric-value mono gold">${avgRate}%</div><div class="metric-sub">共 ${closed.length} 筆</div></div>`;
-  const maxRate = Math.max(...DATA.map(d=>d.rate||0),1);
-  document.getElementById('report-bars').innerHTML = DATA.map(d=>`
-    <div class="chart-bar-group">
-      <div class="chart-bar-label"><span>${d.date.slice(5)} ${d.stocks.slice(0,2).map(s=>s.name).join('/')}</span><span>${d.rate}%</span></div>
-      <div class="chart-bar-track"><div class="chart-bar-fill" style="width:${(d.rate/maxRate)*100}%"></div></div>
-    </div>`).join('');
-  const stockCount = {};
-  DATA.forEach(d=>d.stocks.forEach(s=>{ stockCount[s.name]=(stockCount[s.name]||0)+1; }));
-  const sorted = Object.entries(stockCount).sort((a,b)=>b[1]-a[1]);
-  const maxC = sorted[0]?.[1]||1;
-  document.getElementById('report-stocks').innerHTML = sorted.map(([name,cnt])=>`
-    <div class="chart-bar-group">
-      <div class="chart-bar-label"><span>${name}</span><span>${cnt} 次</span></div>
-      <div class="chart-bar-track"><div class="chart-bar-fill" style="width:${(cnt/maxC)*100}%; background:var(--gold);"></div></div>
-    </div>`).join('');
-  document.getElementById('report-tbody').innerHTML = DATA.map(d=>`
-    <tr>
-      <td class="mono" style="font-size:12px;">${d.date}</td>
-      <td class="mono right">$${fmt(d.face)}</td>
-      <td class="c-blue">${d.coupon}%</td>
-      <td>${d.term}</td>
-      <td class="mono right">${d.fx ? '$'+fmt(d.face*d.fx) : '—'}</td>
-      <td class="mono right c-green">$${fmt(d.totalUSD)}</td>
-      <td class="mono right c-green">${d.totalTWD ? '$'+fmt(d.totalTWD) : '—'}</td>
-      <td class="${d.rate>0?'c-green':'c-muted'}">${d.rate>0?d.rate+'%':'—'}</td>
-      <td>${statusBadge(d.status)}</td>
-    </tr>`).join('');
-}
-
-// ─── INIT ────────────────────────────────────────────────────
-document.getElementById('last-update').textContent = localStorage.getItem('fcn_last') || '首次載入';
-renderDashboard();
+document.getElementById('last-update').textContent=localStorage.getItem('fcnlast')||'首次載入';
+rdash();
 </script>
 </body>
 </html>

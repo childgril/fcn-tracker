@@ -38,13 +38,39 @@ body{font-family:var(--sans);background:var(--bg);color:var(--tx);height:100vh;o
 .card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);overflow:hidden;margin-bottom:10px;}
 .ch{padding:8px 14px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
 .ct{font-size:12px;font-weight:600;}
-.tw{overflow-x:auto;}
+.tw{overflow-x:auto;overflow-y:auto;max-height:calc(100vh - 220px);}
 table{width:100%;border-collapse:collapse;}
-th{padding:5px 8px;text-align:left;font-size:9px;font-weight:600;color:var(--tx3);letter-spacing:.05em;text-transform:uppercase;background:var(--sur2);border-bottom:1px solid var(--bdr);white-space:nowrap;line-height:1.3;}
+th{padding:5px 8px;text-align:left;font-size:9px;font-weight:600;color:var(--tx3);letter-spacing:.05em;text-transform:uppercase;background:var(--sur2);border-bottom:1px solid var(--bdr);white-space:nowrap;line-height:1.3;position:sticky;top:0;z-index:3;}
 th[rowspan]{border-right:1px solid var(--bdr);}
 td{padding:5px 8px;border-bottom:1px solid var(--bdr);font-size:11px;color:var(--tx);vertical-align:middle;}
 tr:last-child td{border-bottom:none;}
 tr:hover td{background:#fafaf8;}
+/* second header row sticky offset */
+thead tr:nth-child(2) th{top:29px;}
+/* hold panel slide-in */
+.hold-panel{position:fixed;right:0;top:0;bottom:0;width:340px;background:var(--sur);border-left:1px solid var(--bdr);z-index:200;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .25s ease;box-shadow:-4px 0 20px rgba(0,0,0,.08);}
+.hold-panel.open{transform:translateX(0);}
+.hold-panel-hd{padding:14px 18px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;background:var(--gdl);}
+.hold-panel-hd h3{font-size:14px;font-weight:600;color:var(--gd);}
+.hold-panel-body{flex:1;overflow-y:auto;padding:16px 18px;}
+.hold-panel-close{background:none;border:none;font-size:18px;cursor:pointer;color:var(--tx2);padding:2px 6px;}
+.hold-section{margin-bottom:16px;}
+.hold-section-title{font-size:10px;font-weight:700;color:var(--tx3);letter-spacing:.07em;text-transform:uppercase;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--bdr);}
+.hold-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;}
+.hold-row label{font-size:11px;color:var(--tx2);flex-shrink:0;min-width:100px;}
+.hold-row input{flex:1;padding:5px 8px;border:1px solid var(--bdr);border-radius:var(--r);font-family:var(--mono);font-size:12px;text-align:right;background:var(--bg);}
+.hold-row input:focus{border-color:var(--ac2);outline:none;background:var(--sur);}
+.hold-row .val{font-family:var(--mono);font-size:12px;font-weight:500;text-align:right;}
+.hold-result{background:var(--sur2);border-radius:var(--r);padding:12px 14px;margin-top:4px;}
+.hold-result-row{display:flex;justify-content:space-between;margin-bottom:6px;font-size:12px;}
+.hold-result-row:last-child{margin-bottom:0;}
+.hold-result-row .rl{color:var(--tx2);}
+.hold-result-row .rv{font-family:var(--mono);font-weight:600;}
+.breakeven-highlight{background:var(--gnl);border:1px solid #b7dfc9;border-radius:var(--r);padding:10px 14px;margin-top:10px;text-align:center;}
+.breakeven-price{font-size:20px;font-weight:700;color:var(--gn);font-family:var(--mono);}
+.breakeven-label{font-size:10px;color:var(--gn);margin-top:2px;}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.2);z-index:199;}
+.overlay.open{display:block;}
 .mono{font-family:var(--mono);}
 .right{text-align:right;}
 .badge{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:100px;letter-spacing:.04em;white-space:nowrap;}
@@ -319,6 +345,55 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
   </div>
 </div>
 
+<!-- HOLD PANEL -->
+<div class="overlay" id="hold-overlay" onclick="closeHoldPanel()"></div>
+<div class="hold-panel" id="hold-panel">
+  <div class="hold-panel-hd">
+    <h3 id="hp-title">承接股票明細</h3>
+    <button class="hold-panel-close" onclick="closeHoldPanel()">✕</button>
+  </div>
+  <div class="hold-panel-body">
+    <div class="hold-section">
+      <div class="hold-section-title">原始投資資訊</div>
+      <div class="hold-row"><label>帳戶</label><span class="val" id="hp-bank">—</span></div>
+      <div class="hold-row"><label>買進日</label><span class="val" id="hp-date">—</span></div>
+      <div class="hold-row"><label>原始面額</label><span class="val" id="hp-face">—</span></div>
+      <div class="hold-row"><label>已領利息</label><span class="val cg" id="hp-paid">—</span></div>
+      <div class="hold-row"><label>本金扣利息</label><span class="val" id="hp-net">—</span></div>
+    </div>
+    <div class="hold-section">
+      <div class="hold-section-title">承接股票輸入</div>
+      <div class="hold-row">
+        <label>承接哪一檔</label>
+        <select id="hp-stock-sel" onchange="hpCalc()" style="flex:1;padding:5px 8px;border:1px solid var(--bdr);border-radius:var(--r);font-size:12px;background:var(--bg);">
+          <option value="">選擇股票</option>
+        </select>
+      </div>
+      <div class="hold-row"><label>實際承接金額 $</label><input type="number" id="hp-amt" placeholder="例：180000" step="0.01" oninput="hpCalc()"></div>
+      <div class="hold-row"><label>購買幾股</label><input type="number" id="hp-shares" placeholder="例：1000" step="1" oninput="hpCalc()"></div>
+      <div class="hold-row"><label>退款餘額 $</label><input type="number" id="hp-refund" placeholder="例：20000" step="0.01" oninput="hpCalc()"></div>
+    </div>
+    <div class="hold-section">
+      <div class="hold-section-title">計算結果</div>
+      <div class="hold-result">
+        <div class="hold-result-row"><span class="rl">平均承接成本/股</span><span class="rv" id="hp-cost-per">—</span></div>
+        <div class="hold-result-row"><span class="rl">實際淨成本（扣退款）</span><span class="rv" id="hp-net-cost">—</span></div>
+        <div class="hold-result-row"><span class="rl">已領利息（USD）</span><span class="rv cg" id="hp-int-usd">—</span></div>
+        <div class="hold-result-row"><span class="rl">本金扣已領利息</span><span class="rv" id="hp-principal-net">—</span></div>
+      </div>
+      <div class="breakeven-highlight">
+        <div class="breakeven-price" id="hp-breakeven">—</div>
+        <div class="breakeven-label">每股需漲到此價格才回本</div>
+        <div style="font-size:10px;color:var(--tx3);margin-top:4px" id="hp-breakeven-sub"></div>
+      </div>
+    </div>
+    <div class="hold-section">
+      <div class="hold-section-title">備註</div>
+      <textarea id="hp-note" rows="3" style="width:100%;padding:7px 10px;border:1px solid var(--bdr);border-radius:var(--r);font-size:12px;font-family:var(--sans);resize:vertical;background:var(--bg);" placeholder="記錄其他細節…"></textarea>
+      <button class="btn btnp" style="width:100%;margin-top:8px;justify-content:center;" onclick="saveHoldDetail()">儲存承接明細</button>
+    </div>
+  </div>
+</div>
 </main>
 </div>
 
@@ -578,7 +653,7 @@ function renderListTable(rows){
         <td class="mono right" style="color:var(--rd)">${s.aki?F(s.aki,isJPY?0:2):'—'}</td>
         <td class="mono right" style="color:var(--bl)">${s.strike?F(s.strike,isJPY?0:2):'—'}</td>
         <td class="mono right" style="color:var(--gn)">${s.exit?F(s.exit,isJPY?0:2):'—'}</td>
-        <td style="white-space:nowrap">${i===0?`<button class="btn btnsm" onclick="editRec(${d.id})" style="margin-right:3px">編輯</button><button class="btn btnsm" onclick="confDel(${d.id})">刪除</button>`:''}</td>
+        <td style="white-space:nowrap">${i===0?`<button class="btn btnsm" onclick="editRec(${d.id})" style="margin-right:3px">編輯</button><button class="btn btnsm" onclick="confDel(${d.id})">刪除</button>${d.status==='hold'?`<button class="btn btnsm" onclick="openHoldPanel(${d.id})" style="margin-left:3px;background:var(--gdl);border-color:var(--gd);color:var(--gd)">承接明細</button>`:''}`:''}</td>
       </tr>`;
     });
     html+=`<tr><td colspan="12" style="padding:0;height:5px;background:var(--bg)"></td></tr>`;
@@ -710,6 +785,84 @@ function rrep(){
     <td class="${d.rate>0?'cg':'cmu'}">${d.rate>0?d.rate+'%':'—'}</td>
     <td>${bdg(d.status)}</td>
   </tr>`).join('');
+}
+
+// ── HOLD PANEL ──────────────────────────────────────────────
+let hpId=null;
+function openHoldPanel(id){
+  hpId=id;
+  const d=D.find(x=>x.id===id);if(!d)return;
+  // fill static info
+  document.getElementById('hp-title').textContent=`承接股票明細 · ${d.bank}`;
+  document.getElementById('hp-bank').textContent=d.bank;
+  document.getElementById('hp-date').textContent=d.date;
+  document.getElementById('hp-face').textContent=`$${F(d.face)}`;
+  const paidUSD=(d.paidDates||[]).length*d.monthly;
+  document.getElementById('hp-paid').textContent=`$${F(paidUSD,2)}`;
+  document.getElementById('hp-net').textContent=`$${F(d.face-paidUSD,2)}`;
+  // fill stock dropdown
+  const sel=document.getElementById('hp-stock-sel');
+  sel.innerHTML='<option value="">選擇股票</option>'+d.stocks.map(s=>`<option value="${s.name}">${s.name}（承接價 $${s.strike}）</option>`).join('');
+  // restore saved hold detail if exists
+  const hd=d.holdDetail||{};
+  sel.value=hd.stock||'';
+  document.getElementById('hp-amt').value=hd.amt||'';
+  document.getElementById('hp-shares').value=hd.shares||'';
+  document.getElementById('hp-refund').value=hd.refund||'';
+  document.getElementById('hp-note').value=hd.note||'';
+  hpCalc();
+  document.getElementById('hold-panel').classList.add('open');
+  document.getElementById('hold-overlay').classList.add('open');
+}
+function closeHoldPanel(){
+  document.getElementById('hold-panel').classList.remove('open');
+  document.getElementById('hold-overlay').classList.remove('open');
+}
+function hpCalc(){
+  const d=D.find(x=>x.id===hpId);if(!d)return;
+  const amt=parseFloat(document.getElementById('hp-amt').value)||0;
+  const shares=parseFloat(document.getElementById('hp-shares').value)||0;
+  const refund=parseFloat(document.getElementById('hp-refund').value)||0;
+  const paidUSD=(d.paidDates||[]).length*d.monthly;
+  const netCost=amt-refund;
+  const costPerShare=shares>0?netCost/shares:0;
+  const principalNet=d.face-paidUSD;
+  // breakeven: need stock to rise so that shares*price = principalNet (net cost basis)
+  // total cost to recover = original face - interest received - refund
+  const totalToRecover=d.face-paidUSD-refund;
+  const breakeven=shares>0?totalToRecover/shares:0;
+  // selected stock's current/strike price for reference
+  const selSym=document.getElementById('hp-stock-sel').value;
+  const selStock=d.stocks.find(s=>s.name===selSym);
+  const curPrice=selSym&&priceCache[selSym]?priceCache[selSym]:0;
+
+  document.getElementById('hp-cost-per').textContent=costPerShare?`$${F(costPerShare,2)}`:'—';
+  document.getElementById('hp-net-cost').textContent=netCost?`$${F(netCost,2)}`:'—';
+  document.getElementById('hp-int-usd').textContent=`$${F(paidUSD,2)}`;
+  document.getElementById('hp-principal-net').textContent=`$${F(principalNet,2)}`;
+  if(breakeven>0){
+    document.getElementById('hp-breakeven').textContent=`$${F(breakeven,2)}`;
+    let sub=`需回本 $${F(totalToRecover,2)}`;
+    if(curPrice) sub+=`　目前價 $${F(curPrice,2)}（${((curPrice-breakeven)/breakeven*100).toFixed(1)}%）`;
+    if(selStock&&selStock.strike) sub+=`　承接價 $${F(selStock.strike,2)}`;
+    document.getElementById('hp-breakeven-sub').textContent=sub;
+  } else {
+    document.getElementById('hp-breakeven').textContent='—';
+    document.getElementById('hp-breakeven-sub').textContent='請輸入承接金額與股數';
+  }
+}
+function saveHoldDetail(){
+  const d=D.find(x=>x.id===hpId);if(!d)return;
+  d.holdDetail={
+    stock:document.getElementById('hp-stock-sel').value,
+    amt:parseFloat(document.getElementById('hp-amt').value)||0,
+    shares:parseFloat(document.getElementById('hp-shares').value)||0,
+    refund:parseFloat(document.getElementById('hp-refund').value)||0,
+    note:document.getElementById('hp-note').value,
+  };
+  save();
+  closeHoldPanel();
+  if(document.getElementById('sec-list').classList.contains('active'))rlist();
 }
 
 document.getElementById('last-update').textContent=localStorage.getItem('fcnlast')||'首次載入';

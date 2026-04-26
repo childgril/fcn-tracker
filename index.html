@@ -322,116 +322,96 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
 
 <!-- EVAL -->
 <div id="sec-eval" class="sec">
-  <div class="ph">
-    <div><div class="pt">評估 FCN</div><div class="ps">輸入報價條件，確認後加入下方比較清單，支援拖曳排序</div></div>
+  <div class="ph" style="margin-bottom:12px;">
+    <div><div class="pt">評估 FCN</div><div class="ps">每日報價記錄，自動帶出股價並計算保護價／承購價／出場價</div></div>
     <div style="display:flex;gap:8px;align-items:center;">
       <span id="eval-fx-info" style="font-size:11px;color:var(--tx3)"></span>
-      <button class="btn btnsm" onclick="resetEvalForm()">＋ 新增報價</button>
-      <button class="btn btnp btnsm" onclick="runEval()">▶ 抓取股價＋計算</button>
     </div>
   </div>
 
-  <!-- ── 單一輸入表單 ── -->
-  <div class="fs" id="eval-form-card" style="max-width:820px;margin-bottom:16px;">
-    <div class="fst">報價資料</div>
-    <div class="fg4" style="margin-bottom:14px;">
+  <!-- ── 輸入表單 ── -->
+  <div class="fs" id="eval-form-card" style="max-width:760px;margin-bottom:16px;">
+      <div class="fst" id="eval-form-title">新增報價</div>
 
-      <!-- 銀行下拉 -->
-      <div class="fgrp">
-        <label>銀行</label>
-        <select id="ef-bank-sel" onchange="evalBankSel()">
-          <option value="元大">元大</option>
-          <option value="兆豐">兆豐</option>
-          <option value="custom">手動輸入…</option>
-        </select>
-        <input type="text" id="ef-bank-custom" placeholder="輸入銀行名稱" style="margin-top:4px;display:none;" oninput="evalF.bank=this.value">
+      <div class="fg" style="margin-bottom:10px;">
+        <div class="fgrp"><label>申購日 *</label><input type="date" id="ef-date"></div>
+        <div class="fgrp"><label>市場 *</label>
+          <select id="ef-market" onchange="efMarketChange()">
+            <option value="US">🇺🇸 美股（USD）</option>
+            <option value="JP">🇯🇵 日股（JPY）</option>
+          </select>
+        </div>
+        <div class="fgrp"><label>發行機構</label><input type="text" id="ef-issuer" placeholder="例：瑞銀 UBS"></div>
+      </div>
+      <div class="fg" style="margin-bottom:10px;">
+        <div class="fgrp"><label>銀行 *</label>
+          <select id="ef-bank-sel" onchange="efBankChange()">
+            <option value="元大">元大</option><option value="兆豐">兆豐</option><option value="__">自行輸入…</option>
+          </select>
+          <input type="text" id="ef-bank-txt" placeholder="銀行名稱" style="display:none;margin-top:4px;">
+        </div>
+        <div class="fgrp"><label>天期</label>
+          <select id="ef-term-sel" onchange="efTermChange()">
+            <option>3M</option><option>4M</option><option value="6M" selected>6M</option><option>9M</option><option>12M</option><option value="__">手動輸入…</option>
+          </select>
+          <input type="text" id="ef-term-txt" placeholder="例：18M" style="display:none;margin-top:4px;">
+        </div>
+      </div>
+      <div class="fg4" style="margin-bottom:10px;">
+        <div class="fgrp"><label>保護價類型</label>
+          <select id="ef-kitype"><option value="EKI">EKI 歐式敲入</option><option value="AKI">AKI 美式敲入</option></select>
+        </div>
+        <div class="fgrp"><label style="color:var(--rd)">保護價 E/AKI %</label>
+          <input type="number" id="ef-aki" placeholder="65" step="0.1">
+        </div>
+        <div class="fgrp"><label style="color:var(--bl)">承購價 Strike %</label>
+          <input type="number" id="ef-strike" placeholder="75" step="0.1">
+        </div>
+        <div class="fgrp"><label style="color:var(--gn)">出場價 KO %</label>
+          <input type="number" id="ef-ko" placeholder="105" step="0.1">
+        </div>
+      </div>
+      <div class="fg" style="margin-bottom:10px;">
+        <div class="fgrp"><label>Coupon 年化 %</label><input type="number" id="ef-coupon" placeholder="例：24" step="0.01"></div>
+        <div class="fgrp"><label>提前出場類型</label>
+          <select id="ef-ko-type"><option>每月觀察</option><option>每季觀察</option><option>到期一次</option><option>其他</option></select>
+        </div>
+        <div class="fgrp"><label>保證領息月數</label><input type="number" id="ef-guaranteed" placeholder="2" step="1" min="0"></div>
+        <div class="fgrp"><label id="ef-face-lbl">投資面額 USD</label><input type="number" id="ef-face" placeholder="100000"></div>
       </div>
 
-      <!-- 投資面額 -->
-      <div class="fgrp"><label>投資面額 USD</label>
-        <input type="number" id="ef-face" placeholder="100000" value="100000" oninput="evalF.face=parseFloat(this.value)||0">
+      <!-- 連結標的 -->
+      <div style="font-size:10px;font-weight:700;color:var(--tx3);letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px;">連結標的（最多5檔）</div>
+      <div id="ef-syms-wrap" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+        <input type="text" class="ef-sym" placeholder="TSM" style="width:80px;font-weight:500;">
+        <input type="text" class="ef-sym" placeholder="NVDA" style="width:80px;">
+        <input type="text" class="ef-sym" placeholder="TSLA" style="width:80px;">
+        <input type="text" class="ef-sym" placeholder="AVGO" style="width:80px;">
+        <input type="text" class="ef-sym" placeholder="AMD" style="width:80px;">
       </div>
 
-      <!-- Coupon -->
-      <div class="fgrp"><label>Coupon 年化 %</label>
-        <input type="number" id="ef-coupon" placeholder="例：24" step="0.01" oninput="evalF.coupon=parseFloat(this.value)||0">
-      </div>
+      <div class="fgrp" style="margin-bottom:14px;"><label>備註</label><input type="text" id="ef-note" placeholder="備註說明"></div>
 
-      <!-- 期限：下拉＋手動 -->
-      <div class="fgrp">
-        <label>期限</label>
-        <select id="ef-term-sel" onchange="evalTermSel()">
-          <option value="3M">3M</option>
-          <option value="4M">4M</option>
-          <option value="6M" selected>6M</option>
-          <option value="9M">9M</option>
-          <option value="12M">12M</option>
-          <option value="custom">手動輸入…</option>
-        </select>
-        <input type="text" id="ef-term-custom" placeholder="例：18M" style="margin-top:4px;display:none;" oninput="evalF.term=this.value">
+      <div style="display:flex;gap:8px;justify-content:space-between;align-items:center;">
+        <div style="display:flex;gap:6px;">
+          <button class="btn btnsm" onclick="evalRunAll()">▶ 更新全部股價</button>
+          <button class="btn btnsm" onclick="evalClearAll()" style="color:var(--rd)">清除全部報價</button>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn" onclick="evalClearForm()">清除表單</button>
+          <button class="btn btnp" id="eval-save-btn" onclick="evalSave()" style="padding:8px 22px;">✓ 儲存並計算 →</button>
+        </div>
       </div>
-    </div>
-
-    <!-- 保護價類型 + 條件 (共用一組 %) -->
-    <div class="fg4" style="margin-bottom:14px;">
-      <div class="fgrp">
-        <label>保護價類型</label>
-        <select id="ef-ki-type" onchange="evalF.kiType=this.value">
-          <option value="AKI">AKI（美式敲入）</option>
-          <option value="EKI">EKI（歐式敲入）</option>
-        </select>
-      </div>
-      <div class="fgrp">
-        <label>保護價 <span id="ef-aki-lbl" style="color:var(--rd)">AKI/EKI</span> %</label>
-        <input type="number" id="ef-aki" placeholder="65" step="0.1" oninput="evalF.aki=parseFloat(this.value)||0">
-        <div class="hint" style="color:var(--rd)">下跌保護線，低於此價觸發敲入</div>
-      </div>
-      <div class="fgrp">
-        <label>承購價 Strike %</label>
-        <input type="number" id="ef-strike" placeholder="75" step="0.1" oninput="evalF.strike=parseFloat(this.value)||0">
-        <div class="hint" style="color:var(--bl)">到期若股價低於此，以此價接股</div>
-      </div>
-      <div class="fgrp">
-        <label>出場價 KO %</label>
-        <input type="number" id="ef-ko" placeholder="105" step="0.1" oninput="evalF.ko=parseFloat(this.value)||0">
-        <div class="hint" style="color:var(--gn)">高於此價自動提早出場</div>
-      </div>
-    </div>
-
-    <!-- 連結股票 -->
-    <div style="font-size:10px;font-weight:700;color:var(--tx3);letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px;">連結股票代號（條件共用上方百分比）</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px;" id="ef-stocks-wrap">
-      <input type="text" id="ef-sym-0" placeholder="TSM" style="width:90px;font-weight:500;" oninput="evalSyncSyms()">
-      <input type="text" id="ef-sym-1" placeholder="NVDA" style="width:90px;font-weight:500;" oninput="evalSyncSyms()">
-      <input type="text" id="ef-sym-2" placeholder="TSLA（選填）" style="width:100px;" oninput="evalSyncSyms()">
-      <input type="text" id="ef-sym-3" placeholder="AVGO（選填）" style="width:100px;" oninput="evalSyncSyms()">
-      <input type="text" id="ef-sym-4" placeholder="AMD（選填）" style="width:90px;" oninput="evalSyncSyms()">
-    </div>
-
-    <div class="fgrp" style="max-width:400px;margin-bottom:12px;">
-      <label>備註</label>
-      <input type="text" id="ef-note" placeholder="例：音－元大 第三筆報價" oninput="evalF.note=this.value">
-    </div>
-
-    <div style="display:flex;justify-content:flex-end;">
-      <button class="btn btnp" onclick="confirmEvalRow()" style="padding:8px 24px;font-size:13px;">✓ 確認加入比較清單 →</button>
-    </div>
   </div>
 
-  <!-- ── 比較清單（可拖曳排序）── -->
-  <div id="eval-list-wrap" style="display:none;max-width:820px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-      <div style="font-size:13px;font-weight:600;color:var(--tx)">比較清單 <span id="eval-list-cnt" style="color:var(--tx3);font-size:11px;font-weight:400"></span></div>
-    </div>
-    <div id="eval-confirmed-list"></div>
-  </div>
+  <!-- ── 報價明細表 ── -->
+  <div id="eval-table-wrap" style="margin-top:16px;"></div>
 
-  <!-- ── 比較結果 ── -->
-  <div id="eval-results" style="margin-top:16px;max-width:1000px;"></div>
-  <!-- ── 歷史報價紀錄 ── -->
-  <div id="eval-history-wrap" style="margin-top:20px;max-width:1000px;"></div>
+  <!-- ── 歷史紀錄 ── -->
+  <div id="eval-history-wrap" style="margin-top:16px;"></div>
 </div>
 
+<!-- ADD -->
 <!-- ADD -->
 <div id="sec-add" class="sec">
   <div class="ph"><div><div class="pt" id="add-title">新增投資</div><div class="ps">填寫後儲存至本機瀏覽器</div></div></div>
@@ -751,42 +731,33 @@ let fxUpdatedAt='';
 
 function getFX(){return parseFloat(document.getElementById('fx-rate')?.value||'32.5')||32.5;}
 
-// Build fetch attempts: direct first, then via corsproxy.io
+// Build fetch attempts: CORS proxies first, then direct
 function yahooUrls(ticker){
   const base=`https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=1d`;
   const base2=`https://query2.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=1d`;
-  const proxy=`https://corsproxy.io/?${encodeURIComponent(base)}`;
-  const proxy2=`https://corsproxy.io/?${encodeURIComponent(base2)}`;
-  return [base, base2, proxy, proxy2];
+  return [
+    `https://corsproxy.io/?${encodeURIComponent(base)}`,
+    `https://corsproxy.io/?${encodeURIComponent(base2)}`,
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(base)}`,
+    base, base2,
+  ];
 }
 
 async function yahooFetch(ticker){
   for(const url of yahooUrls(ticker)){
     try{
-      const r=await fetch(url,{signal:AbortSignal.timeout(6000)});
+      const r=await fetch(url,{signal:AbortSignal.timeout(8000)});
       if(!r.ok)continue;
       const j=await r.json();
       const p=j?.chart?.result?.[0]?.meta?.regularMarketPrice;
-      if(p)return p;
+      if(p&&p>0)return p;
     }catch(e){}
   }
   return null;
 }
 
-async function fetchFX(){
-  const p=await yahooFetch('USDTWD=X');
-  if(p&&p>20){
-    document.getElementById('fx-rate').value=p.toFixed(3);
-    fxUpdatedAt=new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
-    document.getElementById('fx-time').textContent=`USD/TWD ${p.toFixed(3)}（${fxUpdatedAt}）`;
-    return true;
-  }
-  document.getElementById('fx-time').textContent='匯率更新失敗，請手動輸入';
-  return false;
-}
-
 async function fetchPrices(symbols){
-  const toFetch=symbols.filter(s=>s&&!/^\d/.test(s));
+  const toFetch=symbols.filter(s=>s&&(!/^\d/.test(s)||s.endsWith('.T')));
   if(!toFetch.length)return;
   await Promise.all(toFetch.map(async sym=>{
     const p=await yahooFetch(sym);
@@ -1722,19 +1693,6 @@ function rFxLog(){
     </div>`;
   }).join('');
 }
-
-function fxfPairChange(){
-  const pair=document.getElementById('fxf-pair').value;
-  const p=PAIRS[pair]||PAIRS['TWD-USD'];
-  document.getElementById('fxf-from-label').textContent=p.fromLabel+' *';
-  document.getElementById('fxf-from-sym').textContent=p.fromSym;
-  document.getElementById('fxf-to-label').textContent=p.toLabel+'（自動）';
-  document.getElementById('fxf-to-sym').textContent=p.toSym;
-  document.getElementById('fxf-rate-hint').textContent=p.hint;
-  document.getElementById('fxf-rate').placeholder=p.placeholder;
-  fxfCalc();
-}
-
 function openFxForm(id){
   const form=document.getElementById('fxlog-form');
   form.style.display='block';
@@ -1763,431 +1721,344 @@ function openFxForm(id){
   form.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 function closeFxForm(){document.getElementById('fxlog-form').style.display='none';}
-
-function fxfCalc(){
-  const from=parseFloat(document.getElementById('fxf-twd').value)||0;
-  const rate=parseFloat(document.getElementById('fxf-rate').value)||0;
-  const pair=document.getElementById('fxf-pair').value;
-  const p=PAIRS[pair]||PAIRS['TWD-USD'];
-  const foreign=from&&rate?from*rate:0;
-  const sym=p.toSym;
-  const isJPY=p.toCcy==='JPY';
 // ── EVAL FCN ────────────────────────────────────────────────
-let evalRows=JSON.parse(localStorage.getItem('fcneval2')||'[]');
-let evalHistory=JSON.parse(localStorage.getItem('fcnevalHist')||'[]');
-let evalDragIdx=null;
-let evalCount=0;
+let EV=JSON.parse(localStorage.getItem('fcnEV3')||'[]');
+let EVH=JSON.parse(localStorage.getItem('fcnEVH')||'[]');
+let evalEditId=null;
 
-// Current form state
-let evalF={bank:'元大',face:100000,coupon:0,term:'6M',kiType:'AKI',aki:0,strike:0,ko:0,note:'',syms:[]};
-
-function saveEval(){localStorage.setItem('fcneval2',JSON.stringify(evalRows));}
-function saveHistory(){localStorage.setItem('fcnevalHist',JSON.stringify(evalHistory));}
+function evSave2(){localStorage.setItem('fcnEV3',JSON.stringify(EV));}
+function evSaveH(){localStorage.setItem('fcnEVH',JSON.stringify(EVH));}
 
 function initEval(){
-  document.getElementById('eval-fx-info').textContent=`USD/TWD ${getFX()}`;
-  renderEvalConfirmedList();
-  renderEvalHistory();
+  document.getElementById('eval-fx-info').textContent='USD/TWD '+getFX();
+  if(!document.getElementById('ef-date').value)
+    document.getElementById('ef-date').value=new Date().toISOString().slice(0,10);
+  evalRenderTable();
+  evalRenderHistory();
 }
 
-function evalBankSel(){
+// ── form helpers ──
+function efMarketChange(){
+  const m=document.getElementById('ef-market').value;
+  const isJP=m==='JP';
+  document.getElementById('ef-face-lbl').textContent=isJP?'投資面額 JPY':'投資面額 USD';
+  document.getElementById('ef-face').placeholder=isJP?'16000000':'100000';
+}
+function efBankChange(){
   const v=document.getElementById('ef-bank-sel').value;
-  const custom=document.getElementById('ef-bank-custom');
-  if(v==='custom'){custom.style.display='';evalF.bank=custom.value;}
-  else{custom.style.display='none';evalF.bank=v;}
+  document.getElementById('ef-bank-txt').style.display=v==='__'?'':'none';
 }
-function evalTermSel(){
+function efTermChange(){
   const v=document.getElementById('ef-term-sel').value;
-  const custom=document.getElementById('ef-term-custom');
-  if(v==='custom'){custom.style.display='';evalF.term=custom.value||'';}
-  else{custom.style.display='none';evalF.term=v;}
+  document.getElementById('ef-term-txt').style.display=v==='__'?'':'none';
 }
-function evalSyncSyms(){
-  evalF.syms=['ef-sym-0','ef-sym-1','ef-sym-2','ef-sym-3','ef-sym-4']
-    .map(id=>(document.getElementById(id)?.value||'').trim().toUpperCase())
-    .filter(Boolean);
+function evalGetBank(){
+  const v=document.getElementById('ef-bank-sel').value;
+  return v==='__'?document.getElementById('ef-bank-txt').value.trim():v;
 }
-
-function confirmEvalRow(){
-  // read current form values
-  const bank=document.getElementById('ef-bank-sel').value==='custom'
-    ?document.getElementById('ef-bank-custom').value.trim()
-    :document.getElementById('ef-bank-sel').value;
-  const face=parseFloat(document.getElementById('ef-face').value)||0;
-  const coupon=parseFloat(document.getElementById('ef-coupon').value)||0;
-  const termSel=document.getElementById('ef-term-sel').value;
-  const term=termSel==='custom'?document.getElementById('ef-term-custom').value.trim():termSel;
-  const kiType=document.getElementById('ef-ki-type').value;
-  const aki=parseFloat(document.getElementById('ef-aki').value)||0;
-  const strike=parseFloat(document.getElementById('ef-strike').value)||0;
-  const ko=parseFloat(document.getElementById('ef-ko').value)||0;
-  const note=document.getElementById('ef-note').value.trim();
-  evalSyncSyms();
-  const syms=evalF.syms;
-  if(!syms.length){alert('請至少輸入一個股票代號');return;}
-  if(!coupon){alert('請輸入 Coupon 利率');return;}
-  const id='ev-'+Date.now();
-  evalRows.push({id,bank,face,coupon,term,kiType,aki,strike,ko,note,syms,prices:{}});
-  saveEval();
-  renderEvalConfirmedList();
-  document.getElementById('eval-list-wrap').style.display='';
-  // scroll to list
-  document.getElementById('eval-list-wrap').scrollIntoView({behavior:'smooth',block:'nearest'});
+function evalGetTerm(){
+  const v=document.getElementById('ef-term-sel').value;
+  return v==='__'?document.getElementById('ef-term-txt').value.trim():v;
+}
+function evalGetSyms(){
+  return [...document.querySelectorAll('.ef-sym')]
+    .map(el=>el.value.trim().toUpperCase()).filter(Boolean);
+}
+function evalClearForm(){
+  document.getElementById('ef-date').value=new Date().toISOString().slice(0,10);
+  ['ef-issuer','ef-coupon','ef-aki','ef-strike','ef-ko','ef-guaranteed','ef-face','ef-note'].forEach(id=>{
+    const el=document.getElementById(id); if(el)el.value='';
+  });
+  document.getElementById('ef-market').value='US'; efMarketChange();
+  document.getElementById('ef-bank-sel').value='元大'; efBankChange();
+  document.getElementById('ef-bank-txt').value='';
+  document.getElementById('ef-term-sel').value='6M'; efTermChange();
+  document.getElementById('ef-term-txt').value='';
+  document.getElementById('ef-kitype').value='EKI';
+  document.getElementById('ef-ko-type').value='每月觀察';
+  document.querySelectorAll('.ef-sym').forEach(el=>el.value='');
+  document.getElementById('eval-form-title').textContent='新增報價';
+  evalEditId=null;
 }
 
-function resetEvalForm(){
-  // scroll back to form and clear stock/note/coupon fields
+// ── save / update ──
+async function evalSave(){
+  const bank=evalGetBank();
+  const date=document.getElementById('ef-date').value;
+  const syms=evalGetSyms();
+  if(!bank||!date){alert('請填寫申購日和銀行');return;}
+  if(!syms.length){alert('請至少輸入一個連結標的');return;}
+
+  const rec={
+    id:evalEditId||(Date.now()+''),
+    date,
+    market:document.getElementById('ef-market').value||'US',
+    bank,
+    issuer:document.getElementById('ef-issuer').value.trim(),
+    term:evalGetTerm(),
+    kiType:document.getElementById('ef-kitype').value,
+    aki:parseFloat(document.getElementById('ef-aki').value)||0,
+    strike:parseFloat(document.getElementById('ef-strike').value)||0,
+    ko:parseFloat(document.getElementById('ef-ko').value)||0,
+    coupon:parseFloat(document.getElementById('ef-coupon').value)||0,
+    koType:document.getElementById('ef-ko-type').value,
+    guaranteed:parseInt(document.getElementById('ef-guaranteed').value)||0,
+    face:parseFloat(document.getElementById('ef-face').value)||0,
+    note:document.getElementById('ef-note').value.trim(),
+    syms,
+    prices:{},
+    savedAt:new Date().toISOString(),
+  };
+
+  // fetch prices — JP stocks need .T suffix for Yahoo Finance
+  const isJP=rec.market==='JP';
+  const fetchSyms=rec.syms.map(s=>isJP&&/^\d/.test(s)?s+'.T':s);
+  const btn=document.getElementById('eval-save-btn');
+  if(btn){btn.textContent='抓取股價中…';btn.disabled=true;}
+  await fetchPrices(fetchSyms);
+  rec.syms.forEach((s,i)=>{
+    const key=fetchSyms[i];
+    if(priceCache[key])rec.prices[s]=priceCache[key];
+    else if(priceCache[s])rec.prices[s]=priceCache[s];
+  });
+  if(btn){btn.textContent='✓ 儲存並計算 →';btn.disabled=false;}
+
+  if(evalEditId){
+    const idx=EV.findIndex(x=>x.id===evalEditId);
+    if(idx>=0)EV[idx]=rec;
+  } else {
+    EV.unshift(rec);
+  }
+  evSave2();
+  // auto-save snapshot to history
+  const snap={date:new Date().toLocaleDateString('zh-TW'),time:new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}),rows:JSON.parse(JSON.stringify(EV))};
+  EVH.unshift(snap);if(EVH.length>50)EVH.pop();
+  evSaveH();
+
+  evalClearForm();
+  evalRenderTable();
+  evalRenderHistory();
+  document.getElementById('eval-table-wrap').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+// ── list helpers (no mini panel) ──
+function evalRenderList(){
+  // no-op: table is the main display now
+  evalRenderTable();
+}
+
+function evalDeleteRow(id){
+  if(!confirm('刪除這筆報價？'))return;
+  EV=EV.filter(x=>x.id!==id);
+  evSave2();
+  evalRenderTable();
+}
+function evalEditRow(id){
+  const r=EV.find(x=>x.id===id);if(!r)return;
+  evalEditId=id;
+  document.getElementById('eval-form-title').textContent='編輯報價';
+  document.getElementById('ef-date').value=r.date||'';
+  document.getElementById('ef-market').value=r.market||'US'; efMarketChange();
+  document.getElementById('ef-issuer').value=r.issuer||'';
+  // bank
+  const bankSel=document.getElementById('ef-bank-sel');
+  if(['元大','兆豐'].includes(r.bank)){bankSel.value=r.bank;efBankChange();}
+  else{bankSel.value='__';efBankChange();document.getElementById('ef-bank-txt').value=r.bank;}
+  // term
+  const termSel=document.getElementById('ef-term-sel');
+  if(['3M','4M','6M','9M','12M'].includes(r.term)){termSel.value=r.term;efTermChange();}
+  else{termSel.value='__';efTermChange();document.getElementById('ef-term-txt').value=r.term;}
+  document.getElementById('ef-kitype').value=r.kiType||'EKI';
+  document.getElementById('ef-aki').value=r.aki||'';
+  document.getElementById('ef-strike').value=r.strike||'';
+  document.getElementById('ef-ko').value=r.ko||'';
+  document.getElementById('ef-coupon').value=r.coupon||'';
+  document.getElementById('ef-ko-type').value=r.koType||'每月觀察';
+  document.getElementById('ef-guaranteed').value=r.guaranteed||'';
+  document.getElementById('ef-face').value=r.face||'';
+  document.getElementById('ef-note').value=r.note||'';
+  const syms=document.querySelectorAll('.ef-sym');
+  syms.forEach((el,i)=>el.value=r.syms[i]||'');
   document.getElementById('eval-form-card').scrollIntoView({behavior:'smooth',block:'nearest'});
-  ['ef-sym-0','ef-sym-1','ef-sym-2','ef-sym-3','ef-sym-4'].forEach(id=>{
-    const el=document.getElementById(id);if(el)el.value='';
-  });
-  document.getElementById('ef-note').value='';
-  document.getElementById('ef-coupon').value='';
-  evalF.syms=[];evalF.coupon=0;evalF.note='';
 }
 
-function renderEvalConfirmedList(){
-  const wrap=document.getElementById('eval-list-wrap');
-  const el=document.getElementById('eval-confirmed-list');
-  if(!evalRows.length){wrap.style.display='none';el.innerHTML='';return;}
-  wrap.style.display='';
-  document.getElementById('eval-list-cnt').textContent=`${evalRows.length} 筆`;
-  el.innerHTML=evalRows.map((r,i)=>`
-    <div class="fs" draggable="true" data-idx="${i}"
-      ondragstart="evalDragStart(${i})"
-      ondragover="evalDragOver(event,${i})"
-      ondrop="evalDrop(${i})"
-      ondragend="evalDragEnd()"
-      style="margin-bottom:8px;cursor:grab;border-left:3px solid var(--ac2);padding:10px 14px;position:relative;transition:opacity .15s;">
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-        <span style="font-size:11px;color:var(--tx3);cursor:grab;">⠿</span>
-        <span style="font-size:11px;font-weight:700;color:var(--tx3);min-width:18px">${i+1}</span>
-        <span style="font-weight:600;font-size:13px">${r.bank||'—'}</span>
-        <span style="font-size:11px;color:var(--bl)">Coupon ${r.coupon}%</span>
-        <span style="font-size:11px;color:var(--tx2)">${r.term}</span>
-        <span style="font-size:11px">面額 $${F(r.face||0)}</span>
-        <span class="badge" style="background:var(--rdl);color:var(--rd);font-size:9px">${r.kiType||'AKI'}</span>
-        <span style="font-size:11px;color:var(--rd)">${r.kiType||'AKI'} ${r.aki}%</span>
-        <span style="font-size:11px;color:var(--bl)">Strike ${r.strike}%</span>
-        <span style="font-size:11px;color:var(--gn)">KO ${r.ko}%</span>
-        <div style="display:flex;gap:4px;flex-wrap:wrap;">
-          ${(r.syms||[]).map(s=>{
-            const p=r.prices?.[s]||priceCache[s];
-            return`<span class="tag" style="${p?'border-color:var(--gn);color:var(--gn)':''}">${s}${p?' $'+F(p,2):''}</span>`;
-          }).join('')}
-        </div>
-        ${r.note?`<span style="font-size:11px;color:var(--tx3);font-style:italic">${r.note}</span>`:''}
-        <div style="margin-left:auto;display:flex;gap:6px;">
-          <button class="btn btnsm" onclick="moveEvalRow(${i},-1)" ${i===0?'disabled':''}>↑</button>
-          <button class="btn btnsm" onclick="moveEvalRow(${i},1)" ${i===evalRows.length-1?'disabled':''}>↓</button>
-          <button class="btn btnsm" onclick="removeEvalConfirmed(${i})" style="color:var(--rd)">✕</button>
-        </div>
-      </div>
-    </div>`).join('');
+async function evalRunAll(){
+  if(!EV.length){alert('尚無報價紀錄');return;}
+  const btn=document.querySelector('[onclick="evalRunAll()"]');
+  if(btn){btn.textContent='更新中…';btn.disabled=true;}
+  // collect all symbols, adding .T suffix for JP digit-starting symbols
+  const allFetchSyms=[...new Set(EV.flatMap(r=>
+    r.syms.map(s=>(r.market==='JP'&&/^\d/.test(s))?s+'.T':s)
+  ))];
+  await fetchPrices(allFetchSyms);
+  // write back prices
+  EV.forEach(r=>r.syms.forEach(s=>{
+    const key=(r.market==='JP'&&/^\d/.test(s))?s+'.T':s;
+    if(priceCache[key])r.prices[s]=priceCache[key];
+    else if(priceCache[s])r.prices[s]=priceCache[s];
+  }));
+  evSave2();
+  if(btn){btn.textContent='▶ 更新全部股價';btn.disabled=false;}
+  evalRenderTable();
 }
 
-function moveEvalRow(i,dir){
-  const j=i+dir;
-  if(j<0||j>=evalRows.length)return;
-  [evalRows[i],evalRows[j]]=[evalRows[j],evalRows[i]];
-  saveEval();renderEvalConfirmedList();
+function evalClearAll(){
+  if(!confirm('清除所有報價紀錄？'))return;
+  EV=[];evSave2();
+  evalRenderTable();
 }
 
-function removeEvalConfirmed(i){
-  evalRows.splice(i,1);saveEval();renderEvalConfirmedList();
-  document.getElementById('eval-results').innerHTML='';
-}
-
-// Drag sort
-function evalDragStart(i){evalDragIdx=i;setTimeout(()=>{const el=document.querySelector(`[data-idx="${i}"]`);if(el)el.style.opacity='.4';},0);}
-function evalDragOver(e,i){e.preventDefault();}
-function evalDrop(i){
-  if(evalDragIdx===null||evalDragIdx===i)return;
-  const moved=evalRows.splice(evalDragIdx,1)[0];
-  evalRows.splice(i,0,moved);
-  saveEval();renderEvalConfirmedList();
-}
-function evalDragEnd(){evalDragIdx=null;document.querySelectorAll('[data-idx]').forEach(el=>el.style.opacity='');}
-
-async function runEval(){
-  if(!evalRows.length){alert('請先確認至少一筆報價');return;}
-  const btn=document.querySelector('[onclick="runEval()"]');
-  if(btn){btn.textContent='抓取中…';btn.disabled=true;}
-  const syms=[...new Set(evalRows.flatMap(r=>r.syms||[]))];
-  await fetchPrices(syms);
-  evalRows.forEach(r=>{
-    r.prices={};
-    (r.syms||[]).forEach(s=>{if(priceCache[s])r.prices[s]=priceCache[s];});
-  });
-  saveEval();
-  // save to history
-  const histEntry={date:new Date().toLocaleDateString('zh-TW'),time:new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}),rows:JSON.parse(JSON.stringify(evalRows))};
-  evalHistory.unshift(histEntry);
-  if(evalHistory.length>20)evalHistory.pop(); // keep last 20
-  saveHistory();
-  if(btn){btn.textContent='▶ 抓取股價＋計算';btn.disabled=false;}
-  renderEvalConfirmedList();
-  renderEvalResults();
-  renderEvalHistory();
-  document.getElementById('eval-results').scrollIntoView({behavior:'smooth',block:'nearest'});
-}
-
-function renderEvalHistory(){
-  const el=document.getElementById('eval-history-wrap');
-  if(!el)return;
-  if(!evalHistory.length){el.innerHTML='';return;}
-  let histShown=false;
-  el.innerHTML=`<div class="card">
-    <div class="ch">
-      <span class="ct">歷史報價紀錄</span>
-      <span style="font-size:11px;color:var(--tx3)">${evalHistory.length} 筆（最近 20 次）</span>
-    </div>
-    <div style="padding:0;">
-      ${evalHistory.map((h,hi)=>`
-        <div style="border-bottom:1px solid var(--bdr);">
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;cursor:pointer;background:var(--sur2);"
-            onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'':'none'">
-            <div style="font-size:12px;font-weight:600;">${h.date} ${h.time}
-              <span style="font-size:11px;color:var(--tx3);margin-left:8px;">${h.rows.length} 筆報價</span>
-              <span style="font-size:11px;color:var(--tx2);margin-left:8px;">${h.rows.map(r=>r.bank).join('、')}</span>
-            </div>
-            <div style="display:flex;gap:6px;">
-              <button class="btn btnsm" onclick="event.stopPropagation();restoreEvalHistory(${hi})">還原為當前清單</button>
-              <button class="btn btnsm" onclick="event.stopPropagation();deleteEvalHistory(${hi})" style="color:var(--rd)">✕</button>
-              <span style="font-size:12px;color:var(--tx3)">▾</span>
-            </div>
-          </div>
-          <div style="display:none;overflow-x:auto;">
-            <table style="font-size:10px;width:100%;border-collapse:collapse;">
-              <thead><tr>
-                <th style="padding:4px 10px;background:var(--sur2);font-weight:600;color:var(--tx3);text-align:left;">銀行</th>
-                <th style="padding:4px 10px;background:var(--sur2);font-weight:600;color:var(--tx3);">Coupon</th>
-                <th style="padding:4px 10px;background:var(--sur2);font-weight:600;color:var(--tx3);">期限</th>
-                <th style="padding:4px 10px;background:var(--sur2);font-weight:600;color:var(--tx3);color:var(--rd)">AKI/EKI%</th>
-                <th style="padding:4px 10px;background:var(--sur2);font-weight:600;color:var(--bl);">Strike%</th>
-                <th style="padding:4px 10px;background:var(--sur2);font-weight:600;color:var(--gn);">KO%</th>
-                <th style="padding:4px 10px;background:var(--sur2);font-weight:600;color:var(--tx3);">股票</th>
-                <th style="padding:4px 10px;background:var(--sur2);font-weight:600;color:var(--tx3);">備註</th>
-              </tr></thead>
-              <tbody>
-                ${h.rows.map(r=>`<tr>
-                  <td style="padding:4px 10px;border-bottom:1px solid var(--bdr);font-weight:600">${r.bank}</td>
-                  <td style="padding:4px 10px;border-bottom:1px solid var(--bdr);text-align:center;color:var(--bl)">${r.coupon}%</td>
-                  <td style="padding:4px 10px;border-bottom:1px solid var(--bdr);text-align:center">${r.term}</td>
-                  <td style="padding:4px 10px;border-bottom:1px solid var(--bdr);text-align:center;color:var(--rd)">${r.kiType||'AKI'} ${r.aki}%</td>
-                  <td style="padding:4px 10px;border-bottom:1px solid var(--bdr);text-align:center;color:var(--bl)">${r.strike}%</td>
-                  <td style="padding:4px 10px;border-bottom:1px solid var(--bdr);text-align:center;color:var(--gn)">${r.ko}%</td>
-                  <td style="padding:4px 10px;border-bottom:1px solid var(--bdr)">${(r.syms||[]).map(s=>`<span class="tag">${s}${r.prices?.[s]?' $'+F(r.prices[s],2):''}</span>`).join(' ')}</td>
-                  <td style="padding:4px 10px;border-bottom:1px solid var(--bdr);color:var(--tx3)">${r.note||'—'}</td>
-                </tr>`).join('')}
-              </tbody>
-            </table>
-          </div>
-        </div>`).join('')}
-    </div>
-  </div>`;
-}
-
-function restoreEvalHistory(hi){
-  if(!confirm('還原此次紀錄為當前比較清單？'))return;
-  evalRows=JSON.parse(JSON.stringify(evalHistory[hi].rows));
-  saveEval();renderEvalConfirmedList();
-  document.getElementById('eval-results').innerHTML='';
-}
-
-function deleteEvalHistory(hi){
-  evalHistory.splice(hi,1);saveHistory();renderEvalHistory();
-}
-
-function renderEvalResults(){
+// ── main table ──
+function evalRenderTable(){
+  const el=document.getElementById('eval-table-wrap');
+  if(!EV.length){el.innerHTML='';return;}
   const fx=getFX();
-  const el=document.getElementById('eval-results');
-  if(!evalRows.length){el.innerHTML='';return;}
+  const jpyFx=fx*0.0068||0.22;
 
-  const scored=evalRows.map(r=>{
-    const monthlyUSD=(r.face||0)*(r.coupon/100)*(1/12);
-    const termMo=parseInt(r.term)||6;
-    const totalInt=monthlyUSD*termMo;
-    const stockDetails=(r.syms||[]).map(sym=>{
-      const cur=r.prices?.[sym]||priceCache[sym]||0;
-      const akiPrice=cur?+(cur*(r.aki/100)).toFixed(2):0;
-      const strikePrice=cur?+(cur*(r.strike/100)).toFixed(2):0;
-      const koPrice=cur?+(cur*(r.ko/100)).toFixed(2):0;
-      const safetyGap=cur&&akiPrice?((cur-akiPrice)/cur*100):0;
-      return{sym,cur,akiPrice,strikePrice,koPrice,safetyGap};
+  function buildRows(records){
+    const rows=[];
+    records.forEach(r=>{
+      const isJP=r.market==='JP';
+      const sym2=SY(isJP?'JPY':'USD');
+      r.syms.forEach((sym,si)=>{
+        const cur=r.prices[sym]||0;
+        const akiP=cur?+(cur*(r.aki/100)).toFixed(isJP?0:2):0;
+        const strikeP=cur?+(cur*(r.strike/100)).toFixed(isJP?0:2):0;
+        const koP=cur?+(cur*(r.ko/100)).toFixed(isJP?0:2):0;
+        const safetyPct=cur&&akiP?((cur-akiP)/cur*100):null;
+        const monthlyFace=r.face&&r.coupon?r.face*(r.coupon/100)/12:0;
+        rows.push({r,sym,si,cur,akiP,strikeP,koP,safetyPct,monthlyFace,isFirst:si===0,span:r.syms.length,sym2,isJP});
+      });
     });
-    const minGap=stockDetails.length?Math.min(...stockDetails.map(s=>s.safetyGap).filter(x=>x>0)):0;
-    const score=(r.coupon||0)*0.5+minGap*0.3+(r.ko||0)*0.2;
-    return{...r,stockDetails,monthlyUSD,totalInt,score,termMo};
-  });
+    return rows;
+  }
 
-  el.innerHTML=`<div class="card">
-    <div class="ch">
-      <span class="ct">比較分析結果</span>
-      <span style="font-size:10px;color:var(--tx3)">評分 = Coupon×0.5 ＋ 安全距離×0.3 ＋ KO%×0.2</span>
-    </div>
-    <div class="tw"><table style="font-size:11px;">
-      <thead><tr>
-        <th>排名</th><th>銀行</th><th>條件</th><th>股票</th>
-        <th class="right">目前股價</th>
-        <th class="right" style="color:var(--rd)">保護價</th>
-        <th class="right" style="color:var(--bl)">承購價</th>
-        <th class="right" style="color:var(--gn)">出場價</th>
-        <th class="right">安全距離</th>
-        <th class="right">月配息</th>
-        <th class="right">預計總配息</th>
-        <th class="right">評分</th>
-      </tr></thead>
-      <tbody>
-        ${scored.map((r,ri)=>r.stockDetails.map((s,si)=>`<tr style="${ri===0?'background:var(--gnl)':''}${si===0&&ri>0?'border-top:2px solid var(--bdr)':''}">
-          ${si===0?`<td rowspan="${r.stockDetails.length}" style="vertical-align:middle;text-align:center;font-size:15px">${ri===0?'🥇':ri===1?'🥈':ri===2?'🥉':ri+1}</td>
-          <td rowspan="${r.stockDetails.length}" style="vertical-align:middle;font-weight:600;">${r.bank}</td>
-          <td rowspan="${r.stockDetails.length}" style="vertical-align:middle;font-size:10px;line-height:1.8">
-            <span style="color:var(--bl)">${r.coupon}% · ${r.term}</span><br>
-            <span class="badge" style="background:var(--rdl);color:var(--rd);font-size:9px">${r.kiType}</span>
-            <span style="color:var(--rd)">${r.aki}%</span>
-            <span style="color:var(--bl)"> Strike ${r.strike}%</span>
-            <span style="color:var(--gn)"> KO ${r.ko}%</span>
-          </td>`:''}
-          <td style="font-weight:600">${s.sym}</td>
-          <td class="mono right">${s.cur?'$'+F(s.cur,2):'—'}</td>
-          <td class="mono right" style="color:var(--rd)">${s.akiPrice?'$'+F(s.akiPrice,2):'—'}</td>
-          <td class="mono right" style="color:var(--bl)">${s.strikePrice?'$'+F(s.strikePrice,2):'—'}</td>
-          <td class="mono right" style="color:var(--gn)">${s.koPrice?'$'+F(s.koPrice,2):'—'}</td>
-          <td class="mono right" style="color:${s.safetyGap>35?'var(--gn)':s.safetyGap>20?'var(--gd)':'var(--rd)'}">
-            ${s.safetyGap?s.safetyGap.toFixed(1)+'%':'—'}
-          </td>
-          ${si===0?`<td rowspan="${r.stockDetails.length}" class="mono right cg" style="vertical-align:middle">$${F(r.monthlyUSD,0)}</td>
-          <td rowspan="${r.stockDetails.length}" class="mono right cg" style="vertical-align:middle">$${F(r.totalInt,0)}<div style="font-size:9px;color:var(--tx3)">≈NT$${F(Math.round(r.totalInt*fx))}</div></td>
-          <td rowspan="${r.stockDetails.length}" class="mono right" style="vertical-align:middle;color:${ri===0?'var(--gn)':'var(--tx2)'};">${r.score.toFixed(1)}</td>`:''}
-        </tr>`).join('')).join('')}
-      </tbody>
-    </table></div>
-    <div style="padding:10px 14px;display:flex;gap:8px;">
-      <button class="btn btnsm" onclick="document.getElementById('eval-results').innerHTML=''">清除結果</button>
-      <button class="btn btnp btnsm" onclick="importEvalToAdd(0)">將第1名匯入新增投資 →</button>
-    </div>
-  </div>`;
-}
-
-function importEvalToAdd(ri){
-  const scored=evalRows.map(r=>({...r,score:(r.coupon||0)*0.5+(r.ko||0)*0.2})).sort((a,b)=>b.score-a.score);
-  const r=scored[ri];if(!r)return;
-  showSec('add');
-  setTimeout(()=>{
-    // try to set bank select
-    const bs=document.getElementById('f-bank');
-    if(bs)bs.value=r.bank||'';
-    document.getElementById('f-coupon').value=r.coupon||'';
-    document.getElementById('f-ko').value=r.ko||'';
-    document.getElementById('f-aki').value=r.aki||'';
-    document.getElementById('f-strike').value=r.strike||'';
-    document.getElementById('f-term').value=['3M','4M','6M','9M','12M'].includes(r.term)?r.term:'6M';
-    document.getElementById('f-face').value=r.face||'';
-    document.getElementById('f-note').value=r.note||'';
-    document.getElementById('stocks-con').innerHTML='';
-    evalCount=0;
-    (r.syms||[]).forEach(sym=>{
-      const cur=r.prices?.[sym]||priceCache[sym]||0;
-      addSR({name:sym,buy:cur||0,aki:cur?(cur*(r.aki/100)):0,strike:cur?(cur*(r.strike/100)):0,exit:cur?(cur*(r.ko/100)):0});
-    });
-  },100);
-}
-  const el=document.getElementById('eval-results');
-  if(!evalRows.length){el.innerHTML='';return;}
-
-  // score each quote: higher coupon, higher KO, tighter AKI = better for investor
-  const scored=evalRows.map(r=>{
-    const monthlyUSD=r.face*(r.coupon/100)*(1/12);
-    const termMo=parseInt(r.term)||6;
-    const totalInt=monthlyUSD*termMo;
-    const stockDetails=r.stocks.map(s=>{
-      const sym=s.sym.toUpperCase().trim();
-      const cur=priceCache[sym]||0;
-      const akiPrice=cur?cur*(s.aki/100):0;
-      const strikePrice=cur?cur*(s.strike/100):0;
-      const koPrice=cur?cur*(s.ko/100):0;
-      const safetyGap=cur&&akiPrice?((cur-akiPrice)/cur*100):0;
-      return{sym,cur,akiPrice,strikePrice,koPrice,aki:s.aki,strike:s.strike,ko:s.ko,safetyGap};
-    });
-    const minSafetyGap=stockDetails.length?Math.min(...stockDetails.map(s=>s.safetyGap).filter(x=>x>0)):0;
-    const score=(r.coupon||0)*0.5+(minSafetyGap)*0.3+(r.ko||0)*0.2;
-    return{...r,stockDetails,monthlyUSD,totalInt,score,termMo};
-  });
-  scored.sort((a,b)=>b.score-a.score);
-
-  const best=scored[0];
-  el.innerHTML=`
-    <div class="card">
-      <div class="ch"><span class="ct">比較分析結果</span><span style="font-size:11px;color:var(--tx3)">依綜合評分排序（Coupon 50% ＋ 安全距離 30% ＋ KO% 20%）</span></div>
-      <div class="tw"><table style="font-size:11px;">
+  function renderOneTable(title, records, mktBadge){
+    if(!records.length)return'';
+    const rows=buildRows(records);
+    const th=(txt,col='')=>`<th style="white-space:nowrap;${col?'color:'+col:''}">${txt}</th>`;
+    return`<div class="card" style="margin-bottom:14px;">
+      <div class="ch">
+        <span class="ct">${mktBadge} ${title} <span style="font-size:11px;color:var(--tx3);font-weight:400">${records.length} 筆報價</span></span>
+      </div>
+      <div class="tw"><table style="font-size:11px;border-collapse:collapse;">
         <thead><tr>
-          <th>排名</th><th>銀行</th><th>股票</th>
-          <th class="right">目前股價</th>
-          <th class="right" style="color:var(--rd)">保護價 AKI</th>
-          <th class="right" style="color:var(--bl)">承購價 Strike</th>
-          <th class="right" style="color:var(--gn)">出場價 KO</th>
-          <th class="right">安全距離</th>
-          <th class="right">Coupon</th>
-          <th class="right">月配息</th>
-          <th class="right">預計總配息</th>
-          <th class="right">評分</th>
-          <th>備註</th>
+          ${th('申購日')}${th('銀行')}${th('發行機構')}${th('天期')}${th('出場類型')}${th('保證領息')}
+          ${th('保護價類型')}${th('E/AKI %','var(--rd)')}${th('Strike %','var(--bl)')}${th('KO %','var(--gn)')}
+          ${th('Coupon %','var(--bl)')}${th('面額')}${th('月配息')}
+          ${th('連結標的')}${th('目前股價')}
+          ${th('保護價 E/AKI','var(--rd)')}${th('承購價 Strike','var(--bl)')}${th('出場價 KO','var(--gn)')}
+          ${th('安全距離')}${th('備註')}${th('')}
         </tr></thead>
         <tbody>
-          ${scored.map((r,ri)=>r.stockDetails.map((s,si)=>`<tr style="${ri===0?'background:var(--gnl)':''}${ri>0&&si===0?'border-top:2px solid var(--bdr)':''}">
-            ${si===0?`<td rowspan="${r.stockDetails.length}" style="vertical-align:middle;text-align:center;font-size:14px;font-weight:700;color:${ri===0?'var(--gn)':ri===1?'var(--gd)':'var(--tx3)'}">
-              ${ri===0?'🥇':ri===1?'🥈':ri===2?'🥉':ri+1}
+        ${rows.map(({r,sym,si,cur,akiP,strikeP,koP,safetyPct,monthlyFace,isFirst,span,sym2,isJP})=>`
+          <tr style="border-top:${isFirst?'2px solid var(--bdr)':'none'}">
+            ${isFirst?`
+            <td rowspan="${span}" style="vertical-align:middle;white-space:nowrap">${r.date}</td>
+            <td rowspan="${span}" style="vertical-align:middle;font-weight:600">${r.bank}</td>
+            <td rowspan="${span}" style="vertical-align:middle;color:var(--tx2);font-size:10px">${r.issuer||'—'}</td>
+            <td rowspan="${span}" style="vertical-align:middle;text-align:center">${r.term}</td>
+            <td rowspan="${span}" style="vertical-align:middle;font-size:10px">${r.koType||'—'}</td>
+            <td rowspan="${span}" style="vertical-align:middle;text-align:center">${r.guaranteed?r.guaranteed+'月':'—'}</td>
+            <td rowspan="${span}" style="vertical-align:middle;text-align:center"><span class="badge" style="background:var(--rdl);color:var(--rd)">${r.kiType||'EKI'}</span></td>
+            <td rowspan="${span}" class="mono right" style="vertical-align:middle;color:var(--rd)">${r.aki||'—'}%</td>
+            <td rowspan="${span}" class="mono right" style="vertical-align:middle;color:var(--bl)">${r.strike||'—'}%</td>
+            <td rowspan="${span}" class="mono right" style="vertical-align:middle;color:var(--gn)">${r.ko||'—'}%</td>
+            <td rowspan="${span}" class="mono right" style="vertical-align:middle;color:var(--bl);font-weight:600">${r.coupon||'—'}%</td>
+            <td rowspan="${span}" class="mono right" style="vertical-align:middle">${r.face?sym2+F(r.face,isJP?0:0):'—'}</td>
+            <td rowspan="${span}" class="mono right" style="vertical-align:middle;color:var(--gn)">${monthlyFace?sym2+F(monthlyFace,isJP?0:0):'—'}</td>
+            `:''}
+            <td style="font-weight:600;white-space:nowrap">${sym}</td>
+            <td class="mono right" style="${cur?'':'color:var(--tx3)'}">
+              ${cur?sym2+F(cur,isJP?0:2):'<span style="font-size:10px;color:var(--tx3)">待抓取</span>'}
             </td>
-            <td rowspan="${r.stockDetails.length}" style="vertical-align:middle;font-weight:600;">${r.bank||'—'}</td>`:''}
-            <td style="font-weight:600">${s.sym||'—'}</td>
-            <td class="mono right">${s.cur?'$'+F(s.cur,2):'—'}</td>
-            <td class="mono right" style="color:var(--rd)">${s.akiPrice?'$'+F(s.akiPrice,2):'—'}<div style="font-size:9px;color:var(--tx3)">${s.aki}%</div></td>
-            <td class="mono right" style="color:var(--bl)">${s.strikePrice?'$'+F(s.strikePrice,2):'—'}<div style="font-size:9px;color:var(--tx3)">${s.strike}%</div></td>
-            <td class="mono right" style="color:var(--gn)">${s.koPrice?'$'+F(s.koPrice,2):'—'}<div style="font-size:9px;color:var(--tx3)">${s.ko}%</div></td>
-            <td class="mono right" style="color:${s.safetyGap>35?'var(--gn)':s.safetyGap>20?'var(--gd)':'var(--rd)'}">
-              ${s.safetyGap?s.safetyGap.toFixed(1)+'%':'—'}
+            <td class="mono right" style="color:var(--rd)">${akiP?sym2+F(akiP,isJP?0:2):'—'}</td>
+            <td class="mono right" style="color:var(--bl)">${strikeP?sym2+F(strikeP,isJP?0:2):'—'}</td>
+            <td class="mono right" style="color:var(--gn)">${koP?sym2+F(koP,isJP?0:2):'—'}</td>
+            <td class="mono right" style="color:${safetyPct===null?'var(--tx3)':safetyPct>35?'var(--gn)':safetyPct>20?'var(--gd)':'var(--rd)'}">
+              ${safetyPct!==null?safetyPct.toFixed(1)+'%':'—'}
             </td>
-            ${si===0?`<td rowspan="${r.stockDetails.length}" class="mono right cb" style="vertical-align:middle">${r.coupon}%</td>
-            <td rowspan="${r.stockDetails.length}" class="mono right cg" style="vertical-align:middle">$${F(r.monthlyUSD,0)}</td>
-            <td rowspan="${r.stockDetails.length}" class="mono right cg" style="vertical-align:middle">$${F(r.totalInt,0)}<div style="font-size:9px;color:var(--tx3)">≈NT$${F(Math.round(r.totalInt*fx))}</div></td>
-            <td rowspan="${r.stockDetails.length}" class="mono right" style="vertical-align:middle;color:${ri===0?'var(--gn)':'var(--tx2)'};">${r.score.toFixed(1)}</td>
-            <td rowspan="${r.stockDetails.length}" style="vertical-align:middle;font-size:11px;color:var(--tx2)">${r.note||'—'}</td>`:''}
-          </tr>`).join('')).join('')}
+            ${isFirst?`<td rowspan="${span}" style="vertical-align:middle;font-size:10px;color:var(--tx2)">${r.note||'—'}</td>
+            <td rowspan="${span}" style="vertical-align:middle;white-space:nowrap">
+              <button class="btn btnsm" onclick="evalEditRow('${r.id}')">編輯</button>
+              <button class="btn btnsm" onclick="evalDeleteRow('${r.id}')" style="margin-top:3px;color:var(--rd)">刪除</button>
+            </td>`:''}
+          </tr>`).join('')}
         </tbody>
       </table></div>
-    </div>
-    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
-      <button class="btn btnsm" onclick="clearEvalResults()">清除結果</button>
-      ${best?`<button class="btn btnp btnsm" onclick="importBestToAdd()">將最佳報價匯入新增投資 →</button>`:''}
     </div>`;
+  }
+
+  const usRecs=EV.filter(r=>!r.market||r.market==='US');
+  const jpRecs=EV.filter(r=>r.market==='JP');
+  el.innerHTML=
+    renderOneTable('美股報價（USD）', usRecs, '🇺🇸')+
+    renderOneTable('日股報價（JPY）', jpRecs, '🇯🇵');
 }
 
-function clearEvalResults(){document.getElementById('eval-results').innerHTML='';}
-
-function importBestToAdd(){
-  // find highest scored row
-  const scored=evalRows.map(r=>({...r,score:(r.coupon||0)*0.5+(r.ko||0)*0.2})).sort((a,b)=>b.score-a.score);
-  const best=scored[0];if(!best)return;
-  showSec('add');
-  setTimeout(()=>{
-    document.getElementById('f-bank').value=best.bank||'';
-    document.getElementById('f-coupon').value=best.coupon||'';
-    document.getElementById('f-ko').value=best.ko||best.stocks[0]?.ko||'';
-    document.getElementById('f-aki').value=best.aki||best.stocks[0]?.aki||'';
-    document.getElementById('f-strike').value=best.strike||best.stocks[0]?.strike||'';
-    document.getElementById('f-term').value=best.term||'6M';
-    document.getElementById('f-face').value=best.face||'';
-    document.getElementById('f-note').value=best.note||'';
-    document.getElementById('stocks-con').innerHTML='';
-    evalCount=0;
-    (best.stocks||[]).forEach(s=>{
-      const cur=priceCache[s.sym?.toUpperCase?.()?.trim?.()];
-      addSR({name:s.sym,buy:cur||0,aki:cur?cur*(s.aki/100):0,strike:cur?cur*(s.strike/100):0,exit:cur?cur*(s.ko/100):0});
-    });
-  },100);
+// ── history ──
+function evalSaveHistory(){
+  if(!EV.length)return;
+  const snap={date:new Date().toLocaleDateString('zh-TW'),time:new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}),rows:JSON.parse(JSON.stringify(EV))};
+  EVH.unshift(snap);if(EVH.length>30)EVH.pop();
+  evSaveH();evalRenderHistory();
+  alert('已存入歷史紀錄');
 }
 
+function evalRenderHistory(){
+  const el=document.getElementById('eval-history-wrap');if(!el)return;
+  if(!EVH.length){el.innerHTML='';return;}
+  el.innerHTML=`<div class="card"><div class="ch">
+    <span class="ct">歷史報價紀錄</span>
+    <span style="font-size:11px;color:var(--tx3)">${EVH.length} 筆（最多30次）</span>
+  </div>
+  ${EVH.map((h,hi)=>`
+    <div style="border-bottom:1px solid var(--bdr);">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;cursor:pointer;background:var(--sur2);"
+        onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display?'':'block'">
+        <div style="font-size:12px;">
+          <span style="font-weight:600">${h.date} ${h.time}</span>
+          <span style="color:var(--tx3);margin-left:8px;font-size:11px">${h.rows.length} 筆</span>
+          <span style="color:var(--tx2);margin-left:8px;font-size:11px">${[...new Set(h.rows.map(r=>r.bank))].join('、')}</span>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btnsm" onclick="event.stopPropagation();evalRestoreHistory(${hi})">還原</button>
+          <button class="btn btnsm" onclick="event.stopPropagation();evalDeleteHistory(${hi})" style="color:var(--rd)">✕</button>
+          <span style="color:var(--tx3)">▾</span>
+        </div>
+      </div>
+      <div style="display:none;overflow-x:auto;padding:8px 14px;">
+        <table style="font-size:10px;width:100%;border-collapse:collapse;">
+          <thead><tr style="background:var(--sur2);">
+            <th style="padding:3px 8px;text-align:left;">日期</th><th style="padding:3px 8px;text-align:left;">銀行</th>
+            <th style="padding:3px 8px;">Coupon</th><th style="padding:3px 8px;">天期</th>
+            <th style="padding:3px 8px;color:var(--rd);">E/AKI%</th><th style="padding:3px 8px;color:var(--bl);">Strike%</th>
+            <th style="padding:3px 8px;color:var(--gn);">KO%</th><th style="padding:3px 8px;text-align:left;">標的</th>
+          </tr></thead>
+          <tbody>
+            ${h.rows.map(r=>`<tr style="border-bottom:1px solid var(--bdr);">
+              <td style="padding:3px 8px">${r.date}</td>
+              <td style="padding:3px 8px;font-weight:600">${r.bank}</td>
+              <td style="padding:3px 8px;text-align:center;color:var(--bl)">${r.coupon}%</td>
+              <td style="padding:3px 8px;text-align:center">${r.term}</td>
+              <td style="padding:3px 8px;text-align:center;color:var(--rd)">${r.aki}%</td>
+              <td style="padding:3px 8px;text-align:center;color:var(--bl)">${r.strike}%</td>
+              <td style="padding:3px 8px;text-align:center;color:var(--gn)">${r.ko}%</td>
+              <td style="padding:3px 8px">${r.syms.map(s=>`<span class="tag">${s}${r.prices?.[s]?' $'+F(r.prices[s],2):''}</span>`).join(' ')}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`).join('')}
+  </div>`;
+}
+
+function evalRestoreHistory(hi){
+  if(!confirm('將此歷史紀錄還原為當前報價清單？'))return;
+  EV=JSON.parse(JSON.stringify(EVH[hi].rows));evSave2();
+  evalRenderList();evalRenderTable();
+}
+function evalDeleteHistory(hi){EVH.splice(hi,1);evSaveH();evalRenderHistory();}
 // ── EDIT PAYDATES ────────────────────────────────────────────
 let pdEditId=null;
 function editPayDates(id){

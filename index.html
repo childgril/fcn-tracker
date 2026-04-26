@@ -1093,7 +1093,9 @@ function rint(){
       const dt=dtForYM(d,ym);
       if(!dt)return;
       if((d.paidDates||[]).includes(dt)){
-        if(d.ccy==='JPY')jpy+=d.monthly; else usd+=d.monthly;
+        const overrides=d.monthlyOverride||{};
+        const amt=overrides[dt]!==undefined?overrides[dt]:d.monthly;
+        if(d.ccy==='JPY')jpy+=amt; else usd+=amt;
       }
     });
     return{usd,jpy};
@@ -1128,18 +1130,24 @@ function rint(){
       ${rows.map(d=>{
         const pc=(d.paidDates||[]).length,tc=d.payDates.length;
         const exp=window._intExp.has(d.id);
-        // ── Left/right collapse: show ◀ ▶ instead of ▲ ▼ ──
+        const isClosed=!!(d.exitDate);
+        // 重排銀行名稱：「音－元大」→「元大－音」，「林－元大」→「元大－林」
+        const bankShort=(()=>{
+          const m=d.bank.match(/^(音|林)－(.+)$/);
+          return m?`${m[2]}-${m[1]}`:d.bank;
+        })();
         return`<th style="position:sticky;top:0;z-index:3;background:var(--sur2);padding:0;width:${exp?CW:28}px;min-width:${exp?CW:28}px;cursor:pointer;border-right:1px solid var(--bdr);transition:width .2s;" onclick="intTog(${d.id})">
           <div style="padding:4px 4px 3px;text-align:center;overflow:hidden;">
             ${exp?`
-            <div style="font-size:9px;font-weight:600;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:${CW-6}px;">${d.bank.replace('音－','').replace('林－','')}</div>
+            <div style="font-size:9px;font-weight:600;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:${CW-6}px;">${bankShort}</div>
             <div style="font-size:9px;color:var(--tx3)">${d.date.slice(5)}</div>
             <div style="font-family:var(--mono);font-size:9px;color:${pc===tc&&tc>0?'var(--gn)':'var(--gd)'};margin-top:1px">${pc}/${tc}</div>
             <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:2px;">
               <span style="font-size:9px;color:var(--ac2)">◀</span>
               <span style="font-size:9px;color:var(--tx3);cursor:pointer;" onclick="event.stopPropagation();editPayDates(${d.id})" title="編輯配息日">✎</span>
             </div>
-            `:`<div style="font-size:10px;color:var(--ac2);writing-mode:vertical-rl;text-orientation:mixed;margin:4px auto;white-space:nowrap;overflow:hidden;max-height:60px;">▶ ${d.bank.replace('音－','').replace('林－','')}</div>`}
+            ${isClosed?'<div style="font-size:8px;color:var(--tx3);margin-top:1px">🔒已出場</div>':''}
+            `:`<div style="font-size:10px;color:var(--ac2);writing-mode:vertical-rl;text-orientation:mixed;margin:4px auto;white-space:nowrap;overflow:hidden;max-height:60px;">▶ ${bankShort}</div>`}
           </div>
         </th>`;
       }).join('')}
@@ -1168,14 +1176,30 @@ function rint(){
       ${rows.map(d=>{
         const dt=dtForYM(d,ym);
         const exp=window._intExp.has(d.id);
+        const isClosed=!!(d.exitDate);
         if(!dt)return`<td style="border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);background:var(--bg);text-align:center;color:var(--tx3);font-size:11px;min-width:${exp?CW:28}px;width:${exp?CW:28}px;">—</td>`;
         const paid=(d.paidDates||[]).includes(dt);
-        return`<td class="int-cell ${paid?'paid':'pend'}" onclick="togPaid(${d.id},'${dt}')" style="border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);min-width:${exp?CW:28}px;width:${exp?CW:28}px;vertical-align:middle;">
+        // 取得這個月的實際金額（可能有覆寫）
+        const overrides=d.monthlyOverride||{};
+        const monthAmt=overrides[dt]!==undefined?overrides[dt]:d.monthly;
+        // 已出場：鎖住，不能點擊
+        if(isClosed){
+          return`<td class="int-cell ${paid?'paid':'pend'}" style="border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);min-width:${exp?CW:28}px;width:${exp?CW:28}px;vertical-align:middle;opacity:.75;cursor:default;">
+            <div class="int-cell-inner">
+              ${exp?`
+              <div style="font-size:9px;color:${paid?'var(--gn)':'var(--tx3)'};margin-bottom:1px">${dt}</div>
+              <div class="ia" style="font-family:var(--mono);font-size:11px">${SY(d.ccy)}${F(monthAmt,2)}</div>
+              <div style="font-size:9px;margin-top:1px;color:${paid?'var(--gn)':'var(--tx3)'}">🔒${paid?'已收':'—'}</div>
+              `:`<div style="font-size:10px;color:${paid?'var(--gn)':'var(--tx3)'}">${paid?'✓':'—'}</div>`}
+            </div>
+          </td>`;
+        }
+        return`<td class="int-cell ${paid?'paid':'pend'}" onclick="togPaid(${d.id},'${dt}')" oncontextmenu="editMonthAmt(event,${d.id},'${dt}',${monthAmt})" title="左鍵切換已收；右鍵修改金額" style="border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);min-width:${exp?CW:28}px;width:${exp?CW:28}px;vertical-align:middle;">
           <div class="int-cell-inner">
             ${exp?`
             <div style="font-size:9px;color:${paid?'var(--gn)':'var(--tx3)'};margin-bottom:1px">${dt}</div>
-            <div class="ia" style="font-family:var(--mono);font-size:11px">${SY(d.ccy)}${F(d.monthly,0)}</div>
-            <div style="font-size:9px;margin-top:1px;color:${paid?'var(--gn)':'var(--gd)'}">${paid?'✓ 已收':'待收'}</div>
+            <div class="ia" style="font-family:var(--mono);font-size:11px">${SY(d.ccy)}${F(monthAmt,2)}</div>
+            <div style="font-size:9px;margin-top:1px;color:${paid?'var(--gn)':'var(--gd)'}">${paid?'✓ 已收':'待收'}${overrides[dt]!==undefined?' ✎':''}</div>
             `:`<div style="font-size:10px;color:${paid?'var(--gn)':'var(--gd)'}">${paid?'✓':'●'}</div>`}
           </div>
         </td>`;
@@ -1202,6 +1226,21 @@ function togPaid(id,dt){
   if(!d.paidDates)d.paidDates=[];
   if(d.paidDates.includes(dt))d.paidDates=d.paidDates.filter(x=>x!==dt);
   else d.paidDates.push(dt);
+  save();rint();
+}
+
+function editMonthAmt(e,id,dt,cur){
+  e.preventDefault();
+  const d=D.find(x=>x.id===id);if(!d)return;
+  const val=prompt(`修改 ${dt} 的配息金額（目前：${cur}）\n留空則恢復預設（${d.monthly}）`,cur);
+  if(val===null)return; // 取消
+  if(!d.monthlyOverride)d.monthlyOverride={};
+  if(val.trim()==='') delete d.monthlyOverride[dt];
+  else {
+    const n=parseFloat(val);
+    if(isNaN(n)){alert('請輸入有效數字');return;}
+    d.monthlyOverride[dt]=n;
+  }
   save();rint();
 }
 

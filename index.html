@@ -878,21 +878,58 @@ function renderListTable(rows){
 }
 function filt(v,btn){cf=v;document.querySelectorAll('.fb').forEach(b=>b.classList.remove('active'));btn.classList.add('active');rlist();}
 
-// Interest range config — edit these to extend the year
-const INT_MONTHS=(()=>{
-  const r=[];
-  // 2024/12 → 2026/12
-  const ranges=[[2024,12,12],[2025,1,12],[2026,1,12]];
-  ranges.forEach(([y,s,e])=>{for(let m=s;m<=e;m++)r.push({y,m,label:m+'月',key:y+'/'+(m<10?'0'+m:m)});});
-  return r;
-})();
+// Dynamic interest month range — computed from actual payDates in D
+function getIntMonths(){
+  // find min and max year/month across all payDates
+  let minY=9999,minM=12,maxY=0,maxM=1;
+  D.forEach(d=>d.payDates.forEach(dt=>{
+    const[ms]=dt.split('/');
+    const m=parseInt(ms);
+    // payDates don't have year — infer year from investment date + sequence
+    // We'll use the investment buy year as base and walk forward
+  }));
+  // Better: collect all {y,m} pairs by walking each investment's payDates sequentially
+  const ymSet=new Set();
+  D.forEach(d=>{
+    const buyDate=new Date(d.date);
+    let y=buyDate.getFullYear(), prevM=buyDate.getMonth()+1; // 1-indexed
+    d.payDates.forEach(dt=>{
+      const m=parseInt(dt.split('/')[0]);
+      // if month wrapped (e.g. went from 12 back to 1), increment year
+      if(m<prevM)y++;
+      prevM=m;
+      ymSet.add(y+'/'+(m<10?'0'+m:m));
+    });
+  });
+  if(!ymSet.size){
+    // fallback: current year ±1
+    const cy=new Date().getFullYear();
+    const r=[];
+    for(let y=cy;y<=cy+1;y++)for(let m=1;m<=12;m++)r.push({y,m,key:y+'/'+(m<10?'0'+m:m)});
+    return r;
+  }
+  // parse all keys, find range
+  const yms=[...ymSet].map(k=>{const[y,m]=k.split('/');return{y:parseInt(y),m:parseInt(m),key:k};});
+  yms.sort((a,b)=>a.y!==b.y?a.y-b.y:a.m-b.m);
+  const first=yms[0], last=yms[yms.length-1];
+  // build full range from first to last, plus pad to Dec of last year
+  const result=[];
+  let cy=first.y, cm=first.m;
+  const endY=last.y, endM=12; // always go to Dec of the last year
+  while(cy<endY||(cy===endY&&cm<=endM)){
+    result.push({y:cy,m:cm,key:cy+'/'+(cm<10?'0'+cm:cm)});
+    cm++;if(cm>12){cm=1;cy++;}
+  }
+  return result;
+}
 
 function rint(){
   const rows=[...D].sort((a,b)=>b.date.localeCompare(a.date));
   const el=document.getElementById('int-list');
   if(!rows.length){el.innerHTML='<div style="text-align:center;padding:48px;color:var(--tx3)">尚無投資紀錄</div>';return;}
-  // default: all expanded
   if(!window._intExp){window._intExp=new Set(rows.map(d=>d.id));}
+
+  const INT_MONTHS=getIntMonths();
 
   const INFO_LABELS=['狀態','帳戶','買進日','幣別・面額','利率・期限','月配息','已收利息'];
   const infoVal=(d,li)=>[
@@ -905,35 +942,41 @@ function rint(){
     `<span class="mono" style="font-size:10px;color:var(--gn)">${SY(d.ccy)}${F((d.paidDates||[]).length*d.monthly,0)}</span>`,
   ][li];
 
-  const MW=62; // month+year col
-  const CW=74; // investment col
-  const TOTAL_CW=80; // total col
+  // Build year-aware payDate map per investment
+  function buildPayMap(d){
+    const map={};
+    const buyDate=new Date(d.date);
+    let y=buyDate.getFullYear(), prevM=buyDate.getMonth()+1;
+    d.payDates.forEach(dt=>{
+      const m=parseInt(dt.split('/')[0]);
+      if(m<prevM)y++;
+      prevM=m;
+      map[dt]={y,m};
+    });
+    return map;
+  }
+  const payMaps={};
+  rows.forEach(d=>{payMaps[d.id]=buildPayMap(d);});
 
-  // group months by year for year separator rows
-  const years=[...new Set(INT_MONTHS.map(x=>x.y))];
+  const dtForYM=(d,ym)=>d.payDates.find(dt=>{
+    const pm=payMaps[d.id][dt];
+    return pm&&pm.y===ym.y&&pm.m===ym.m;
+  });
 
-  // check if a payDate month matches our grid month
-  const matchMonth=(dt,ym)=>{
-    // dt like "2/21", ym like {y:2025,m:2}
-    const[mm]=dt.split('/');
-    return parseInt(mm)===ym.m;
-  };
-
-  // for monthly total: sum paid USD amounts across all investments for that month
   const monthTotal=(ym)=>{
     let usd=0,jpy=0;
     rows.forEach(d=>{
-      const dt=d.payDates.find(x=>matchMonth(x,ym));
+      const dt=dtForYM(d,ym);
       if(!dt)return;
-      const paid=(d.paidDates||[]).includes(dt);
-      if(!paid)return;
-      if(d.ccy==='JPY')jpy+=d.monthly;
-      else usd+=d.monthly;
+      if((d.paidDates||[]).includes(dt)){
+        if(d.ccy==='JPY')jpy+=d.monthly; else usd+=d.monthly;
+      }
     });
     return{usd,jpy};
   };
 
   const anyExp=rows.some(d=>window._intExp.has(d.id));
+  const MW=62,CW=74,TOTAL_CW=82;
 
   let h=`<div class="int-wrap"><table class="int-table" style="border-collapse:collapse;">
   <thead>
@@ -965,7 +1008,6 @@ function rint(){
 
   let prevY=null;
   INT_MONTHS.forEach(ym=>{
-    // year separator row
     if(ym.y!==prevY){
       prevY=ym.y;
       h+=`<tr style="background:var(--ac);"><td colspan="${rows.length+2}" style="padding:3px 10px;font-size:10px;font-weight:700;color:rgba(255,255,255,.8);letter-spacing:.08em;">${ym.y} 年</td></tr>`;
@@ -974,7 +1016,7 @@ function rint(){
     h+=`<tr>
       <td style="position:sticky;left:0;z-index:2;background:var(--sur2);font-weight:700;font-size:12px;text-align:center;padding:5px 4px;white-space:nowrap;width:${MW}px;min-width:${MW}px;border-right:3px solid var(--ac2);border-bottom:1px solid var(--bdr);">${ym.m}月</td>
       ${rows.map(d=>{
-        const dt=d.payDates.find(x=>matchMonth(x,ym));
+        const dt=dtForYM(d,ym);
         if(!dt)return`<td style="border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);background:var(--bg);text-align:center;color:var(--tx3);font-size:11px;min-width:${CW}px;">—</td>`;
         const paid=(d.paidDates||[]).includes(dt);
         return`<td class="int-cell ${paid?'paid':'pend'}" onclick="togPaid(${d.id},'${dt}')" style="border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);min-width:${CW}px;vertical-align:middle;">
@@ -992,11 +1034,9 @@ function rint(){
       </td>
     </tr>`;
   });
-
   h+=`</tbody></table></div>`;
   el.innerHTML=h;
 }
-
 function intTog(id){
   if(!window._intExp)window._intExp=new Set();
   if(window._intExp.has(id))window._intExp.delete(id);

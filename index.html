@@ -209,6 +209,7 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
     <div class="ni" onclick="showSec('interest')"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2" stroke-linecap="round"/></svg>利息紀錄</div>
     <div class="ni" onclick="showSec('holdtrack')"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12l4-4 3 3 5-6" stroke-linecap="round" stroke-linejoin="round"/></svg>承接股票追蹤</div>
     <div class="ni" onclick="showSec('fxlog')"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8h10M10 5l3 3-3 3" stroke-linecap="round" stroke-linejoin="round"/><path d="M13 8H3M6 5L3 8l3 3" stroke-linecap="round" stroke-linejoin="round" opacity=".4"/></svg>換外幣紀錄</div>
+    <div class="ni" onclick="showSec('quote')"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="1.5"/><path d="M5 8h6M5 5.5h6M5 10.5h4" stroke-linecap="round"/></svg>報價 FCN</div>
     <div class="ni" onclick="showSec('add')"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v6M5 8h6" stroke-linecap="round"/></svg>新增投資</div>
     <div class="ni" onclick="showSec('report')"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="9" width="3" height="6" rx="1" opacity=".5"/><rect x="6" y="6" width="3" height="9" rx="1" opacity=".7"/><rect x="11" y="2" width="3" height="13" rx="1"/></svg>報表分析</div>
   </div>
@@ -321,6 +322,98 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
 </div>
 
 <!-- EVAL -->
+<!-- QUOTE FCN -->
+<div id="sec-quote" class="sec">
+  <div class="ph" style="margin-bottom:10px;">
+    <div><div class="pt">報價 FCN</div><div class="ps">記錄每日銀行報價，自動帶出股價並計算保護價／承購價／出場價</div></div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btnsm" onclick="quoteFetchAll()">↻ 更新全部股價</button>
+      <button class="btn btnp btnsm" onclick="quoteOpenForm()">＋ 新增報價</button>
+    </div>
+  </div>
+
+  <!-- ── 美股表格 ── -->
+  <div id="qt-us-wrap" style="margin-bottom:16px;"></div>
+  <!-- ── 日股表格 ── -->
+  <div id="qt-jp-wrap"></div>
+</div>
+
+<!-- 報價輸入 Modal -->
+<div class="mo" id="quote-modal" onclick="if(event.target===this)quoteCloseForm()">
+  <div class="mb2" style="width:620px;max-height:90vh;overflow-y:auto;">
+    <h3 id="qm-title" style="margin-bottom:14px;">新增報價</h3>
+    <input type="hidden" id="qm-id">
+    <div class="fg" style="margin-bottom:10px;">
+      <div class="fgrp"><label>申購日 *</label><input type="date" id="qm-date"></div>
+      <div class="fgrp"><label>股票市場</label>
+        <select id="qm-market">
+          <option value="US">🇺🇸 美股</option>
+          <option value="JP">🇯🇵 日股</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg" style="margin-bottom:10px;">
+      <div class="fgrp"><label>銀行 *</label>
+        <select id="qm-bank-sel" onchange="qmBankChange()">
+          <option value="元大">元大</option>
+          <option value="兆豐">兆豐</option>
+          <option value="__">自行輸入…</option>
+        </select>
+        <input type="text" id="qm-bank-txt" placeholder="輸入銀行名稱" style="display:none;margin-top:4px;">
+      </div>
+      <div class="fgrp"><label>發行機構</label><input type="text" id="qm-issuer" placeholder="例：瑞銀 UBS"></div>
+    </div>
+    <div class="fg" style="margin-bottom:10px;">
+      <div class="fgrp"><label>天期</label>
+        <select id="qm-term-sel" onchange="qmTermChange()">
+          <option>3M</option><option>4M</option><option value="6M" selected>6M</option>
+          <option>9M</option><option>12M</option><option value="__">手動輸入…</option>
+        </select>
+        <input type="text" id="qm-term-txt" placeholder="例：18M" style="display:none;margin-top:4px;">
+      </div>
+      <div class="fgrp"><label>提前出場類型</label>
+        <select id="qm-kotype" onchange="qmKoTypeChange()">
+          <option value="每天比價">每天比價</option>
+          <option value="每月比價">每月比價</option>
+          <option value="到期比價">到期比價</option>
+          <option value="__">手動輸入…</option>
+        </select>
+        <input type="text" id="qm-kotype-txt" placeholder="例：每季比價" style="display:none;margin-top:4px;">
+      </div>
+    </div>
+    <div class="fg4" style="margin-bottom:10px;">
+      <div class="fgrp"><label>保護價類型</label>
+        <select id="qm-kitype"><option value="EKI">EKI 歐式</option><option value="AKI">AKI 美式</option></select>
+      </div>
+      <div class="fgrp"><label style="color:var(--rd)">保護價 E/AKI %</label>
+        <input type="number" id="qm-aki" placeholder="65" step="0.1">
+      </div>
+      <div class="fgrp"><label style="color:var(--bl)">承購價 Strike %</label>
+        <input type="number" id="qm-strike" placeholder="75" step="0.1">
+      </div>
+      <div class="fgrp"><label style="color:var(--gn)">出場價 KO %</label>
+        <input type="number" id="qm-ko" placeholder="105" step="0.1">
+      </div>
+    </div>
+    <div class="fg" style="margin-bottom:10px;">
+      <div class="fgrp"><label>Coupon 年化 %</label><input type="number" id="qm-coupon" placeholder="例：24" step="0.01"></div>
+      <div class="fgrp"><label>保證領息月數</label><input type="number" id="qm-guaranteed" placeholder="2" min="0" step="1"></div>
+    </div>
+    <div class="fgrp" style="margin-bottom:10px;">
+      <label>連結標的（最多 5 檔，空格或逗號分隔）</label>
+      <input type="text" id="qm-syms" placeholder="例：TSM NVDA TSLA">
+    </div>
+    <div class="fgrp" style="margin-bottom:14px;">
+      <label>備註</label>
+      <input type="text" id="qm-note" placeholder="備註說明">
+    </div>
+    <div class="mba">
+      <button class="btn" onclick="quoteCloseForm()">取消</button>
+      <button class="btn btnp" id="qm-save-btn" onclick="quoteSave()">✓ 儲存並計算股價 →</button>
+    </div>
+  </div>
+</div>
+
 <!-- ADD -->
 <!-- ADD -->
 <div id="sec-add" class="sec">
@@ -630,7 +723,7 @@ function showSec(n){
   document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.ni').forEach(x=>x.classList.remove('active'));
   document.getElementById('sec-'+n).classList.add('active');
-  const m={dashboard:0,list:1,interest:2,holdtrack:3,fxlog:4,add:5,report:6};
+  const m={dashboard:0,list:1,interest:2,holdtrack:3,fxlog:4,quote:5,add:6,report:7};
   if(m[n]!==undefined)document.querySelectorAll('.ni')[m[n]].classList.add('active');
   if(n==='dashboard')rdash();
   else if(n==='list')rlist();
@@ -641,6 +734,7 @@ function showSec(n){
     fetchPrices(holdSyms).then(()=>rHoldTrack());
   }
   else if(n==='fxlog')rFxLog();
+  else if(n==='quote')initQuote();
   else if(n==='add')resetF();
   else if(n==='report')rrep();
 }
@@ -1807,6 +1901,232 @@ document.addEventListener('input',e=>{
   }
 });
 
+
+// ── QUOTE FCN ───────────────────────────────────────────────
+let QT=JSON.parse(localStorage.getItem('fcnQT')||'[]');
+function saveQT(){localStorage.setItem('fcnQT',JSON.stringify(QT));}
+
+function initQuote(){
+  quoteRenderTables();
+}
+
+// form helpers
+function qmBankChange(){
+  const v=document.getElementById('qm-bank-sel').value;
+  document.getElementById('qm-bank-txt').style.display=v==='__'?'':'none';
+}
+function qmTermChange(){
+  const v=document.getElementById('qm-term-sel').value;
+  document.getElementById('qm-term-txt').style.display=v==='__'?'':'none';
+}
+function qmKoTypeChange(){
+  const v=document.getElementById('qm-kotype').value;
+  document.getElementById('qm-kotype-txt').style.display=v==='__'?'':'none';
+}
+function qmGetBank(){
+  const v=document.getElementById('qm-bank-sel').value;
+  return v==='__'?document.getElementById('qm-bank-txt').value.trim():v;
+}
+function qmGetTerm(){
+  const v=document.getElementById('qm-term-sel').value;
+  return v==='__'?document.getElementById('qm-term-txt').value.trim():v;
+}
+function qmGetKoType(){
+  const v=document.getElementById('qm-kotype').value;
+  return v==='__'?document.getElementById('qm-kotype-txt').value.trim():v;
+}
+
+function quoteOpenForm(id){
+  document.getElementById('qm-id').value=id||'';
+  document.getElementById('qm-title').textContent=id?'編輯報價':'新增報價';
+  if(id){
+    const r=QT.find(x=>x.id===id);
+    if(r){
+      document.getElementById('qm-date').value=r.date||'';
+      document.getElementById('qm-market').value=r.market||'US';
+      const bs=document.getElementById('qm-bank-sel');
+      if(['元大','兆豐'].includes(r.bank)){bs.value=r.bank;qmBankChange();}
+      else{bs.value='__';qmBankChange();document.getElementById('qm-bank-txt').value=r.bank;}
+      document.getElementById('qm-issuer').value=r.issuer||'';
+      const ts=document.getElementById('qm-term-sel');
+      if(['3M','4M','6M','9M','12M'].includes(r.term)){ts.value=r.term;qmTermChange();}
+      else{ts.value='__';qmTermChange();document.getElementById('qm-term-txt').value=r.term;}
+      const ks=document.getElementById('qm-kotype');
+      if(['每天比價','每月比價','到期比價'].includes(r.koType)){ks.value=r.koType;qmKoTypeChange();}
+      else{ks.value='__';qmKoTypeChange();document.getElementById('qm-kotype-txt').value=r.koType||'';}
+      document.getElementById('qm-kitype').value=r.kiType||'EKI';
+      document.getElementById('qm-aki').value=r.aki||'';
+      document.getElementById('qm-strike').value=r.strike||'';
+      document.getElementById('qm-ko').value=r.ko||'';
+      document.getElementById('qm-coupon').value=r.coupon||'';
+      document.getElementById('qm-guaranteed').value=r.guaranteed||'';
+      document.getElementById('qm-syms').value=(r.syms||[]).join(' ');
+      document.getElementById('qm-note').value=r.note||'';
+    }
+  } else {
+    document.getElementById('qm-date').value=new Date().toISOString().slice(0,10);
+    document.getElementById('qm-market').value='US';
+    document.getElementById('qm-bank-sel').value='元大'; qmBankChange();
+    document.getElementById('qm-bank-txt').value='';
+    document.getElementById('qm-term-sel').value='6M'; qmTermChange();
+    document.getElementById('qm-term-txt').value='';
+    document.getElementById('qm-kotype').value='每天比價'; qmKoTypeChange();
+    document.getElementById('qm-kotype-txt').value='';
+    document.getElementById('qm-kitype').value='EKI';
+    ['qm-issuer','qm-aki','qm-strike','qm-ko','qm-coupon','qm-guaranteed','qm-syms','qm-note']
+      .forEach(id=>document.getElementById(id).value='');
+  }
+  document.getElementById('quote-modal').classList.add('open');
+}
+function quoteCloseForm(){
+  document.getElementById('quote-modal').classList.remove('open');
+}
+
+async function quoteSave(){
+  const bank=qmGetBank();
+  const date=document.getElementById('qm-date').value;
+  const symsRaw=document.getElementById('qm-syms').value;
+  const syms=symsRaw.split(/[\s,，]+/).map(s=>s.trim().toUpperCase()).filter(Boolean);
+  if(!bank||!date){alert('請填寫申購日和銀行');return;}
+  if(!syms.length){alert('請至少輸入一個連結標的');return;}
+  const market=document.getElementById('qm-market').value;
+  const rec={
+    id:document.getElementById('qm-id').value||(Date.now()+''),
+    date, market, bank,
+    issuer:document.getElementById('qm-issuer').value.trim(),
+    term:qmGetTerm(),
+    koType:qmGetKoType(),
+    kiType:document.getElementById('qm-kitype').value,
+    aki:parseFloat(document.getElementById('qm-aki').value)||0,
+    strike:parseFloat(document.getElementById('qm-strike').value)||0,
+    ko:parseFloat(document.getElementById('qm-ko').value)||0,
+    coupon:parseFloat(document.getElementById('qm-coupon').value)||0,
+    guaranteed:parseInt(document.getElementById('qm-guaranteed').value)||0,
+    syms, note:document.getElementById('qm-note').value.trim(),
+    prices:{}, savedAt:new Date().toISOString(),
+  };
+  // fetch prices
+  const btn=document.getElementById('qm-save-btn');
+  if(btn){btn.textContent='抓取股價中…';btn.disabled=true;}
+  const fetchSyms=syms.map(s=>market==='JP'&&/^\d/.test(s)?s+'.T':s);
+  await fetchPrices(fetchSyms);
+  syms.forEach((s,i)=>{
+    const key=fetchSyms[i];
+    if(priceCache[key])rec.prices[s]=priceCache[key];
+    else if(priceCache[s])rec.prices[s]=priceCache[s];
+  });
+  if(btn){btn.textContent='✓ 儲存並計算股價 →';btn.disabled=false;}
+  const eid=rec.id;
+  const existing=QT.findIndex(x=>x.id===eid);
+  if(existing>=0) QT[existing]=rec;
+  else QT.unshift(rec);
+  saveQT();
+  quoteCloseForm();
+  quoteRenderTables();
+}
+
+async function quoteFetchAll(){
+  if(!QT.length)return;
+  const btn=document.querySelector('[onclick="quoteFetchAll()"]');
+  if(btn){btn.textContent='更新中…';btn.disabled=true;}
+  const allSyms=[...new Set(QT.flatMap(r=>
+    r.syms.map(s=>r.market==='JP'&&/^\d/.test(s)?s+'.T':s)
+  ))];
+  await fetchPrices(allSyms);
+  QT.forEach(r=>r.syms.forEach(s=>{
+    const key=r.market==='JP'&&/^\d/.test(s)?s+'.T':s;
+    if(priceCache[key])r.prices[s]=priceCache[key];
+    else if(priceCache[s])r.prices[s]=priceCache[s];
+  }));
+  saveQT();
+  if(btn){btn.textContent='↻ 更新全部股價';btn.disabled=false;}
+  quoteRenderTables();
+}
+
+function quoteDeleteRow(id){
+  if(!confirm('刪除這筆報價？'))return;
+  QT=QT.filter(x=>x.id!==id); saveQT(); quoteRenderTables();
+}
+
+function quoteRenderTables(){
+  const usRecs=QT.filter(r=>!r.market||r.market==='US');
+  const jpRecs=QT.filter(r=>r.market==='JP');
+  document.getElementById('qt-us-wrap').innerHTML=quoteRenderOneTable('🇺🇸 美股報價（USD）',usRecs,'US');
+  document.getElementById('qt-jp-wrap').innerHTML=quoteRenderOneTable('🇯🇵 日股報價（JPY）',jpRecs,'JP');
+}
+
+function quoteRenderOneTable(title, records, mkt){
+  if(!records.length) return `<div style="background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);padding:14px 18px;margin-bottom:4px;">
+    <div style="font-size:12px;font-weight:600;color:var(--tx2)">${title} <span style="font-weight:400;font-size:11px;color:var(--tx3)">（尚無紀錄）</span></div>
+  </div>`;
+  const isJP=mkt==='JP';
+  const sym2=isJP?'¥':'$';
+  const th=(t,col='')=>`<th style="white-space:nowrap;${col?'color:'+col:''}">${t}</th>`;
+
+  // build rows: one row per (record × sym)
+  const rows=[];
+  records.forEach(r=>{
+    r.syms.forEach((sym,si)=>{
+      const cur=r.prices[sym]||0;
+      const akiP=cur?+(cur*(r.aki/100)).toFixed(isJP?0:2):0;
+      const strikeP=cur?+(cur*(r.strike/100)).toFixed(isJP?0:2):0;
+      const koP=cur?+(cur*(r.ko/100)).toFixed(isJP?0:2):0;
+      const safetyPct=cur&&akiP?((cur-akiP)/cur*100):null;
+      rows.push({r,sym,si,cur,akiP,strikeP,koP,safetyPct,isFirst:si===0,span:r.syms.length});
+    });
+  });
+
+  return `<div class="card" style="margin-bottom:14px;">
+    <div class="ch">
+      <span class="ct">${title} <span style="font-size:11px;color:var(--tx3);font-weight:400">${records.length} 筆</span></span>
+    </div>
+    <div class="tw"><table style="font-size:11px;border-collapse:collapse;">
+      <thead><tr>
+        ${th('申購日')}${th('銀行')}${th('發行機構')}${th('天期')}
+        ${th('出場類型')}${th('保證領息')}${th('保護價類型')}
+        ${th('E/AKI %','var(--rd)')}${th('Strike %','var(--bl)')}${th('KO %','var(--gn)')}
+        ${th('Coupon %','var(--bl)')}
+        ${th('連結標的')}${th('目前股價')}
+        ${th('保護價','var(--rd)')}${th('承購價','var(--bl)')}${th('出場價','var(--gn)')}
+        ${th('安全距離')}${th('備註')}${th('')}
+      </tr></thead>
+      <tbody>
+      ${rows.map(({r,sym,si,cur,akiP,strikeP,koP,safetyPct,isFirst,span})=>`
+        <tr style="border-top:${isFirst?'2px solid var(--bdr)':'none'}">
+          ${isFirst?`
+          <td rowspan="${span}" style="vertical-align:middle;white-space:nowrap">${r.date}</td>
+          <td rowspan="${span}" style="vertical-align:middle;font-weight:600">${r.bank}</td>
+          <td rowspan="${span}" style="vertical-align:middle;font-size:10px;color:var(--tx2)">${r.issuer||'—'}</td>
+          <td rowspan="${span}" style="vertical-align:middle;text-align:center">${r.term}</td>
+          <td rowspan="${span}" style="vertical-align:middle;font-size:10px">${r.koType||'—'}</td>
+          <td rowspan="${span}" style="vertical-align:middle;text-align:center">${r.guaranteed?r.guaranteed+'月':'—'}</td>
+          <td rowspan="${span}" style="vertical-align:middle;text-align:center"><span class="badge" style="background:var(--rdl);color:var(--rd);font-size:9px">${r.kiType||'EKI'}</span></td>
+          <td rowspan="${span}" class="mono right" style="vertical-align:middle;color:var(--rd)">${r.aki||'—'}%</td>
+          <td rowspan="${span}" class="mono right" style="vertical-align:middle;color:var(--bl)">${r.strike||'—'}%</td>
+          <td rowspan="${span}" class="mono right" style="vertical-align:middle;color:var(--gn)">${r.ko||'—'}%</td>
+          <td rowspan="${span}" class="mono right" style="vertical-align:middle;color:var(--bl);font-weight:600">${r.coupon||'—'}%</td>
+          `:''}
+          <td style="font-weight:600;white-space:nowrap">${sym}</td>
+          <td class="mono right" style="${cur?'':'color:var(--tx3)'}">
+            ${cur?sym2+F(cur,isJP?0:2):'<span style="font-size:10px;color:var(--tx3)">待抓取</span>'}
+          </td>
+          <td class="mono right" style="color:var(--rd)">${akiP?sym2+F(akiP,isJP?0:2):'—'}</td>
+          <td class="mono right" style="color:var(--bl)">${strikeP?sym2+F(strikeP,isJP?0:2):'—'}</td>
+          <td class="mono right" style="color:var(--gn)">${koP?sym2+F(koP,isJP?0:2):'—'}</td>
+          <td class="mono right" style="color:${safetyPct===null?'var(--tx3)':safetyPct>35?'var(--gn)':safetyPct>20?'var(--gd)':'var(--rd)'}">
+            ${safetyPct!==null?safetyPct.toFixed(1)+'%':'—'}
+          </td>
+          ${isFirst?`
+          <td rowspan="${span}" style="vertical-align:middle;font-size:10px;color:var(--tx2)">${r.note||'—'}</td>
+          <td rowspan="${span}" style="vertical-align:middle;white-space:nowrap">
+            <button class="btn btnsm" onclick="quoteOpenForm('${r.id}')">編輯</button>
+            <button class="btn btnsm" onclick="quoteDeleteRow('${r.id}')" style="margin-top:3px;color:var(--rd)">刪除</button>
+          </td>`:''}
+        </tr>`).join('')}
+      </tbody>
+    </table></div>
+  </div>`;
+}
 document.getElementById('last-update').textContent=localStorage.getItem('fcnlast')||'首次載入';
 rdash();
 // auto-fetch FX + stock prices on load

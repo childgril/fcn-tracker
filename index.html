@@ -940,27 +940,16 @@ function rint(){
   if(!rows.length){el.innerHTML='<div style="text-align:center;padding:48px;color:var(--tx3)">尚無投資紀錄</div>';return;}
   if(!window._intExp){window._intExp=new Set(rows.map(d=>d.id));}
 
-  const INT_MONTHS=getIntMonths();
-
-  const INFO_LABELS=['狀態','帳戶','買進日','幣別・面額','利率・期限','月配息','已收利息'];
-  const infoVal=(d,li)=>[
-    `<span style="white-space:nowrap;display:inline-block">${bdg(d.status)}</span>`,
-    `<span style="font-size:10px">${d.bank}</span>`,
-    `<span class="mono" style="font-size:10px">${d.date}</span>`,
-    `<span style="font-size:10px">${d.ccy==='JPY'?'<span class="badge bj" style="font-size:9px">JPY</span> ':'<span class="badge bu" style="font-size:9px">USD</span> '}${SY(d.ccy)}${F(d.face)}</span>`,
-    `<span style="font-size:10px;color:var(--bl)">${d.coupon}% · ${d.term}</span>`,
-    `<span class="mono" style="font-size:10px;color:var(--gn)">${SY(d.ccy)}${F(d.monthly,0)}</span>`,
-    `<span class="mono" style="font-size:10px;color:var(--gn)">${SY(d.ccy)}${F((d.paidDates||[]).length*d.monthly,0)}</span>`,
-  ][li];
-
-  // Build year-aware payDate map per investment
+  // ── Build year-aware payDate map FIRST ──────────────────────
   function buildPayMap(d){
     const map={};
     const buyDate=new Date(d.date);
+    // prevM starts at the buy month so first payDate in same or next month works
     let y=buyDate.getFullYear(), prevM=buyDate.getMonth()+1;
     d.payDates.forEach(dt=>{
       const m=parseInt(dt.split('/')[0]);
-      if(m<prevM)y++;
+      if(m<=prevM&&!(prevM===12&&m===1)){}  // same or earlier in same year
+      if(m<prevM)y++;    // wrapped: month went backward → new year
       prevM=m;
       map[dt]={y,m};
     });
@@ -968,6 +957,24 @@ function rint(){
   }
   const payMaps={};
   rows.forEach(d=>{payMaps[d.id]=buildPayMap(d);});
+
+  // ── Derive INT_MONTHS from payMaps (guaranteed consistent) ──
+  const ymSet=new Set();
+  rows.forEach(d=>Object.values(payMaps[d.id]).forEach(({y,m})=>{
+    ymSet.add(y+'/'+(m<10?'0'+m:m));
+  }));
+  const ymsAll=[...ymSet].map(k=>{const[y,m]=k.split('/');return{y:parseInt(y),m:parseInt(m),key:k};});
+  ymsAll.sort((a,b)=>a.y!==b.y?a.y-b.y:a.m-b.m);
+  // fill gaps so grid is continuous
+  const INT_MONTHS=[];
+  if(ymsAll.length){
+    let cy=ymsAll[0].y, cm=ymsAll[0].m;
+    const endY=ymsAll[ymsAll.length-1].y, endM=12;
+    while(cy<endY||(cy===endY&&cm<=endM)){
+      INT_MONTHS.push({y:cy,m:cm,key:cy+'/'+(cm<10?'0'+cm:cm)});
+      cm++;if(cm>12){cm=1;cy++;}
+    }
+  }
 
   const dtForYM=(d,ym)=>d.payDates.find(dt=>{
     const pm=payMaps[d.id][dt];
@@ -986,34 +993,57 @@ function rint(){
     return{usd,jpy};
   };
 
-  const anyExp=rows.some(d=>window._intExp.has(d.id));
+  const INFO_LABELS=['狀態','帳戶','買進日','幣別・面額','利率・期限','月配息','已收利息'];
+  const infoVal=(d,li)=>[
+    `<span style="white-space:nowrap;display:inline-block">${bdg(d.status)}</span>`,
+    `<span style="font-size:10px">${d.bank}</span>`,
+    `<span class="mono" style="font-size:10px">${d.date}</span>`,
+    `<span style="font-size:10px">${d.ccy==='JPY'?'<span class="badge bj" style="font-size:9px">JPY</span> ':'<span class="badge bu" style="font-size:9px">USD</span> '}${SY(d.ccy)}${F(d.face)}</span>`,
+    `<span style="font-size:10px;color:var(--bl)">${d.coupon}% · ${d.term}</span>`,
+    `<span class="mono" style="font-size:10px;color:var(--gn)">${SY(d.ccy)}${F(d.monthly,0)}</span>`,
+    `<span class="mono" style="font-size:10px;color:var(--gn)">${SY(d.ccy)}${F((d.paidDates||[]).length*d.monthly,0)}</span>`,
+  ][li];
+
   const MW=62,CW=74,TOTAL_CW=82;
+  // INFO row height per label row (approx) for sticky offset
+  const INFO_ROW_H=24;
+  const HEADER_H=52; // approx height of main header row
+
+  // ── count info rows to show ──
+  const anyExp=rows.some(d=>window._intExp.has(d.id));
+  const infoRowCount=anyExp?INFO_LABELS.length:0;
+  const infoTotalH=infoRowCount*INFO_ROW_H;
 
   let h=`<div class="int-wrap"><table class="int-table" style="border-collapse:collapse;">
   <thead>
+    <!-- Main column header row — always sticky at top:0 -->
     <tr>
       <th style="position:sticky;top:0;left:0;z-index:5;background:var(--sur2);width:${MW}px;min-width:${MW}px;padding:5px 6px;font-size:10px;text-align:center;border-right:3px solid var(--ac2);">月份</th>
       ${rows.map(d=>{
         const pc=(d.paidDates||[]).length,tc=d.payDates.length;
         const exp=window._intExp.has(d.id);
-        return`<th style="position:sticky;top:0;z-index:3;background:var(--sur2);padding:0;min-width:${CW}px;width:${CW}px;cursor:pointer;border-right:1px solid var(--bdr);" onclick="intTog(${d.id})">
-          <div style="padding:4px 4px 3px;text-align:center;">
+        // ── Left/right collapse: show ◀ ▶ instead of ▲ ▼ ──
+        return`<th style="position:sticky;top:0;z-index:3;background:var(--sur2);padding:0;width:${exp?CW:28}px;min-width:${exp?CW:28}px;cursor:pointer;border-right:1px solid var(--bdr);transition:width .2s;" onclick="intTog(${d.id})">
+          <div style="padding:4px 4px 3px;text-align:center;overflow:hidden;">
+            ${exp?`
             <div style="font-size:9px;font-weight:600;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:${CW-6}px;">${d.bank.replace('音－','').replace('林－','')}</div>
             <div style="font-size:9px;color:var(--tx3)">${d.date.slice(5)}</div>
             <div style="font-family:var(--mono);font-size:9px;color:${pc===tc&&tc>0?'var(--gn)':'var(--gd)'};margin-top:1px">${pc}/${tc}</div>
-            <div style="font-size:9px;color:var(--ac2);margin-top:1px">${exp?'▲':'▼'}</div>
-            <div style="font-size:9px;color:var(--tx3);margin-top:2px;cursor:pointer;" onclick="event.stopPropagation();editPayDates(${d.id})" title="編輯配息日">✎ 配息日</div>
+            <div style="font-size:9px;color:var(--ac2);margin-top:1px">◀</div>
+            <div style="font-size:9px;color:var(--tx3);margin-top:2px;cursor:pointer;" onclick="event.stopPropagation();editPayDates(${d.id})" title="編輯配息日">✎</div>
+            `:`<div style="font-size:10px;color:var(--ac2);writing-mode:vertical-rl;text-orientation:mixed;margin:4px auto;white-space:nowrap;overflow:hidden;max-height:60px;">▶ ${d.bank.replace('音－','').replace('林－','')}</div>`}
           </div>
         </th>`;
       }).join('')}
       <th style="position:sticky;top:0;z-index:3;background:var(--sur2);min-width:${TOTAL_CW}px;width:${TOTAL_CW}px;font-size:9px;font-weight:600;color:var(--tx3);text-align:center;border-left:3px solid var(--ac2);">當月合計</th>
     </tr>
+    <!-- Info rows — sticky below main header when expanded -->
     ${INFO_LABELS.map((lbl,li)=>`<tr class="int-info-row" style="${anyExp?'':'display:none'}">
-      <th style="position:sticky;left:0;z-index:4;background:var(--gdl);font-size:9px;font-weight:600;color:var(--tx3);padding:3px 6px;white-space:nowrap;width:${MW}px;min-width:${MW}px;text-align:right;border-right:3px solid var(--ac2);${li===INFO_LABELS.length-1?'border-bottom:2px solid var(--ac2);':''}">${lbl}</th>
-      ${rows.map(d=>`<td style="text-align:center;padding:3px 4px;border-right:1px solid var(--bdr);background:${window._intExp.has(d.id)?'var(--gdl)':'var(--sur2)'};vertical-align:middle;${li===INFO_LABELS.length-1?'border-bottom:2px solid var(--ac2);':''}">
-        ${window._intExp.has(d.id)?infoVal(d,li):'<span style="color:var(--tx3);font-size:10px">—</span>'}
+      <th style="position:sticky;left:0;top:${HEADER_H+li*INFO_ROW_H}px;z-index:4;background:var(--gdl);font-size:9px;font-weight:600;color:var(--tx3);padding:3px 6px;white-space:nowrap;width:${MW}px;min-width:${MW}px;text-align:right;border-right:3px solid var(--ac2);${li===INFO_LABELS.length-1?'border-bottom:2px solid var(--ac2);':''}">${lbl}</th>
+      ${rows.map(d=>`<td style="position:sticky;top:${HEADER_H+li*INFO_ROW_H}px;z-index:2;text-align:center;padding:3px 4px;border-right:1px solid var(--bdr);background:${window._intExp.has(d.id)?'var(--gdl)':'var(--sur2)'};vertical-align:middle;${li===INFO_LABELS.length-1?'border-bottom:2px solid var(--ac2);':''}">
+        ${window._intExp.has(d.id)?infoVal(d,li):''}
       </td>`).join('')}
-      <td style="border-left:3px solid var(--ac2);background:var(--sur2);${li===INFO_LABELS.length-1?'border-bottom:2px solid var(--ac2);':''}"></td>
+      <td style="position:sticky;top:${HEADER_H+li*INFO_ROW_H}px;border-left:3px solid var(--ac2);background:var(--sur2);${li===INFO_LABELS.length-1?'border-bottom:2px solid var(--ac2);':''}"></td>
     </tr>`).join('')}
   </thead>
   <tbody>`;
@@ -1029,13 +1059,16 @@ function rint(){
       <td style="position:sticky;left:0;z-index:2;background:var(--sur2);font-weight:700;font-size:12px;text-align:center;padding:5px 4px;white-space:nowrap;width:${MW}px;min-width:${MW}px;border-right:3px solid var(--ac2);border-bottom:1px solid var(--bdr);">${ym.m}月</td>
       ${rows.map(d=>{
         const dt=dtForYM(d,ym);
-        if(!dt)return`<td style="border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);background:var(--bg);text-align:center;color:var(--tx3);font-size:11px;min-width:${CW}px;">—</td>`;
+        const exp=window._intExp.has(d.id);
+        if(!dt)return`<td style="border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);background:var(--bg);text-align:center;color:var(--tx3);font-size:11px;min-width:${exp?CW:28}px;width:${exp?CW:28}px;">—</td>`;
         const paid=(d.paidDates||[]).includes(dt);
-        return`<td class="int-cell ${paid?'paid':'pend'}" onclick="togPaid(${d.id},'${dt}')" style="border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);min-width:${CW}px;vertical-align:middle;">
+        return`<td class="int-cell ${paid?'paid':'pend'}" onclick="togPaid(${d.id},'${dt}')" style="border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);min-width:${exp?CW:28}px;width:${exp?CW:28}px;vertical-align:middle;">
           <div class="int-cell-inner">
+            ${exp?`
             <div style="font-size:9px;color:${paid?'var(--gn)':'var(--tx3)'};margin-bottom:1px">${dt}</div>
             <div class="ia" style="font-family:var(--mono);font-size:11px">${SY(d.ccy)}${F(d.monthly,0)}</div>
             <div style="font-size:9px;margin-top:1px;color:${paid?'var(--gn)':'var(--gd)'}">${paid?'✓ 已收':'待收'}</div>
+            `:`<div style="font-size:10px;color:${paid?'var(--gn)':'var(--gd)'}">${paid?'✓':'●'}</div>`}
           </div>
         </td>`;
       }).join('')}

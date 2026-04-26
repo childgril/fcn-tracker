@@ -1101,11 +1101,12 @@ function rint(){
     return{usd,jpy};
   };
 
-  const INFO_LABELS=['狀態','帳戶','買進日','幣別・面額','利率・期限','月配息','已收利息'];
+  const INFO_LABELS=['狀態','帳戶','買進日','出場日','幣別・面額','利率・期限','月配息','已收利息'];
   const infoVal=(d,li)=>[
     `<span style="white-space:nowrap;display:inline-block">${bdg(d.status)}</span>`,
     `<span style="font-size:10px">${d.bank}</span>`,
     `<span class="mono" style="font-size:10px">${d.date}</span>`,
+    `<span class="mono" style="font-size:10px;color:${d.exitDate?'var(--rd)':'var(--tx3)'}">${d.exitDate||'—'}</span>`,
     `<span style="font-size:10px">${d.ccy==='JPY'?'<span class="badge bj" style="font-size:9px">JPY</span> ':'<span class="badge bu" style="font-size:9px">USD</span> '}${SY(d.ccy)}${F(d.face)}</span>`,
     `<span style="font-size:10px;color:var(--bl)">${d.coupon}% · ${d.term}</span>`,
     `<span class="mono" style="font-size:10px;color:var(--gn)">${SY(d.ccy)}${F(d.monthly,0)}</span>`,

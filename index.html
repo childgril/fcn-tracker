@@ -207,6 +207,7 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
     <div class="ni" onclick="showSec('holdtrack')"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12l4-4 3 3 5-6" stroke-linecap="round" stroke-linejoin="round"/></svg>承接股票追蹤</div>
     <div class="ni" onclick="showSec('fxlog')"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8h10M10 5l3 3-3 3" stroke-linecap="round" stroke-linejoin="round"/><path d="M13 8H3M6 5L3 8l3 3" stroke-linecap="round" stroke-linejoin="round" opacity=".4"/></svg>換外幣紀錄</div>
     <div class="ni" onclick="showSec('add')"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v6M5 8h6" stroke-linecap="round"/></svg>新增投資</div>
+    <div class="ni" onclick="showSec('eval')"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 14l3-3 3 2 3-4 3-4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="13" cy="3" r="1.5" fill="currentColor" stroke="none"/></svg>評估 FCN</div>
     <div class="ni" onclick="showSec('report')"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="9" width="3" height="6" rx="1" opacity=".5"/><rect x="6" y="6" width="3" height="9" rx="1" opacity=".7"/><rect x="11" y="2" width="3" height="13" rx="1"/></svg>報表分析</div>
   </div>
   <div class="sbf">資料存於本機瀏覽器<br>最後更新：<span id="last-update">—</span></div>
@@ -317,6 +318,22 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
     <button class="btn btnsm" id="ht-refresh" onclick="refreshHoldTrack()">↻ 更新股價</button>
   </div>
   <div id="ht-list"></div>
+</div>
+
+<!-- EVAL -->
+<div id="sec-eval" class="sec">
+  <div class="ph">
+    <div><div class="pt">評估 FCN</div><div class="ps">輸入銀行報價，自動抓取股價並計算保護價／承購價／出場價，比較哪筆最適合進場</div></div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <span id="eval-fx-info" style="font-size:11px;color:var(--tx3)"></span>
+      <button class="btn btnsm" onclick="addEvalRow()">＋ 新增標的</button>
+      <button class="btn btnp btnsm" onclick="runEval()">▶ 抓取股價並計算</button>
+    </div>
+  </div>
+  <!-- quote input cards -->
+  <div id="eval-inputs"></div>
+  <!-- comparison result table -->
+  <div id="eval-results" style="margin-top:16px;"></div>
 </div>
 
 <!-- ADD -->
@@ -599,7 +616,7 @@ function showSec(n){
   document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.ni').forEach(x=>x.classList.remove('active'));
   document.getElementById('sec-'+n).classList.add('active');
-  const m={dashboard:0,list:1,interest:2,holdtrack:3,fxlog:4,add:5,report:6};
+  const m={dashboard:0,list:1,interest:2,holdtrack:3,fxlog:4,add:5,eval:6,report:7};
   if(m[n]!==undefined)document.querySelectorAll('.ni')[m[n]].classList.add('active');
   if(n==='dashboard')rdash();
   else if(n==='list')rlist();
@@ -611,6 +628,7 @@ function showSec(n){
   }
   else if(n==='fxlog')rFxLog();
   else if(n==='add')resetF();
+  else if(n==='eval')initEval();
   else if(n==='report')rrep();
 }
 
@@ -780,7 +798,7 @@ async function rdash(){
       <td class="mono" style="white-space:nowrap">${d.maturity||'—'}</td>
       <td class="mono" style="white-space:nowrap">${d.exitDate||'—'}</td>
       <td>${tags(d.stocks)}</td>
-      <td style="white-space:nowrap">${d.ccy==='JPY'?'<span class="badge bj">JPY</span>':d.ccy}</td>
+      <td style="white-space:nowrap">${d.ccy==='JPY'?'<span class="badge bj">JPY</span>':'<span class="badge" style="background:var(--rdl);color:var(--rd)">USD</span>'}</td>
       <td class="mono right" style="white-space:nowrap">${SY(d.ccy)}${F(d.face)}</td>
       <td class="mono right" style="white-space:nowrap">${twd(d)?'NT$'+F(twd(d)):'—'}</td>
       <td class="mono right">${d.fx||'—'}</td>
@@ -1726,6 +1744,207 @@ function applyFxPicker(){
   document.getElementById('f-fx-hint').textContent=`✓ 已套用換匯紀錄加權平均匯率 ${avg.toFixed(4)}`;
   updTWD();
   closeFxPicker();
+}
+
+// ── EVAL FCN ────────────────────────────────────────────────
+let evalRows=JSON.parse(localStorage.getItem('fcneval')||'[]');
+let evalCount=0;
+
+function saveEval(){localStorage.setItem('fcneval',JSON.stringify(evalRows));}
+
+function initEval(){
+  document.getElementById('eval-fx-info').textContent=`匯率 USD/TWD ${getFX()}`;
+  if(!evalRows.length) addEvalRow();
+  else renderEvalInputs();
+}
+
+function addEvalRow(){
+  evalCount++;
+  const id='ev-'+Date.now()+'-'+evalCount;
+  evalRows.push({id,bank:'',stocks:[{sym:'',aki:0,strike:0,ko:0}],coupon:0,term:'6M',face:100000,note:''});
+  saveEval();
+  renderEvalInputs();
+}
+
+function removeEvalRow(id){
+  evalRows=evalRows.filter(r=>r.id!==id);
+  saveEval();
+  renderEvalInputs();
+  document.getElementById('eval-results').innerHTML='';
+}
+
+function addEvalStock(rowId){
+  const r=evalRows.find(x=>x.id===rowId);
+  if(r){r.stocks.push({sym:'',aki:0,strike:0,ko:0});saveEval();renderEvalInputs();}
+}
+
+function removeEvalStock(rowId,si){
+  const r=evalRows.find(x=>x.id===rowId);
+  if(r&&r.stocks.length>1){r.stocks.splice(si,1);saveEval();renderEvalInputs();}
+}
+
+function evalChange(rowId,field,val,si){
+  const r=evalRows.find(x=>x.id===rowId);
+  if(!r)return;
+  if(si!==undefined) r.stocks[si][field]=field==='sym'?val:parseFloat(val)||0;
+  else r[field]=field==='coupon'||field==='face'?parseFloat(val)||0:val;
+  saveEval();
+}
+
+function renderEvalInputs(){
+  const el=document.getElementById('eval-inputs');
+  el.innerHTML=evalRows.map((r,ri)=>`
+    <div class="fs" style="margin-bottom:12px;position:relative;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div class="fst" style="margin-bottom:0">報價 ${ri+1}</div>
+        <button class="btn btnsm" onclick="removeEvalRow('${r.id}')" style="color:var(--rd);border-color:var(--rd)">✕ 移除</button>
+      </div>
+      <div class="fg4" style="margin-bottom:12px;">
+        <div class="fgrp"><label>銀行 / 來源</label><input type="text" value="${r.bank}" placeholder="例：元大" oninput="evalChange('${r.id}','bank',this.value)"></div>
+        <div class="fgrp"><label>投資面額 USD</label><input type="number" value="${r.face||100000}" oninput="evalChange('${r.id}','face',this.value)"></div>
+        <div class="fgrp"><label>Coupon 年化 %</label><input type="number" value="${r.coupon||''}" placeholder="例：24" step="0.01" oninput="evalChange('${r.id}','coupon',this.value)"></div>
+        <div class="fgrp"><label>期限</label>
+          <select onchange="evalChange('${r.id}','term',this.value)">
+            ${['3M','4M','6M','9M','12M'].map(t=>`<option ${r.term===t?'selected':''}>${t}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div style="font-size:10px;font-weight:700;color:var(--tx3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px;">連結股票條件（輸入%，系統用股價自動計算價格）</div>
+      <div style="display:grid;grid-template-columns:1.4fr .8fr .8fr .8fr .8fr 28px;gap:8px;margin-bottom:5px;">
+        <span style="font-size:9px;font-weight:600;color:var(--tx3);text-transform:uppercase">股票代號</span>
+        <span style="font-size:9px;font-weight:600;color:var(--rd);text-transform:uppercase">AKI %</span>
+        <span style="font-size:9px;font-weight:600;color:var(--bl);text-transform:uppercase">Strike %</span>
+        <span style="font-size:9px;font-weight:600;color:var(--gn);text-transform:uppercase">KO %</span>
+        <span style="font-size:9px;font-weight:600;color:var(--tx3);text-transform:uppercase">目前股價</span>
+        <span></span>
+      </div>
+      ${r.stocks.map((s,si)=>`
+        <div style="display:grid;grid-template-columns:1.4fr .8fr .8fr .8fr .8fr 28px;gap:8px;margin-bottom:8px;align-items:center;">
+          <input type="text" value="${s.sym}" placeholder="TSM / NVDA / TSLA" oninput="evalChange('${r.id}','sym',this.value,${si})" style="font-weight:500;">
+          <input type="number" value="${s.aki||''}" placeholder="65" step="0.1" oninput="evalChange('${r.id}','aki',this.value,${si})" style="border-color:var(--rd)">
+          <input type="number" value="${s.strike||''}" placeholder="75" step="0.1" oninput="evalChange('${r.id}','strike',this.value,${si})" style="border-color:var(--bl)">
+          <input type="number" value="${s.ko||''}" placeholder="105" step="0.1" oninput="evalChange('${r.id}','ko',this.value,${si})" style="border-color:var(--gn)">
+          <input type="text" id="ep-${r.id}-${si}" value="${priceCache[s.sym]?'$'+F(priceCache[s.sym],2):''}" placeholder="—" readonly style="background:var(--sur2);font-family:var(--mono);">
+          <button class="rmb" onclick="removeEvalStock('${r.id}',${si})" ${r.stocks.length<=1?'disabled':''}>✕</button>
+        </div>`).join('')}
+      <button class="btn btnsm" onclick="addEvalStock('${r.id}')" style="margin-top:2px;">＋ 新增股票</button>
+      <div class="fgrp" style="margin-top:10px;"><label>備註</label><input type="text" value="${r.note||''}" placeholder="備註說明" oninput="evalChange('${r.id}','note',this.value)"></div>
+    </div>`).join('');
+}
+
+async function runEval(){
+  // collect all symbols
+  const syms=[...new Set(evalRows.flatMap(r=>r.stocks.map(s=>s.sym.toUpperCase().trim()).filter(Boolean)))];
+  const btn=document.querySelector('#sec-eval .btn-p, #sec-eval [onclick="runEval()"]');
+  if(btn){btn.textContent='抓取中…';btn.disabled=true;}
+  await fetchPrices(syms);
+  if(btn){btn.textContent='▶ 抓取股價並計算';btn.disabled=false;}
+  // update price inputs
+  evalRows.forEach(r=>r.stocks.forEach((s,si)=>{
+    const el=document.getElementById('ep-'+r.id+'-'+si);
+    if(el&&s.sym){
+      const p=priceCache[s.sym.toUpperCase().trim()];
+      if(el)el.value=p?'$'+F(p,2):'無法取得';
+    }
+  }));
+  renderEvalResults();
+}
+
+function renderEvalResults(){
+  const fx=getFX();
+  const el=document.getElementById('eval-results');
+  if(!evalRows.length){el.innerHTML='';return;}
+
+  // score each quote: higher coupon, higher KO, tighter AKI = better for investor
+  const scored=evalRows.map(r=>{
+    const monthlyUSD=r.face*(r.coupon/100)*(1/12);
+    const termMo=parseInt(r.term)||6;
+    const totalInt=monthlyUSD*termMo;
+    const stockDetails=r.stocks.map(s=>{
+      const sym=s.sym.toUpperCase().trim();
+      const cur=priceCache[sym]||0;
+      const akiPrice=cur?cur*(s.aki/100):0;
+      const strikePrice=cur?cur*(s.strike/100):0;
+      const koPrice=cur?cur*(s.ko/100):0;
+      const safetyGap=cur&&akiPrice?((cur-akiPrice)/cur*100):0;
+      return{sym,cur,akiPrice,strikePrice,koPrice,aki:s.aki,strike:s.strike,ko:s.ko,safetyGap};
+    });
+    const minSafetyGap=stockDetails.length?Math.min(...stockDetails.map(s=>s.safetyGap).filter(x=>x>0)):0;
+    const score=(r.coupon||0)*0.5+(minSafetyGap)*0.3+(r.ko||0)*0.2;
+    return{...r,stockDetails,monthlyUSD,totalInt,score,termMo};
+  });
+  scored.sort((a,b)=>b.score-a.score);
+
+  const best=scored[0];
+  el.innerHTML=`
+    <div class="card">
+      <div class="ch"><span class="ct">比較分析結果</span><span style="font-size:11px;color:var(--tx3)">依綜合評分排序（Coupon 50% ＋ 安全距離 30% ＋ KO% 20%）</span></div>
+      <div class="tw"><table style="font-size:11px;">
+        <thead><tr>
+          <th>排名</th><th>銀行</th><th>股票</th>
+          <th class="right">目前股價</th>
+          <th class="right" style="color:var(--rd)">保護價 AKI</th>
+          <th class="right" style="color:var(--bl)">承購價 Strike</th>
+          <th class="right" style="color:var(--gn)">出場價 KO</th>
+          <th class="right">安全距離</th>
+          <th class="right">Coupon</th>
+          <th class="right">月配息</th>
+          <th class="right">預計總配息</th>
+          <th class="right">評分</th>
+          <th>備註</th>
+        </tr></thead>
+        <tbody>
+          ${scored.map((r,ri)=>r.stockDetails.map((s,si)=>`<tr style="${ri===0?'background:var(--gnl)':''}${ri>0&&si===0?'border-top:2px solid var(--bdr)':''}">
+            ${si===0?`<td rowspan="${r.stockDetails.length}" style="vertical-align:middle;text-align:center;font-size:14px;font-weight:700;color:${ri===0?'var(--gn)':ri===1?'var(--gd)':'var(--tx3)'}">
+              ${ri===0?'🥇':ri===1?'🥈':ri===2?'🥉':ri+1}
+            </td>
+            <td rowspan="${r.stockDetails.length}" style="vertical-align:middle;font-weight:600;">${r.bank||'—'}</td>`:''}
+            <td style="font-weight:600">${s.sym||'—'}</td>
+            <td class="mono right">${s.cur?'$'+F(s.cur,2):'—'}</td>
+            <td class="mono right" style="color:var(--rd)">${s.akiPrice?'$'+F(s.akiPrice,2):'—'}<div style="font-size:9px;color:var(--tx3)">${s.aki}%</div></td>
+            <td class="mono right" style="color:var(--bl)">${s.strikePrice?'$'+F(s.strikePrice,2):'—'}<div style="font-size:9px;color:var(--tx3)">${s.strike}%</div></td>
+            <td class="mono right" style="color:var(--gn)">${s.koPrice?'$'+F(s.koPrice,2):'—'}<div style="font-size:9px;color:var(--tx3)">${s.ko}%</div></td>
+            <td class="mono right" style="color:${s.safetyGap>35?'var(--gn)':s.safetyGap>20?'var(--gd)':'var(--rd)'}">
+              ${s.safetyGap?s.safetyGap.toFixed(1)+'%':'—'}
+            </td>
+            ${si===0?`<td rowspan="${r.stockDetails.length}" class="mono right cb" style="vertical-align:middle">${r.coupon}%</td>
+            <td rowspan="${r.stockDetails.length}" class="mono right cg" style="vertical-align:middle">$${F(r.monthlyUSD,0)}</td>
+            <td rowspan="${r.stockDetails.length}" class="mono right cg" style="vertical-align:middle">$${F(r.totalInt,0)}<div style="font-size:9px;color:var(--tx3)">≈NT$${F(Math.round(r.totalInt*fx))}</div></td>
+            <td rowspan="${r.stockDetails.length}" class="mono right" style="vertical-align:middle;color:${ri===0?'var(--gn)':'var(--tx2)'};">${r.score.toFixed(1)}</td>
+            <td rowspan="${r.stockDetails.length}" style="vertical-align:middle;font-size:11px;color:var(--tx2)">${r.note||'—'}</td>`:''}
+          </tr>`).join('')).join('')}
+        </tbody>
+      </table></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+      <button class="btn btnsm" onclick="clearEvalResults()">清除結果</button>
+      ${best?`<button class="btn btnp btnsm" onclick="importBestToAdd()">將最佳報價匯入新增投資 →</button>`:''}
+    </div>`;
+}
+
+function clearEvalResults(){document.getElementById('eval-results').innerHTML='';}
+
+function importBestToAdd(){
+  // find highest scored row
+  const scored=evalRows.map(r=>({...r,score:(r.coupon||0)*0.5+(r.ko||0)*0.2})).sort((a,b)=>b.score-a.score);
+  const best=scored[0];if(!best)return;
+  showSec('add');
+  setTimeout(()=>{
+    document.getElementById('f-bank').value=best.bank||'';
+    document.getElementById('f-coupon').value=best.coupon||'';
+    document.getElementById('f-ko').value=best.ko||best.stocks[0]?.ko||'';
+    document.getElementById('f-aki').value=best.aki||best.stocks[0]?.aki||'';
+    document.getElementById('f-strike').value=best.strike||best.stocks[0]?.strike||'';
+    document.getElementById('f-term').value=best.term||'6M';
+    document.getElementById('f-face').value=best.face||'';
+    document.getElementById('f-note').value=best.note||'';
+    document.getElementById('stocks-con').innerHTML='';
+    evalCount=0;
+    (best.stocks||[]).forEach(s=>{
+      const cur=priceCache[s.sym?.toUpperCase?.()?.trim?.()];
+      addSR({name:s.sym,buy:cur||0,aki:cur?cur*(s.aki/100):0,strike:cur?cur*(s.strike/100):0,exit:cur?cur*(s.ko/100):0});
+    });
+  },100);
 }
 
 document.getElementById('last-update').textContent=localStorage.getItem('fcnlast')||'首次載入';

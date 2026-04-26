@@ -258,15 +258,13 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
             <th rowspan="2" class="right" style="vertical-align:middle">出場價<br><span style="font-weight:400;opacity:.7">KO</span></th>
             <th rowspan="2" class="right" style="vertical-align:middle">利率<br><span style="font-weight:400;opacity:.7">Coupon</span></th>
             <th rowspan="2" style="vertical-align:middle">期限</th>
-            <th colspan="4" style="text-align:center;border-bottom:1px solid var(--bdr)">配息</th>
+            <th class="right" style="vertical-align:middle">配息日</th>
+            <th class="right" style="vertical-align:middle">月配息</th>
+            <th class="right" style="vertical-align:middle">總配息</th>
+            <th class="right" style="vertical-align:middle">已領配息</th>
             <th rowspan="2" class="right" style="vertical-align:middle">報酬率</th>
           </tr>
           <tr>
-            <th>配息日</th>
-            <th class="right">月配息</th>
-            <th class="right">總配息</th>
-            <th class="right">已領配息</th>
-          </tr>
         </thead>
         <tbody id="dash-tb"></tbody>
       </table>
@@ -1042,8 +1040,10 @@ function rint(){
             <div style="font-size:9px;font-weight:600;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:${CW-6}px;">${d.bank.replace('音－','').replace('林－','')}</div>
             <div style="font-size:9px;color:var(--tx3)">${d.date.slice(5)}</div>
             <div style="font-family:var(--mono);font-size:9px;color:${pc===tc&&tc>0?'var(--gn)':'var(--gd)'};margin-top:1px">${pc}/${tc}</div>
-            <div style="font-size:9px;color:var(--ac2);margin-top:1px">◀</div>
-            <div style="font-size:9px;color:var(--tx3);margin-top:2px;cursor:pointer;" onclick="event.stopPropagation();editPayDates(${d.id})" title="編輯配息日">✎</div>
+            <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:2px;">
+              <span style="font-size:9px;color:var(--ac2)">◀</span>
+              <span style="font-size:9px;color:var(--tx3);cursor:pointer;" onclick="event.stopPropagation();editPayDates(${d.id})" title="編輯配息日">✎</span>
+            </div>
             `:`<div style="font-size:10px;color:var(--ac2);writing-mode:vertical-rl;text-orientation:mixed;margin:4px auto;white-space:nowrap;overflow:hidden;max-height:60px;">▶ ${d.bank.replace('音－','').replace('林－','')}</div>`}
           </div>
         </th>`;
@@ -1240,14 +1240,21 @@ function rHoldTrack(){
     const refund=hd.refund||0;
     const shares=hd.shares||0;
     const amt=hd.amt||0;
-    const totalToRecover=d.face-paidUSD-refund;
-    const breakevenPrice=shares>0?totalToRecover/shares:0;
+    // sell log calculations
+    const sells=hd.sells||[];
+    const soldQty=sells.reduce((a,s)=>a+s.qty,0);
+    const soldAmt=sells.reduce((a,s)=>a+s.qty*s.price,0);
+    const remainShares=shares-soldQty;
+    // totalToRecover = original cost - interest - refund - proceeds from sold shares
+    const totalToRecover=Math.max(0, d.face-paidUSD-refund-soldAmt);
+    // breakeven uses remaining shares only
+    const breakevenPrice=remainShares>0?totalToRecover/remainShares:0;
     const stockSym=hd.stock||'';
     const curPrice=stockSym&&priceCache[stockSym]?priceCache[stockSym]:0;
     const gap=curPrice&&breakevenPrice?curPrice-breakevenPrice:null;
     const gapPct=gap!==null&&breakevenPrice?(gap/breakevenPrice*100):null;
     const reached=gap!==null&&gap>=0;
-    const curVal=curPrice&&shares?curPrice*shares:0;
+    const curVal=curPrice&&remainShares?curPrice*remainShares:0;
     const hasDetail=shares>0&&stockSym;
 
     // gap display
@@ -1288,6 +1295,13 @@ function rHoldTrack(){
             <div style="font-size:9px;color:var(--tx3);font-weight:400;font-family:var(--sans);letter-spacing:.05em;margin-bottom:2px">已退款</div>
             <div style="color:var(--gn)">$${F(refund,0)}</div>
           </div>
+          ${soldAmt>0?`
+          <div style="color:var(--tx3);font-size:14px;font-weight:300">－</div>
+          <div style="text-align:center;padding:0 10px;">
+            <div style="font-size:9px;color:var(--tx3);font-weight:400;font-family:var(--sans);letter-spacing:.05em;margin-bottom:2px">已賣出</div>
+            <div style="color:var(--gn)">$${F(soldAmt,0)}</div>
+            <div style="font-size:9px;color:var(--tx3)">${F(soldQty)}股</div>
+          </div>`:''}
           <div style="color:var(--tx3);font-size:14px;font-weight:300">=</div>
           <div style="text-align:center;background:rgba(139,38,53,.06);border-radius:6px;padding:4px 12px;">
             <div style="font-size:9px;color:var(--rd);font-weight:400;font-family:var(--sans);letter-spacing:.05em;margin-bottom:2px">需回本</div>
@@ -1325,29 +1339,18 @@ function rHoldTrack(){
             ${hasDetail?`<tr>
               <td style="font-weight:600">${stockSym}</td>
               <td class="mono right">${F(shares)} 股</td>
-              <td class="mono right" style="color:var(--bl)">${hd.sells&&hd.sells.length?F(hd.sells.reduce((a,s)=>a+s.qty,0))+' 股':'—'}</td>
-              <td class="mono right" style="color:${(()=>{const sold=hd.sells?hd.sells.reduce((a,s)=>a+s.qty,0):0;return sold>=shares?'var(--gn)':'var(--tx)'})()};font-weight:600">
-                ${(()=>{const sold=hd.sells?hd.sells.reduce((a,s)=>a+s.qty,0):0;return F(shares-sold)+' 股';})()}
-              </td>
+              <td class="mono right" style="color:var(--bl)">${soldQty?F(soldQty)+' 股':'—'}</td>
+              <td class="mono right" style="color:${remainShares<=0?'var(--gn)':'var(--tx)'};font-weight:600">${F(remainShares)} 股</td>
               <td class="mono right">$${F(amt,0)}</td>
               <td class="mono right ${reached?'cg':'cr'}" style="font-weight:700">$${F(breakevenPrice,2)}</td>
               <td class="mono right" style="color:${curPrice?(reached?'var(--gn)':Math.abs(gapPct||0)<15?'var(--gd)':'var(--rd)'):'var(--tx3)'}">
                 ${curPrice?'$'+F(curPrice,2):'—'}
               </td>
               <td class="mono right" style="color:var(--bl)">
-                ${(()=>{
-                  if(!hd.sells||!hd.sells.length)return'—';
-                  const totalQty=hd.sells.reduce((a,s)=>a+s.qty,0);
-                  const totalAmt=hd.sells.reduce((a,s)=>a+s.qty*s.price,0);
-                  return totalQty?'$'+F(totalAmt/totalQty,2):'—';
-                })()}
+                ${soldQty?'$'+F(soldAmt/soldQty,2):'—'}
               </td>
               <td class="mono right" style="color:var(--bl)">
-                ${(()=>{
-                  if(!hd.sells||!hd.sells.length)return'—';
-                  const totalAmt=hd.sells.reduce((a,s)=>a+s.qty*s.price,0);
-                  return '$'+F(totalAmt,0)+'<div style="font-size:9px;color:var(--tx3)">≈ NT$'+F(Math.round(totalAmt*fx))+'</div>';
-                })()}
+                ${soldAmt?'$'+F(soldAmt,0)+'<div style="font-size:9px;color:var(--tx3)">≈ NT$'+F(Math.round(soldAmt*fx))+'</div>':'—'}
               </td>
               <td class="mono right">$${F(totalToRecover,0)}<div style="font-size:9px;color:var(--tx3)">≈ NT$${F(Math.round(totalToRecover*fx))}</div></td>
               <td class="mono right" style="color:${curVal?(reached?'var(--gn)':curVal>totalToRecover*0.85?'var(--gd)':'var(--rd)'):'var(--tx3)'}">
@@ -1356,13 +1359,16 @@ function rHoldTrack(){
               </td>
               <td class="mono right">${gapHtml}${barHtml}</td>
             </tr>
-            ${hd.sells&&hd.sells.length?`<tr><td colspan="12" style="padding:6px 10px;background:var(--sur2);">
+            ${sells.length?`<tr><td colspan="12" style="padding:6px 10px;background:var(--sur2);">
               <div style="font-size:10px;font-weight:600;color:var(--tx3);margin-bottom:4px;">賣出紀錄</div>
-              <div style="display:flex;flex-wrap:wrap;gap:6px;">
-                ${hd.sells.map((s,si)=>`<span style="font-size:10px;background:var(--bll);color:var(--bl);padding:2px 8px;border-radius:4px;font-family:var(--mono);">
-                  ${s.date} · ${F(s.qty)}股 × $${F(s.price,2)} = $${F(s.qty*s.price,0)}
-                </span>`).join('')}
-              </div>
+              ${sells.map((s,si)=>`<div style="display:flex;align-items:center;gap:8px;padding:3px 0;border-bottom:1px solid var(--bdr);font-size:11px;font-family:var(--mono);">
+                <span style="color:var(--tx3);min-width:70px">${s.date}</span>
+                <span>${F(s.qty)} 股</span>
+                <span style="color:var(--tx3)">×</span>
+                <span>$${F(s.price,2)}</span>
+                <span style="color:var(--tx3)">=</span>
+                <span style="color:var(--bl);font-weight:600">$${F(s.qty*s.price,0)}</span>
+              </div>`).join('')}
             </td></tr>`:''}
             ${hd.note?`<tr><td colspan="12" style="font-size:10px;color:var(--tx2);background:var(--sur2);padding:5px 10px">備註：${hd.note}</td></tr>`:''}
             `:`<tr><td colspan="12" style="text-align:center;color:var(--tx3);padding:14px 0">

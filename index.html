@@ -397,6 +397,7 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
     </div>
     <div class="fg" style="margin-bottom:10px;">
       <div class="fgrp"><label>Coupon 年化 %</label><input type="number" id="qm-coupon" placeholder="例：24" step="0.01"></div>
+      <div class="fgrp"><label>購買金額（面額）</label><input type="number" id="qm-face" placeholder="例：100000" step="1"></div>
       <div class="fgrp"><label>保證領息月數</label><input type="number" id="qm-guaranteed" placeholder="2" min="0" step="1"></div>
     </div>
     <div class="fgrp" style="margin-bottom:10px;">
@@ -1959,6 +1960,7 @@ function quoteOpenForm(id){
       document.getElementById('qm-strike').value=r.strike||'';
       document.getElementById('qm-ko').value=r.ko||'';
       document.getElementById('qm-coupon').value=r.coupon||'';
+      document.getElementById('qm-face').value=r.face||'';
       document.getElementById('qm-guaranteed').value=r.guaranteed||'';
       document.getElementById('qm-syms').value=(r.syms||[]).join(' ');
       document.getElementById('qm-note').value=r.note||'';
@@ -1973,7 +1975,7 @@ function quoteOpenForm(id){
     document.getElementById('qm-kotype').value='每天比價'; qmKoTypeChange();
     document.getElementById('qm-kotype-txt').value='';
     document.getElementById('qm-kitype').value='EKI';
-    ['qm-issuer','qm-aki','qm-strike','qm-ko','qm-coupon','qm-guaranteed','qm-syms','qm-note']
+    ['qm-issuer','qm-aki','qm-strike','qm-ko','qm-coupon','qm-face','qm-guaranteed','qm-syms','qm-note']
       .forEach(id=>document.getElementById(id).value='');
   }
   document.getElementById('quote-modal').classList.add('open');
@@ -2002,6 +2004,7 @@ async function quoteSave(){
     ko:parseFloat(document.getElementById('qm-ko').value)||0,
     coupon:parseFloat(document.getElementById('qm-coupon').value)||0,
     guaranteed:parseInt(document.getElementById('qm-guaranteed').value)||0,
+    face:parseFloat(document.getElementById('qm-face').value)||0,
     syms, note:document.getElementById('qm-note').value.trim(),
     prices:{}, savedAt:new Date().toISOString(),
   };
@@ -2061,18 +2064,20 @@ function quoteRenderOneTable(title, records, mkt){
   </div>`;
   const isJP=mkt==='JP';
   const sym2=isJP?'¥':'$';
-  const th=(t,col='')=>`<th style="white-space:nowrap;${col?'color:'+col:''}">${t}</th>`;
+  const th=(t,col='',tip='')=>`<th style="white-space:nowrap;${col?'color:'+col:''}" ${tip?`title="${tip}"`:''}>${t}</th>`;
 
-  // build rows: one row per (record × sym)
   const rows=[];
   records.forEach(r=>{
+    const termMo=parseInt(r.term)||6;
+    const monthly=r.face&&r.coupon?r.face*(r.coupon/100)/12:0;
+    const totalInt=monthly*termMo;
     r.syms.forEach((sym,si)=>{
       const cur=r.prices[sym]||0;
       const akiP=cur?+(cur*(r.aki/100)).toFixed(isJP?0:2):0;
       const strikeP=cur?+(cur*(r.strike/100)).toFixed(isJP?0:2):0;
       const koP=cur?+(cur*(r.ko/100)).toFixed(isJP?0:2):0;
       const safetyPct=cur&&akiP?((cur-akiP)/cur*100):null;
-      rows.push({r,sym,si,cur,akiP,strikeP,koP,safetyPct,isFirst:si===0,span:r.syms.length});
+      rows.push({r,sym,si,cur,akiP,strikeP,koP,safetyPct,monthly,totalInt,termMo,isFirst:si===0,span:r.syms.length});
     });
   });
 
@@ -2083,15 +2088,18 @@ function quoteRenderOneTable(title, records, mkt){
     <div class="tw"><table style="font-size:11px;border-collapse:collapse;">
       <thead><tr>
         ${th('申購日')}${th('銀行')}${th('發行機構')}${th('天期')}
-        ${th('出場類型')}${th('保證領息')}${th('保護價類型')}
+        ${th('出場類型')}${th('保證領息')}${th('保護類型')}
         ${th('E/AKI %','var(--rd)')}${th('Strike %','var(--bl)')}${th('KO %','var(--gn)')}
-        ${th('Coupon %','var(--bl)')}
+        ${th('Coupon %','var(--bl)')}${th('購買面額')}${th('月配息')}${th('預計總配息')}
         ${th('連結標的')}${th('目前股價')}
-        ${th('保護價','var(--rd)')}${th('承購價','var(--bl)')}${th('出場價','var(--gn)')}
-        ${th('安全距離')}${th('備註')}${th('')}
+        ${th('保護價','var(--rd)','安全距離 = (股價-保護價)/股價，越大越安全')}
+        ${th('承購價','var(--bl)')}${th('出場價','var(--gn)')}
+        ${th('安全距離 ⓘ','',' (目前股價-保護價)/目前股價，越大越安全')}
+        ${th('AI 建議承購區間')}
+        ${th('備註')}${th('')}
       </tr></thead>
       <tbody>
-      ${rows.map(({r,sym,si,cur,akiP,strikeP,koP,safetyPct,isFirst,span})=>`
+      ${rows.map(({r,sym,si,cur,akiP,strikeP,koP,safetyPct,monthly,totalInt,termMo,isFirst,span})=>`
         <tr style="border-top:${isFirst?'2px solid var(--bdr)':'none'}">
           ${isFirst?`
           <td rowspan="${span}" style="vertical-align:middle;white-space:nowrap">${r.date}</td>
@@ -2105,11 +2113,12 @@ function quoteRenderOneTable(title, records, mkt){
           <td rowspan="${span}" class="mono right" style="vertical-align:middle;color:var(--bl)">${r.strike||'—'}%</td>
           <td rowspan="${span}" class="mono right" style="vertical-align:middle;color:var(--gn)">${r.ko||'—'}%</td>
           <td rowspan="${span}" class="mono right" style="vertical-align:middle;color:var(--bl);font-weight:600">${r.coupon||'—'}%</td>
+          <td rowspan="${span}" class="mono right" style="vertical-align:middle">${r.face?sym2+F(r.face,0):'—'}</td>
+          <td rowspan="${span}" class="mono right" style="vertical-align:middle;color:var(--gn)">${monthly?sym2+F(monthly,0):'—'}</td>
+          <td rowspan="${span}" class="mono right" style="vertical-align:middle;color:var(--gn)">${totalInt?sym2+F(totalInt,0)+'<div style="font-size:9px;color:var(--tx3)">'+termMo+'個月</div>':'—'}</td>
           `:''}
           <td style="font-weight:600;white-space:nowrap">${sym}</td>
-          <td class="mono right" style="${cur?'':'color:var(--tx3)'}">
-            ${cur?sym2+F(cur,isJP?0:2):'<span style="font-size:10px;color:var(--tx3)">待抓取</span>'}
-          </td>
+          <td class="mono right">${cur?sym2+F(cur,isJP?0:2):'<span style="color:var(--tx3);font-size:10px">待抓取</span>'}</td>
           <td class="mono right" style="color:var(--rd)">${akiP?sym2+F(akiP,isJP?0:2):'—'}</td>
           <td class="mono right" style="color:var(--bl)">${strikeP?sym2+F(strikeP,isJP?0:2):'—'}</td>
           <td class="mono right" style="color:var(--gn)">${koP?sym2+F(koP,isJP?0:2):'—'}</td>
@@ -2117,6 +2126,11 @@ function quoteRenderOneTable(title, records, mkt){
             ${safetyPct!==null?safetyPct.toFixed(1)+'%':'—'}
           </td>
           ${isFirst?`
+          <td rowspan="${span}" style="vertical-align:middle;min-width:140px;">
+            <div id="ai-${r.id}" style="font-size:10px;color:var(--tx3)">
+              ${r.aiAdvice||'<button class="btn btnsm" onclick="quoteAI(\''+r.id+'\')">🤖 詢問 AI</button>'}
+            </div>
+          </td>
           <td rowspan="${span}" style="vertical-align:middle;font-size:10px;color:var(--tx2)">${r.note||'—'}</td>
           <td rowspan="${span}" style="vertical-align:middle;white-space:nowrap">
             <button class="btn btnsm" onclick="quoteOpenForm('${r.id}')">編輯</button>
@@ -2127,10 +2141,59 @@ function quoteRenderOneTable(title, records, mkt){
     </table></div>
   </div>`;
 }
-document.getElementById('last-update').textContent=localStorage.getItem('fcnlast')||'首次載入';
+async function quoteAI(id){
+  const r=QT.find(x=>x.id===id);if(!r)return;
+  const el=document.getElementById('ai-'+id);
+  if(!el)return;
+  el.innerHTML='<span style="color:var(--tx3);font-size:10px">🤖 AI 分析中…</span>';
+
+  // build context for each symbol
+  const symDetails=r.syms.map(sym=>{
+    const cur=r.prices[sym]||0;
+    const akiP=cur?(cur*(r.aki/100)).toFixed(2):null;
+    const strikeP=cur?(cur*(r.strike/100)).toFixed(2):null;
+    return cur?`${sym} 目前股價 ${cur.toFixed(2)}，保護價 ${akiP}（${r.aki}%），承購價 ${strikeP}（${r.strike}%）`
+              :`${sym}（股價未取得）`;
+  }).join('；');
+
+  const prompt=`你是一位FCN（股權連結票券）投資顧問。請根據以下報價條件，建議投資人在什麼股價區間承購比較合適。
+
+報價資訊：
+- 銀行：${r.bank}，市場：${r.market==='JP'?'日股':'美股'}
+- 天期：${r.term}，Coupon：${r.coupon}%，保護價類型：${r.kiType}
+- 保護價：${r.aki}%，承購價：${r.strike}%，出場價：${r.ko}%
+- 連結標的：${symDetails}
+
+請用繁體中文，簡潔回答（100字內）：
+1. 建議在哪個股價區間承購（針對每檔標的給具體數字）
+2. 主要風險提示一句話`;
+
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:300,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    const data=await resp.json();
+    const text=data.content?.[0]?.text||'無法取得建議';
+    r.aiAdvice=`<div style="font-size:10px;color:var(--tx);line-height:1.5;white-space:pre-wrap">${text}</div>
+      <div style="margin-top:4px;"><button class="btn btnsm" onclick="quoteAI('${id}')">↻ 重新詢問</button></div>`;
+    saveQT();
+    if(el)el.innerHTML=r.aiAdvice;
+  }catch(e){
+    if(el)el.innerHTML=`<span style="color:var(--rd);font-size:10px">AI 請求失敗</span>
+      <button class="btn btnsm" onclick="quoteAI('${id}')" style="margin-left:4px">重試</button>`;
+  }
+}
+
 rdash();
 // auto-fetch FX + stock prices on load
 refreshAll();
 </script>
 </body>
 </html>
+document.getElementById('last-update').textContent=localStorage.getItem('fcnlast')||'首次載入';

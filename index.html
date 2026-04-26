@@ -78,6 +78,7 @@ thead tr:nth-child(2) th{top:29px;}
 .bc{background:var(--sur2);color:var(--tx3);}
 .bh{background:var(--gdl);color:var(--gd);}
 .bj{background:var(--pul);color:var(--pu);}
+.bu{background:var(--rdl);color:var(--rd);}
 .tag{display:inline-block;font-size:10px;padding:1px 6px;background:var(--sur2);border:1px solid var(--bdr);border-radius:4px;color:var(--tx2);margin:1px;white-space:nowrap;}
 .sec{display:none;}
 .sec.active{display:block;}
@@ -882,7 +883,7 @@ async function rdash(){
       <td class="mono" style="white-space:nowrap">${d.maturity||'—'}</td>
       <td class="mono" style="white-space:nowrap">${d.exitDate||'—'}</td>
       <td>${tags(d.stocks)}</td>
-      <td style="white-space:nowrap">${d.ccy==='JPY'?'<span class="badge bj">JPY</span>':'<span class="badge" style="background:var(--rdl);color:var(--rd)">USD</span>'}</td>
+      <td style="white-space:nowrap">${d.ccy==='JPY'?'<span class="badge bj">JPY</span>':'<span class="badge bu">USD</span>'}</td>
       <td class="mono right" style="white-space:nowrap">${SY(d.ccy)}${F(d.face)}</td>
       <td class="mono right" style="white-space:nowrap">${twd(d)?'NT$'+F(twd(d)):'—'}</td>
       <td class="mono right">${d.fx||'—'}</td>
@@ -1038,7 +1039,7 @@ function rint(){
     `<span style="white-space:nowrap;display:inline-block">${bdg(d.status)}</span>`,
     `<span style="font-size:10px">${d.bank}</span>`,
     `<span class="mono" style="font-size:10px">${d.date}</span>`,
-    `<span style="font-size:10px">${d.ccy==='JPY'?'<span class="badge bj" style="font-size:9px">JPY</span> ':d.ccy+' '}${SY(d.ccy)}${F(d.face)}</span>`,
+    `<span style="font-size:10px">${d.ccy==='JPY'?'<span class="badge bj" style="font-size:9px">JPY</span> ':'<span class="badge bu" style="font-size:9px">USD</span> '}${SY(d.ccy)}${F(d.face)}</span>`,
     `<span style="font-size:10px;color:var(--bl)">${d.coupon}% · ${d.term}</span>`,
     `<span class="mono" style="font-size:10px;color:var(--gn)">${SY(d.ccy)}${F(d.monthly,0)}</span>`,
     `<span class="mono" style="font-size:10px;color:var(--gn)">${SY(d.ccy)}${F((d.paidDates||[]).length*d.monthly,0)}</span>`,

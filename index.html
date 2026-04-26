@@ -1854,6 +1854,33 @@ function openFxForm(id){
   form.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 function closeFxForm(){document.getElementById('fxlog-form').style.display='none';}
+function saveFxLog(){
+  const date=document.getElementById('fxf-date').value;
+  const bank=document.getElementById('fxf-bank').value.trim();
+  const pair=document.getElementById('fxf-pair').value;
+  const from=parseFloat(document.getElementById('fxf-twd').value)||0;
+  const rate=parseFloat(document.getElementById('fxf-rate').value)||0;
+  const foreignInput=parseFloat(document.getElementById('fxf-foreign').value)||0;
+  const p=PAIRS[pair]||PAIRS['TWD-USD'];
+  let finalFrom=from,finalRate=rate,finalForeign=foreignInput;
+  if(from&&rate&&!foreignInput) finalForeign=p.calcForeign(from,rate);
+  else if(from&&foreignInput&&!rate) finalRate=p.calcRate(from,foreignInput);
+  else if(foreignInput&&rate&&!from) finalFrom=p.calcFrom(foreignInput,rate);
+  if(!date||!finalFrom||!finalForeign){alert('請填寫日期，並至少輸入：支出金額＋匯率，或支出金額＋取得金額');return;}
+  if(!finalRate) finalRate=p.calcRate(finalFrom,finalForeign);
+  const note=document.getElementById('fxf-note').value.trim();
+  const eid=document.getElementById('fxf-id').value;
+  const rec={date,bank,pair,twd:finalFrom,rate:finalRate,foreign:finalForeign,note,
+    fromCcy:p.fromCcy,toCcy:p.toCcy,fromSym:p.fromSym,toSym:p.toSym,ccy:p.toCcy};
+  if(eid){
+    const idx=FXL.findIndex(x=>x.id===parseInt(eid));
+    if(idx>=0)FXL[idx]={...FXL[idx],...rec};
+  } else {
+    const nid=Math.max(0,...FXL.map(x=>x.id),0)+1;
+    FXL.push({id:nid,...rec});
+  }
+  saveFXL();closeFxForm();rFxLog();
+}
 function editFxLog(id){openFxForm(id);}
 function delFxLog(id){
   if(!confirm('確定刪除這筆換匯紀錄？'))return;

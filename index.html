@@ -820,8 +820,15 @@ async function rdash(){
   const uF=D.filter(d=>d.ccy==='USD').reduce((a,d)=>a+d.face,0);
   const jF=D.filter(d=>d.ccy==='JPY').reduce((a,d)=>a+d.face,0);
   const tTWD=D.reduce((a,d)=>a+twd(d),0);
-  const tIntUSD=D.filter(d=>d.ccy==='USD').reduce((a,d)=>a+(d.totalUSD||0),0);
-  const tIntJPY=D.filter(d=>d.ccy==='JPY').reduce((a,d)=>a+((d.paidDates||[]).length*d.monthly),0);
+  // 已領配息：用 paidDates 動態計算，支援 monthlyOverride（與利息紀錄一致）
+  function calcPaid(d){
+    const overrides=d.monthlyOverride||{};
+    return (d.paidDates||[]).reduce((a,dt)=>{
+      return a+(overrides[dt]!==undefined?overrides[dt]:d.monthly);
+    },0);
+  }
+  const tIntUSD=D.filter(d=>d.ccy==='USD').reduce((a,d)=>a+calcPaid(d),0);
+  const tIntJPY=D.filter(d=>d.ccy==='JPY').reduce((a,d)=>a+calcPaid(d),0);
   const act=D.filter(d=>d.status==='active').length;
 
   // 剩餘外幣 = 換匯取得 − 換匯轉出 − 進行中投資面額
@@ -888,7 +895,8 @@ async function rdash(){
   document.getElementById('dash-cnt').textContent=`共 ${rows.length} 筆`;
 
   document.getElementById('dash-tb').innerHTML=rows.map(d=>{
-    const paidAmt=(d.paidDates||[]).length*d.monthly;
+    const overrides=d.monthlyOverride||{};
+    const paidAmt=(d.paidDates||[]).reduce((a,dt)=>a+(overrides[dt]!==undefined?overrides[dt]:d.monthly),0);
     const totalAmt=d.payDates.length*d.monthly;
     return `<tr>
       <td>${bdg(d.status)}</td>
@@ -1110,7 +1118,7 @@ function rint(){
     `<span style="font-size:10px">${d.ccy==='JPY'?'<span class="badge bj" style="font-size:9px">JPY</span> ':'<span class="badge bu" style="font-size:9px">USD</span> '}${SY(d.ccy)}${F(d.face)}</span>`,
     `<span style="font-size:10px;color:var(--bl)">${d.coupon}% · ${d.term}</span>`,
     `<span class="mono" style="font-size:10px;color:var(--gn)">${SY(d.ccy)}${F(d.monthly,0)}</span>`,
-    `<span class="mono" style="font-size:10px;color:var(--gn)">${SY(d.ccy)}${F((d.paidDates||[]).length*d.monthly,0)}</span>`,
+    `<span class="mono" style="font-size:10px;color:var(--gn)">${SY(d.ccy)}${F((()=>{const ov=d.monthlyOverride||{};return(d.paidDates||[]).reduce((a,dt)=>a+(ov[dt]!==undefined?ov[dt]:d.monthly),0);})(),2)}</span>`,
   ][li];
 
   const MW=62,CW=74,TOTAL_CW=82;

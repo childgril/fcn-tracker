@@ -880,87 +880,90 @@ function filt(v,btn){cf=v;document.querySelectorAll('.fb').forEach(b=>b.classLis
 
 function rint(){
   const rows=[...D].sort((a,b)=>b.date.localeCompare(a.date));
-  if(!rows.length){document.getElementById('int-list').innerHTML='<div style="text-align:center;padding:48px;color:var(--tx3)">尚無投資紀錄</div>';return;}
+  const el=document.getElementById('int-list');
+  if(!rows.length){el.innerHTML='<div style="text-align:center;padding:48px;color:var(--tx3)">尚無投資紀錄</div>';return;}
+  window._intExp=window._intExp||new Set();
 
-  // collect all unique payDates across all investments, sort chronologically
-  const allDatesSet=new Set();
-  rows.forEach(d=>d.payDates.forEach(dt=>allDatesSet.add(dt)));
-  // sort dates: parse M/D
-  const parseDate=s=>{const[m,day]=s.split('/');return parseInt(m)*100+parseInt(day);};
-  const allDates=[...allDatesSet].sort((a,b)=>parseDate(a)-parseDate(b));
+  // all unique months sorted
+  const monthsSet=new Set();
+  rows.forEach(d=>d.payDates.forEach(dt=>monthsSet.add(dt.split('/')[0])));
+  const months=[...monthsSet].sort((a,b)=>parseInt(a)-parseInt(b));
 
-  // sidebar info columns: 8 fields
-  const sideFields=[
-    {key:'status', label:'狀態', render:d=>bdg(d.status)},
-    {key:'bank',   label:'帳戶', render:d=>`<span style="font-size:10px">${d.bank}</span>`},
-    {key:'date',   label:'買進日', render:d=>`<span class="mono" style="font-size:10px">${d.date}</span>`},
-    {key:'ccy',    label:'幣別', render:d=>d.ccy==='JPY'?'<span class="badge bj" style="font-size:9px">JPY</span>':d.ccy},
-    {key:'face',   label:'投資面額', render:d=>`<span class="mono" style="font-size:10px">${SY(d.ccy)}${F(d.face)}</span>`},
-    {key:'coupon', label:'利率', render:d=>`<span style="color:var(--bl);font-size:10px">${d.coupon}%</span>`},
-    {key:'term',   label:'期限', render:d=>`<span style="font-size:10px">${d.term}</span>`},
-    {key:'monthly',label:'月配息', render:d=>`<span class="mono" style="font-size:10px;color:var(--gn)">${SY(d.ccy)}${F(d.monthly,0)}</span>`},
-    {key:'paid',   label:'已收利息', render:d=>{const p=(d.paidDates||[]).length*d.monthly;return`<span class="mono" style="font-size:10px;color:var(--gn)">${SY(d.ccy)}${F(p,0)}</span>`;}},
-    {key:'pdates', label:'配息日', render:d=>`<span style="font-size:9px;color:var(--tx2);line-height:1.4">${d.payDates.join('、')}</span>`},
-  ];
+  // info fields per investment (for collapsible rows)
+  const INFO_LABELS=['狀態','帳戶','買進日','幣別・面額','利率・期限','月配息','已收利息'];
+  const infoVal=(d,li)=>[
+    `<span style="white-space:nowrap;display:inline-block">${bdg(d.status)}</span>`,
+    `<span style="font-size:10px">${d.bank}</span>`,
+    `<span class="mono" style="font-size:10px">${d.date}</span>`,
+    `<span style="font-size:10px">${d.ccy==='JPY'?'<span class="badge bj" style="font-size:9px">JPY</span> ':d.ccy+' '}${SY(d.ccy)}${F(d.face)}</span>`,
+    `<span style="font-size:10px;color:var(--bl)">${d.coupon}% · ${d.term}</span>`,
+    `<span class="mono" style="font-size:10px;color:var(--gn)">${SY(d.ccy)}${F(d.monthly,0)}</span>`,
+    `<span class="mono" style="font-size:10px;color:var(--gn)">${SY(d.ccy)}${F((d.paidDates||[]).length*d.monthly,0)}</span>`,
+  ][li];
 
-  // each sideField = 1 row in the table; sidebar cell width
-  const SW=150; // px for the label column
-  const DW=64;  // px per month column
+  const MW=46; // month col width
 
-  let html=`<div class="int-wrap"><table class="int-table" style="--fc1w:${SW}px">`;
-
-  // HEADER ROW: sidebar label + month headers
-  html+=`<thead><tr>
-    <th class="int-info-hd fc" style="min-width:${SW}px;width:${SW}px">投資資訊</th>
-    ${allDates.map(dt=>`<th class="int-month-hd">${dt}</th>`).join('')}
-  </tr></thead>`;
-
-  html+=`<tbody>`;
-  rows.forEach((d,ri)=>{
-    const paidSet=new Set(d.paidDates||[]);
-    const paySet=new Set(d.payDates||[]);
-
-    sideFields.forEach((sf,fi)=>{
-      const isFirst=fi===0;
-      const isLast=fi===sideFields.length-1;
-      html+=`<tr${isFirst?' class="int-sep"':''}>`;
-      // sidebar cell
-      html+=`<td class="fc int-sidebar-cell" style="min-width:${SW}px;width:${SW}px;border-left:${isFirst?'3px solid var(--gd)':'3px solid transparent'};${isFirst?'padding-top:8px':''}${isLast?';padding-bottom:8px':''}">`;
-      if(fi===0){
-        html+=`<div style="font-size:9px;font-weight:600;color:var(--tx3);letter-spacing:.05em;text-transform:uppercase;margin-bottom:3px">${sf.label}</div>`;
-        html+=`<div>${sf.render(d)}</div>`;
-      } else {
-        html+=`<div style="display:flex;align-items:flex-start;gap:6px"><span style="font-size:9px;color:var(--tx3);white-space:nowrap;min-width:48px;padding-top:1px">${sf.label}</span><span>${sf.render(d)}</span></div>`;
-      }
-      html+=`</td>`;
-
-      // month cells — only show on first sideField row (rowspan behaviour via JS)
-      allDates.forEach(dt=>{
-        if(fi===0){
-          const isPay=paySet.has(dt);
-          const isPaid=paidSet.has(dt);
-          if(isPay){
-            html+=`<td class="int-cell ${isPaid?'paid':'pend'}" rowspan="${sideFields.length}" onclick="togPaid(${d.id},'${dt}')" style="vertical-align:middle">
-              <div class="int-cell-inner">
-                <div class="ia" style="font-family:var(--mono)">${SY(d.ccy)}${F(d.monthly,0)}</div>
-                <div style="font-size:9px;margin-top:2px;color:${isPaid?'var(--gn)':'var(--gd)'}">${isPaid?'✓ 已收':'待收'}</div>
-              </div>
-            </td>`;
-          } else {
-            html+=`<td class="int-cell skip" rowspan="${sideFields.length}" style="vertical-align:middle">
-              <div class="int-cell-inner"><span style="font-size:10px;color:var(--tx3)">—</span></div>
-            </td>`;
-          }
-        }
-        // fi>0: cells already covered by rowspan
-      });
-      html+=`</tr>`;
-    });
-  });
-  html+=`</tbody></table></div>`;
-  document.getElementById('int-list').innerHTML=html;
+  let h=`<div class="int-wrap"><table class="int-table">
+  <thead>
+    <!-- sticky header row: month label + per-investment toggle button -->
+    <tr>
+      <th style="position:sticky;top:0;left:0;z-index:5;background:var(--sur2);width:${MW}px;min-width:${MW}px;padding:5px 6px;font-size:10px;text-align:center;">月份</th>
+      ${rows.map(d=>{
+        const pc=(d.paidDates||[]).length, tc=d.payDates.length;
+        const exp=window._intExp.has(d.id);
+        return`<th style="position:sticky;top:0;z-index:3;background:var(--sur2);padding:0;min-width:72px;width:72px;cursor:pointer;" onclick="intTog(${d.id})">
+          <div style="padding:5px 5px 4px;border-left:1px solid var(--bdr);text-align:center;">
+            <div style="font-size:9px;font-weight:600;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:66px;">${d.bank.replace('音－','').replace('林－','')}</div>
+            <div style="font-size:9px;color:var(--tx3)">${d.date.slice(5)}</div>
+            <div style="font-family:var(--mono);font-size:9px;color:${pc===tc&&tc>0?'var(--gn)':'var(--gd)'};margin-top:1px">${pc}/${tc}</div>
+            <div style="font-size:9px;color:var(--ac2);margin-top:2px">${exp?'▲ 收合':'▼ 展開'}</div>
+          </div>
+        </th>`;
+      }).join('')}
+    </tr>
+    <!-- collapsible info rows: 7 fields, shown per-investment -->
+    ${INFO_LABELS.map((lbl,li)=>`<tr class="int-info-row" style="${rows.some(d=>window._intExp.has(d.id))?'':'display:none'}">
+      <th style="position:sticky;left:0;z-index:4;background:var(--sur2);font-size:9px;font-weight:600;color:var(--tx3);padding:3px 6px;white-space:nowrap;width:${MW}px;min-width:${MW}px;text-align:right;">${lbl}</th>
+      ${rows.map(d=>`<td style="text-align:center;padding:3px 5px;border-left:1px solid var(--bdr);background:${window._intExp.has(d.id)?'var(--gdl)':'var(--sur2)'};vertical-align:middle;">
+        ${window._intExp.has(d.id)?infoVal(d,li):'<span style="color:var(--tx3);font-size:10px">—</span>'}
+      </td>`).join('')}
+    </tr>`).join('')}
+  </thead>
+  <tbody>
+    ${months.map(m=>`<tr>
+      <td style="position:sticky;left:0;z-index:2;background:var(--sur2);font-weight:700;font-size:13px;text-align:center;padding:6px 4px;white-space:nowrap;width:${MW}px;min-width:${MW}px;border-right:1px solid var(--bdr);">${m}月</td>
+      ${rows.map(d=>{
+        const dt=d.payDates.find(x=>x.split('/')[0]===m);
+        if(!dt)return`<td style="border-left:1px solid var(--bdr);background:var(--sur2);text-align:center;color:var(--tx3);font-size:11px;min-width:72px;">—</td>`;
+        const paid=(d.paidDates||[]).includes(dt);
+        return`<td class="int-cell ${paid?'paid':'pend'}" onclick="togPaid(${d.id},'${dt}')" style="border-left:1px solid var(--bdr);min-width:72px;vertical-align:middle;">
+          <div class="int-cell-inner">
+            <div style="font-size:9px;color:${paid?'var(--gn)':'var(--tx3)'};margin-bottom:1px">${dt}</div>
+            <div class="ia" style="font-family:var(--mono);font-size:11px">${SY(d.ccy)}${F(d.monthly,0)}</div>
+            <div style="font-size:9px;margin-top:1px;color:${paid?'var(--gn)':'var(--gd)'}">${paid?'✓ 已收':'待收'}</div>
+          </div>
+        </td>`;
+      }).join('')}
+    </tr>`).join('')}
+  </tbody>
+  </table></div>`;
+  el.innerHTML=h;
 }
-function togPaid(id,dt){const d=D.find(x=>x.id===id);if(!d)return;if(!d.paidDates)d.paidDates=[];if(d.paidDates.includes(dt))d.paidDates=d.paidDates.filter(x=>x!==dt);else d.paidDates.push(dt);save();rint();}
+
+function intTog(id){
+  if(!window._intExp)window._intExp=new Set();
+  if(window._intExp.has(id))window._intExp.delete(id);
+  else window._intExp.add(id);
+  rint();
+}
+
+function togPaid(id,dt){
+  const d=D.find(x=>x.id===id);if(!d)return;
+  if(!d.paidDates)d.paidDates=[];
+  if(d.paidDates.includes(dt))d.paidDates=d.paidDates.filter(x=>x!==dt);
+  else d.paidDates.push(dt);
+  save();rint();
+}
 
 function updTWD(){
   const face=parseFloat(document.getElementById('f-face').value)||0;

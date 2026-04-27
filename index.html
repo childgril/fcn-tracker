@@ -742,6 +742,7 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
       <div class="fgrp"><label>損益（自動）</label><input type="text" id="fm-pl" readonly style="background:var(--sur2);font-family:var(--mono)"></div>
       <div class="fgrp"><label>報酬率（自動）</label><input type="text" id="fm-plPct" readonly style="background:var(--sur2);font-family:var(--mono)"></div>
     </div>
+    <div class="fgrp" style="margin-bottom:14px;"><label>資料來源網址</label><input type="text" id="fm-url" placeholder="https://..."></div>
     <div class="fgrp" style="margin-bottom:14px;"><label>備註</label><input type="text" id="fm-note" placeholder="例：轉單來源、特殊說明"></div>
     <div class="mba">
       <button class="btn" onclick="fundCloseForm()">取消</button>
@@ -2433,92 +2434,112 @@ const FD_DEFAULT=[
    face:5000000,twd:1047350,fx:0.20947,redeem:4762762,interest:381741,
    isin:'LU2829150577',name:'富達-全球優質債卷基金B股',
    buyPrice:971.6,units:5146.15,distPerUnit:6.94,distType:'月配',
-   rate:'8.57%',yield:'',maturity:'',acct:'',note:'',
-   pl:4762762+381741-5000000,plPct:((4762762+381741-5000000)/5000000*100).toFixed(1)},
+   rate:'8.57%',yield:'',maturity:'',
+   acct:'FIDELITY-GLOBAL-QUAL-BOND-B',
+   url:'https://fund.cnyes.com/detail/%E5%AF%8C%E9%81%94%E5%9F%BA%E9%87%91%EF%BC%8D%E5%85%A8%E7%90%83%E5%84%AA%E8%B3%AA%E5%82%B5%E5%88%B8%E5%9F%BA%E9%87%91%20(B%E8%82%A1C%E6%9C%88%E9%85%8D%E6%81%AF%E6%97%A5%E5%9C%93%E9%81%BF%E9%9A%AA)/B140435/',
+   note:'',pl:4762762+381741-5000000,plPct:((4762762+381741-5000000)/5000000*100).toFixed(1)},
 
   {id:'fd02',date:'2025-04-24',bank:'湯-永豐',exitDate:'',ccy:'JPY',
    face:13530000,twd:3105135,fx:0.2295,redeem:13253613,interest:767079,
    isin:'LU2829150577',name:'富達-全球優質債卷基金B股',
    buyPrice:944.8,units:14320.49,distPerUnit:0,distType:'月配',
-   rate:'0.00%',yield:'',maturity:'',acct:'FIDELITY-GLOBAL-QUAL-BOND-B',note:'',
-   pl:13253613+767079-13530000,plPct:((13253613+767079-13530000)/13530000*100).toFixed(1)},
+   rate:'0.00%',yield:'',maturity:'',
+   acct:'FIDELITY-GLOBAL-QUAL-BOND-B',
+   url:'https://fund.cnyes.com/detail/%E5%AF%8C%E9%81%94%E5%9F%BA%E9%87%91%EF%BC%8D%E5%85%A8%E7%90%83%E5%84%AA%E8%B3%AA%E5%82%B5%E5%88%B8%E5%9F%BA%E9%87%91%20(B%E8%82%A1C%E6%9C%88%E9%85%8D%E6%81%AF%E6%97%A5%E5%9C%93%E9%81%BF%E9%9A%AA)/B140435/',
+   note:'',pl:13253613+767079-13530000,plPct:((13253613+767079-13530000)/13530000*100).toFixed(1)},
 
   {id:'fd03',date:'2025-04-24',bank:'湯-永豐',exitDate:'定期定額',ccy:'JPY',
    face:0,twd:0,fx:0.2295,redeem:2380135,interest:0,
-   isin:'',name:'元大日本龍頭企業基金A不配息',
+   isin:'日本龍企A',name:'元大日本龍頭企業基金A不配息',
    buyPrice:10.52756,units:68392,distPerUnit:0,distType:'定期定額',
-   rate:'',yield:'',maturity:'',acct:'定期定額90000，每月7.13.21日',note:'',
-   pl:0,plPct:0},
+   rate:'',yield:'',maturity:'',
+   acct:'YUANTA-JP-DRAGON-A',
+   url:'https://fund.cnyes.com/detail/%E5%85%83%E5%A4%A7%E6%97%A5%E6%9C%AC%E9%BE%8D%E9%A0%AD%E4%BC%81%E6%A5%AD%E5%9F%BA%E9%87%91-A%E6%96%B0%E8%87%BA%E5%B9%A3/A05183/document',
+   note:'定期定額90000，每月7.13.21日',pl:0,plPct:0},
 
   {id:'fd04',date:'2025-04-24',bank:'湯-永豐',exitDate:'2025-12-22',ccy:'JPY',
    face:11110000,twd:2549745,fx:0.2295,redeem:10841710,interest:625817,
    isin:'LU2868952123',name:'富達-全球優質債卷基金A股',
    buyPrice:945.1,units:11638.98,distPerUnit:0,distType:'月配',
-   rate:'',yield:'',maturity:'',acct:'FIDELITY-GLOBAL-QUAL-BOND-A',note:'',
-   pl:-268290,plPct:-2.4},
+   rate:'',yield:'',maturity:'',
+   acct:'FIDELITY-GLOBAL-QUAL-BOND-A',
+   url:'https://fund.cnyes.com/detail/%E5%AF%8C%E9%81%94%E5%9F%BA%E9%87%91%EF%BC%8D%E5%85%A8%E7%90%83%E5%84%AA%E8%B3%AA%E5%82%B5%E5%88%B8%E5%9F%BA%E9%87%91%20(A%E4%B8%94C%E6%9C%88%E9%85%8D%E6%81%AF%E6%97%A5%E5%9C%93%E9%81%BF%E9%9A%AA)/B140434/',
+   note:'',pl:-268290,plPct:-2.4},
 
   {id:'fd05',date:'2025-04-24',bank:'湯-永豐',exitDate:'2025-12-22',ccy:'JPY',
    face:11110000,twd:2549745,fx:0.2295,redeem:10841710,interest:625817,
    isin:'LU2868952123',name:'富達-全球優質債卷基金A股',
    buyPrice:945.1,units:11638.98,distPerUnit:0,distType:'月配',
-   rate:'',yield:'',maturity:'',acct:'',note:'',
-   pl:-268290,plPct:-2.4},
+   rate:'',yield:'',maturity:'',
+   acct:'FIDELITY-GLOBAL-QUAL-BOND-A',
+   url:'https://fund.cnyes.com/detail/%E5%AF%8C%E9%81%94%E5%9F%BA%E9%87%91%EF%BC%8D%E5%85%A8%E7%90%83%E5%84%AA%E8%B3%AA%E5%82%B5%E5%88%B8%E5%9F%BA%E9%87%91%20(A%E4%B8%94C%E6%9C%88%E9%85%8D%E6%81%AF%E6%97%A5%E5%9C%93%E9%81%BF%E9%9A%AA)/B140434/',
+   note:'',pl:-268290,plPct:-2.4},
 
   // ── 美元基金 ────────────────────────────────────────────
   {id:'fd06',date:'2025-04-24',bank:'湯-永豐',exitDate:'2025-08-05',ccy:'USD',
    face:50500,twd:1666500,fx:33,redeem:56126.74,interest:2413.56,
    isin:'LU2859284783',name:'聯博-美國成長基金ＡＰ',
    buyPrice:68.96,units:725.058,distPerUnit:0,distType:'月配',
-   rate:'',yield:'',maturity:'',acct:'AB-US-GROWTH-AP',note:'',
-   pl:8040.3,plPct:15.9},
+   rate:'',yield:'',maturity:'',
+   acct:'AB-US-GROWTH-AP',
+   url:'https://fund.cnyes.com/detail/%E8%81%AF%E5%8D%9A-%E7%BE%8E%E5%9C%8B%E6%88%90%E9%95%B7%E5%9F%BA%E9%87%91AP(%E7%B8%BD%E5%A0%B1%E9%85%AC%E6%9C%88%E9%85%8D)%E7%B4%9A%E5%88%A5%E7%BE%8E%E5%85%83/B030870/',
+   note:'',pl:8040.3,plPct:15.9},
 
   {id:'fd07',date:'2025-04-24',bank:'湯-永豐',exitDate:'2025-08-05',ccy:'USD',
    face:50500,twd:1666500,fx:33,redeem:56126.74,interest:2413.56,
    isin:'LU2859284783',name:'聯博-美國成長基金ＡＰ',
    buyPrice:68.96,units:725.058,distPerUnit:0,distType:'月配',
-   rate:'',yield:'',maturity:'',acct:'',note:'',
-   pl:8040.3,plPct:15.9},
+   rate:'',yield:'',maturity:'',
+   acct:'AB-US-GROWTH-AP',
+   url:'https://fund.cnyes.com/detail/%E8%81%AF%E5%8D%9A-%E7%BE%8E%E5%9C%8B%E6%88%90%E9%95%B7%E5%9F%BA%E9%87%91AP(%E7%B8%BD%E5%A0%B1%E9%85%AC%E6%9C%88%E9%85%8D)%E7%B4%9A%E5%88%A5%E7%BE%8E%E5%85%83/B030870/',
+   note:'',pl:8040.3,plPct:15.9},
 
   {id:'fd08',date:'2025-08-11',bank:'湯-永豐',exitDate:'2025-12-19',ccy:'USD',
    face:55571,twd:0,fx:0,redeem:57105.98,interest:1919.41,
    isin:'',name:'施羅德環球收益成長Ａ月配固定2',
    buyPrice:128.4416,units:432.66,distPerUnit:0,distType:'月配',
-   rate:'',yield:'',maturity:'',acct:'永豐8/5聯博轉單，轉自176-L3T-42500178',note:'',
-   pl:3454.36,plPct:6.2},
+   rate:'',yield:'',maturity:'',acct:'',url:'',
+   note:'永豐8/5聯博轉單，轉自176-L3T-42500178',pl:3454.36,plPct:6.2},
 
   {id:'fd09',date:'2025-08-11',bank:'湯-永豐',exitDate:'2025-12-19',ccy:'USD',
    face:55571,twd:0,fx:0,redeem:55696.63,interest:2064.3,
    isin:'',name:'摩根多重收益基金-JPM-A股穩定月配(美元對沖)',
    buyPrice:74.03,units:750.656,distPerUnit:0,distType:'月配',
-   rate:'',yield:'',maturity:'',acct:'永豐8/5聯博轉單，轉自176-L3T-42500179',note:'',
-   pl:2189.9,plPct:3.9},
+   rate:'',yield:'',maturity:'',acct:'',url:'',
+   note:'永豐8/5聯博轉單，轉自176-L3T-42500179',pl:2189.9,plPct:3.9},
 
   {id:'fd10',date:'2024-11-25',bank:'湯-玉山',exitDate:'2025-12-19',ccy:'USD',
    face:32000,twd:1039040,fx:32.47,redeem:29658.45,interest:3588,
    isin:'LU1802467206',name:'聯博全球非投等債EA美穩',
    buyPrice:9.6,units:3333.3,distPerUnit:0,distType:'月配',
-   rate:'8.28%',yield:'10.35%',maturity:'',acct:'配息276/月，年3312',note:'',
-   pl:1246.45,plPct:3.9},
+   rate:'8.28%',yield:'10.35%',maturity:'',
+   acct:'AB-GLOBAL-HY-EA',
+   url:'https://fund.cnyes.com/detail/%E8%81%AF%E5%8D%9A-%E5%85%A8%E7%90%83%E9%9D%9E%E6%8A%95%E8%B3%87%E7%AD%89%E7%B4%9A%E5%82%B5%E5%88%B8%E5%9F%BA%E9%87%91EA(%E7%A9%A9%E5%AE%9A%E6%9C%88%E9%85%8D)%E7%B4%9A%E5%88%A5%E7%BE%8E%E5%85%83/B1yS8u7/document',
+   note:'配息276/月，年3312',pl:1246.45,plPct:3.9},
 
   {id:'fd11',date:'2024-11-25',bank:'湯-玉山',exitDate:'2025-12-19',ccy:'USD',
    face:32000,twd:1039040,fx:32.47,redeem:29658.45,interest:3588,
    isin:'LU1802467206',name:'聯博全球非投等債EA美穩',
    buyPrice:9.6,units:3333.3,distPerUnit:0,distType:'月配',
-   rate:'8.28%',yield:'10.35%',maturity:'',acct:'配息276/月，年3312',note:'',
-   pl:1246.45,plPct:3.9},
+   rate:'8.28%',yield:'10.35%',maturity:'',
+   acct:'AB-GLOBAL-HY-EA',
+   url:'https://fund.cnyes.com/detail/%E8%81%AF%E5%8D%9A-%E5%85%A8%E7%90%83%E9%9D%9E%E6%8A%95%E8%B3%87%E7%AD%89%E7%B4%9A%E5%82%B5%E5%88%B8%E5%9F%BA%E9%87%91EA(%E7%A9%A9%E5%AE%9A%E6%9C%88%E9%85%8D)%E7%B4%9A%E5%88%A5%E7%BE%8E%E5%85%83/B1yS8u7/document',
+   note:'配息276/月，年3312',pl:1246.45,plPct:3.9},
 
   {id:'fd12',date:'2024-11-25',bank:'湯-玉山',exitDate:'2025-12-19',ccy:'USD',
    face:34000,twd:1103980,fx:32.47,redeem:31512.12,interest:3812.25,
    isin:'LU1802467206',name:'聯博全球非投等債EA美穩',
    buyPrice:9.6,units:3541.7,distPerUnit:0,distType:'月配',
-   rate:'8.28%',yield:'10.35%',maturity:'',acct:'配息293/月，年3519',note:'',
-   pl:1324.37,plPct:3.9},
+   rate:'8.28%',yield:'10.35%',maturity:'',
+   acct:'AB-GLOBAL-HY-EA',
+   url:'https://fund.cnyes.com/detail/%E8%81%AF%E5%8D%9A-%E5%85%A8%E7%90%83%E9%9D%9E%E6%8A%95%E8%B3%87%E7%AD%89%E7%B4%9A%E5%82%B5%E5%88%B8%E5%9F%BA%E9%87%91EA(%E7%A9%A9%E5%AE%9A%E6%9C%88%E9%85%8D)%E7%B4%9A%E5%88%A5%E7%BE%8E%E5%85%83/B1yS8u7/document',
+   note:'配息293/月，年3519',pl:1324.37,plPct:3.9},
 
   {id:'fd13',date:'2024-09-06',bank:'頂陽-陽信',exitDate:'2025-04-14',ccy:'USD',
    face:65292.5,twd:2089947.63,fx:32.009,redeem:61009.16,interest:3550.12,
    isin:'',name:'法巴永續高評等企業債卷基金',
    buyPrice:76.67,units:851.6,distPerUnit:0,distType:'月配',
-   rate:'5.35%',yield:'5.91%',maturity:'',acct:'',note:'',
+   rate:'5.35%',yield:'5.91%',maturity:'',acct:'',url:'',note:'',
    pl:-733.22,plPct:-1.1},
 
   // ── 台幣基金 ────────────────────────────────────────────
@@ -2526,43 +2547,47 @@ const FD_DEFAULT=[
    face:1000000,twd:1000000,fx:1,redeem:847270,interest:0,
    isin:'00969B',name:'元大零息超長美債',
    buyPrice:10,units:100000,distPerUnit:0,distType:'無配息',
-   rate:'',yield:'',maturity:'',acct:'沒配息 有資本利得',note:'',
-   pl:-152730,plPct:-15.3},
+   rate:'',yield:'',maturity:'',
+   acct:'00969B',
+   url:'https://fund.cnyes.com/detail/%E5%85%83%E5%A4%A7%E9%9B%B6%E6%81%AF%E8%B6%85%E9%95%B7%E6%9C%9F%E7%BE%8E%E5%9C%8B%E6%94%BF%E5%BA%9C%E5%82%B5%E5%88%B8ETF/A05197/',
+   note:'沒配息 有資本利得',pl:-152730,plPct:-15.3},
 
   {id:'fd15',date:'2024-11-20',bank:'湯-元大',exitDate:'2025-12-19',ccy:'TWD',
    face:1012000,twd:1012000,fx:1,redeem:1284133,interest:0,
    isin:'日本龍企A',name:'元大日本龍頭企業基金A不配息',
    buyPrice:10.34,units:96711.8,distPerUnit:0,distType:'無配息',
-   rate:'',yield:'',maturity:'',acct:'',note:'',
-   pl:272133,plPct:26.9},
+   rate:'',yield:'',maturity:'',
+   acct:'YUANTA-JP-DRAGON-A',
+   url:'https://fund.cnyes.com/detail/%E5%85%83%E5%A4%A7%E6%97%A5%E6%9C%AC%E9%BE%8D%E9%A0%AD%E4%BC%81%E6%A5%AD%E5%9F%BA%E9%87%91-A%E6%96%B0%E8%87%BA%E5%B9%A3/A05183/document',
+   note:'',pl:272133,plPct:26.9},
 
   {id:'fd16',date:'2024-11-20',bank:'湯-元大',exitDate:'2025-12-19',ccy:'TWD',
    face:30180,twd:30180,fx:1,redeem:46643,interest:0,
    isin:'',name:'黃金期貨基金',
    buyPrice:10.99,units:30000,distPerUnit:0,distType:'無配息',
-   rate:'',yield:'',maturity:'',acct:'',note:'',
+   rate:'',yield:'',maturity:'',acct:'',url:'',note:'',
    pl:16463,plPct:54.5},
 
   {id:'fd17',date:'2024-11-20',bank:'湯-元大',exitDate:'2025-01-09',ccy:'TWD',
    face:1000000,twd:1000000,fx:1,redeem:950111,interest:0,
    isin:'00967B',name:'元大優息美債',
    buyPrice:10,units:100000,distPerUnit:0,distType:'月配',
-   rate:'',yield:'',maturity:'',acct:'',note:'',
+   rate:'',yield:'',maturity:'',acct:'00967B',url:'',note:'',
    pl:-49889,plPct:-5.0},
 
   {id:'fd18',date:'2024-11-20',bank:'湯-元大',exitDate:'2025-01-09',ccy:'TWD',
    face:1000000,twd:1000000,fx:1,redeem:938119,interest:0,
    isin:'00968B',name:'元大優息投等債',
    buyPrice:10,units:100000,distPerUnit:0,distType:'月配',
-   rate:'',yield:'',maturity:'',acct:'風險高 配息好',note:'',
-   pl:-61881,plPct:-6.2},
+   rate:'',yield:'',maturity:'',acct:'00968B',url:'',
+   note:'風險高 配息好',pl:-61881,plPct:-6.2},
 ];
 let FD=JSON.parse(localStorage.getItem('fcnFD')||'null');
 if(!FD){FD=FD_DEFAULT;localStorage.setItem('fcnFD',JSON.stringify(FD));}
-// migrate: swap acct↔note if old data has note with content and acct with code-like content
-// 如果 localStorage 有舊資料，幫它把 note→acct、acct→note 對調
-else if(FD.some(r=>r.note&&r.note.length>0)){
-  FD=FD.map(r=>{const tmp=r.acct;return{...r,acct:r.note||'',note:''};});
+// migrate url field for existing data
+if(FD&&FD.some(r=>r.url===undefined)){
+  const urlMap={'LU2829150577':'https://fund.cnyes.com/detail/%E5%AF%8C%E9%81%94%E5%9F%BA%E9%87%91%EF%BC%8D%E5%85%A8%E7%90%83%E5%84%AA%E8%B3%AA%E5%82%B5%E5%88%B8%E5%9F%BA%E9%87%91%20(B%E8%82%A1C%E6%9C%88%E9%85%8D%E6%81%AF%E6%97%A5%E5%9C%93%E9%81%BF%E9%9A%AA)/B140435/','LU2868952123':'https://fund.cnyes.com/detail/%E5%AF%8C%E9%81%94%E5%9F%BA%E9%87%91%EF%BC%8D%E5%85%A8%E7%90%83%E5%84%AA%E8%B3%AA%E5%82%B5%E5%88%B8%E5%9F%BA%E9%87%91%20(A%E4%B8%94C%E6%9C%88%E9%85%8D%E6%81%AF%E6%97%A5%E5%9C%93%E9%81%BF%E9%9A%AA)/B140434/','LU2859284783':'https://fund.cnyes.com/detail/%E8%81%AF%E5%8D%9A-%E7%BE%8E%E5%9C%8B%E6%88%90%E9%95%B7%E5%9F%BA%E9%87%91AP(%E7%B8%BD%E5%A0%B1%E9%85%AC%E6%9C%88%E9%85%8D)%E7%B4%9A%E5%88%A5%E7%BE%8E%E5%85%83/B030870/','LU1802467206':'https://fund.cnyes.com/detail/%E8%81%AF%E5%8D%9A-%E5%85%A8%E7%90%83%E9%9D%9E%E6%8A%95%E8%B3%87%E7%AD%89%E7%B4%9A%E5%82%B5%E5%88%B8%E5%9F%BA%E9%87%91EA(%E7%A9%A9%E5%AE%9A%E6%9C%88%E9%85%8D)%E7%B4%9A%E5%88%A5%E7%BE%8E%E5%85%83/B1yS8u7/document','00969B':'https://fund.cnyes.com/detail/%E5%85%83%E5%A4%A7%E9%9B%B6%E6%81%AF%E8%B6%85%E9%95%B7%E6%9C%9F%E7%BE%8E%E5%9C%8B%E6%94%BF%E5%BA%9C%E5%82%B5%E5%88%B8ETF/A05197/','日本龍企A':'https://fund.cnyes.com/detail/%E5%85%83%E5%A4%A7%E6%97%A5%E6%9C%AC%E9%BE%8D%E9%A0%AD%E4%BC%81%E6%A5%AD%E5%9F%BA%E9%87%91-A%E6%96%B0%E8%87%BA%E5%B9%A3/A05183/document'};
+  FD=FD.map(r=>({...r,url:r.url!==undefined?r.url:(urlMap[r.isin]||'')}));
   localStorage.setItem('fcnFD',JSON.stringify(FD));
 }
 function saveFD(){localStorage.setItem('fcnFD',JSON.stringify(FD));}
@@ -2603,7 +2628,7 @@ function fundOpenForm(id){
   if(id){
     const r=FD.find(x=>x.id===id);
     if(r){
-      ['date','exitDate','bank','isin','name','rate','yield','acct','note'].forEach(f=>{
+      ['date','exitDate','bank','isin','name','rate','yield','acct','url','note'].forEach(f=>{
         const el=document.getElementById('fm-'+f);if(el)el.value=r[f]||'';
       });
       ['face','fx','twd','redeem','interest','buyPrice','units','distPerUnit'].forEach(f=>{
@@ -2616,7 +2641,7 @@ function fundOpenForm(id){
     }
   } else {
     document.getElementById('fm-date').value=new Date().toISOString().slice(0,10);
-    ['fm-exitDate','fm-bank','fm-isin','fm-name','fm-rate','fm-yield','fm-acct','fm-note',
+    ['fm-exitDate','fm-bank','fm-isin','fm-name','fm-rate','fm-yield','fm-acct','fm-url','fm-note',
      'fm-face','fm-fx','fm-twd','fm-redeem','fm-interest','fm-buyPrice','fm-units','fm-distPerUnit','fm-maturity']
       .forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
     document.getElementById('fm-ccy').value='USD';
@@ -2652,6 +2677,7 @@ function fundSave(){
     yield:document.getElementById('fm-yield').value.trim(),
     maturity:document.getElementById('fm-maturity').value,
     acct:document.getElementById('fm-acct').value.trim(),
+    url:document.getElementById('fm-url').value.trim(),
     note:document.getElementById('fm-note').value.trim(),
   };
   // calc PL
@@ -2714,7 +2740,7 @@ function fundRender(){
           ${th('投資面額')}${th('台幣成本')}${th('匯率')}
           ${th('贖回金額')}${th('利息')}
           ${th('損益')}${th('報酬率')}
-          ${th('買進價')}${th('單位數')}${th('配息類型')}${th('交易代碼')}${th('備註')}${th('')}
+          ${th('買進價')}${th('單位數')}${th('配息類型')}${th('交易代碼')}${th('資料來源')}${th('備註')}${th('')}
         </tr></thead>
         <tbody>
         ${rows.map(r=>{
@@ -2738,7 +2764,8 @@ function fundRender(){
             <td class="mono right">${r.buyPrice||'—'}</td>
             <td class="mono right">${r.units||'—'}</td>
             <td style="white-space:nowrap">${r.distType||'—'}</td>
-            <td style="font-size:10px;color:var(--tx3)">${r.acct||'—'}</td>
+            <td style="font-size:10px;color:var(--tx3);white-space:nowrap">${r.acct||'—'}</td>
+            <td style="text-align:center">${r.url?`<a href="${r.url}" target="_blank" style="font-size:10px;color:var(--ac2)">🔗 連結</a>`:'—'}</td>
             <td style="font-size:10px;color:var(--tx2);max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${r.note||''}">${r.note||'—'}</td>
             <td style="white-space:nowrap">
               <button class="btn btnsm" onclick="fundOpenForm('${r.id}')">編輯</button>

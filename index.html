@@ -212,6 +212,8 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
     <div class="ni" onclick="showSec('quote')"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="1.5"/><path d="M5 8h6M5 5.5h6M5 10.5h4" stroke-linecap="round"/></svg>報價 FCN</div>
     <div class="ni" onclick="showSec('add')"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v6M5 8h6" stroke-linecap="round"/></svg>新增投資</div>
     <div class="ni" onclick="showSec('report')"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="9" width="3" height="6" rx="1" opacity=".5"/><rect x="6" y="6" width="3" height="9" rx="1" opacity=".7"/><rect x="11" y="2" width="3" height="13" rx="1"/></svg>報表分析</div>
+    <div style="border-top:1px solid var(--bdr);margin:8px 12px;opacity:.5"></div>
+    <div class="ni" onclick="showSec('fund')"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v1.5M8 9.5V11M6 7.5c0-.8.9-1.5 2-1.5s2 .7 2 1.5S9.1 9 8 9s-2 .7-2 1.5S7 12 8 12" stroke-linecap="round"/></svg>基金管理</div>
   </div>
   <div class="sbf">資料存於本機瀏覽器<br>最後更新：<span id="last-update">—</span></div>
 </nav>
@@ -674,6 +676,80 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
     </div>
   </div>
 </div>
+<!-- FUND -->
+<div id="sec-fund" class="sec">
+  <div class="ph">
+    <div><div class="pt">基金管理</div><div class="ps">記錄每筆基金投資，自動計算損益與報酬率</div></div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btnsm" onclick="fundOpenForm()">＋ 新增基金</button>
+    </div>
+  </div>
+  <!-- 摘要卡片 -->
+  <div id="fund-summary" style="margin-bottom:12px;"></div>
+  <!-- 分幣別表格 -->
+  <div id="fund-tables"></div>
+</div>
+
+<!-- 基金新增/編輯 Modal -->
+<div class="mo" id="fund-modal" onclick="if(event.target===this)fundCloseForm()">
+  <div class="mb2" style="width:680px;max-height:92vh;overflow-y:auto;">
+    <h3 id="fm-title" style="margin-bottom:14px;">新增基金</h3>
+    <input type="hidden" id="fm-id">
+    <div class="fg4" style="margin-bottom:10px;">
+      <div class="fgrp"><label>買進日 *</label><input type="date" id="fm-date"></div>
+      <div class="fgrp"><label>賣出日</label><input type="date" id="fm-exitDate"></div>
+      <div class="fgrp"><label>銀行 *</label><input type="text" id="fm-bank" placeholder="例：湯-永豐"></div>
+      <div class="fgrp"><label>投資幣別</label>
+        <select id="fm-ccy">
+          <option value="JPY">日幣 JPY</option>
+          <option value="USD">美元 USD</option>
+          <option value="TWD">台幣 TWD</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg4" style="margin-bottom:10px;">
+      <div class="fgrp"><label>投資面額</label><input type="number" id="fm-face" placeholder="5000000" step="1"></div>
+      <div class="fgrp"><label>匯率</label><input type="number" id="fm-fx" placeholder="0.2295" step="0.0001" oninput="fmCalc()"></div>
+      <div class="fgrp"><label>台幣成本</label><input type="number" id="fm-twd" placeholder="自動計算" step="1" oninput="fmCalc2()"></div>
+      <div class="fgrp"><label>贖回金額</label><input type="number" id="fm-redeem" placeholder="0" step="1" oninput="fmCalc()"></div>
+    </div>
+    <div class="fg4" style="margin-bottom:10px;">
+      <div class="fgrp"><label>利息（幣別）</label><input type="number" id="fm-interest" placeholder="0" step="0.01" oninput="fmCalc()"></div>
+      <div class="fgrp"><label>ISIN</label><input type="text" id="fm-isin" placeholder="LU2829150577"></div>
+      <div class="fgrp"><label>基金名稱 *</label><input type="text" id="fm-name" placeholder="富達-全球優質債卷基金B股" style="grid-column:span 2"></div>
+    </div>
+    <div class="fg4" style="margin-bottom:10px;">
+      <div class="fgrp"><label>買進價格</label><input type="number" id="fm-buyPrice" placeholder="971.6" step="0.001"></div>
+      <div class="fgrp"><label>持有單位數</label><input type="number" id="fm-units" placeholder="5146.15" step="0.001"></div>
+      <div class="fgrp"><label>配息類型</label>
+        <select id="fm-distType">
+          <option value="月配">月配</option>
+          <option value="季配">季配</option>
+          <option value="年配">年配</option>
+          <option value="無配息">無配息</option>
+          <option value="定期定額">定期定額</option>
+        </select>
+      </div>
+      <div class="fgrp"><label>每單位配息金</label><input type="number" id="fm-distPerUnit" placeholder="6.94" step="0.0001"></div>
+    </div>
+    <div class="fg4" style="margin-bottom:10px;">
+      <div class="fgrp"><label>利率</label><input type="text" id="fm-rate" placeholder="8.57%"></div>
+      <div class="fgrp"><label>到期殖利率</label><input type="text" id="fm-yield" placeholder="5.91%"></div>
+      <div class="fgrp"><label>到期日</label><input type="date" id="fm-maturity"></div>
+      <div class="fgrp"><label>帳號/代碼</label><input type="text" id="fm-acct" placeholder="176-08E-42500073"></div>
+    </div>
+    <div class="fg" style="margin-bottom:10px;">
+      <div class="fgrp"><label>損益（自動）</label><input type="text" id="fm-pl" readonly style="background:var(--sur2);font-family:var(--mono)"></div>
+      <div class="fgrp"><label>報酬率（自動）</label><input type="text" id="fm-plPct" readonly style="background:var(--sur2);font-family:var(--mono)"></div>
+    </div>
+    <div class="fgrp" style="margin-bottom:14px;"><label>備註</label><input type="text" id="fm-note" placeholder="例：定期定額90000，每月7.13.21日"></div>
+    <div class="mba">
+      <button class="btn" onclick="fundCloseForm()">取消</button>
+      <button class="btn btnp" onclick="fundSave()">儲存</button>
+    </div>
+  </div>
+</div>
+
 </main>
 </div>
 
@@ -725,7 +801,7 @@ function showSec(n){
   document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.ni').forEach(x=>x.classList.remove('active'));
   document.getElementById('sec-'+n).classList.add('active');
-  const m={dashboard:0,list:1,interest:2,holdtrack:3,fxlog:4,quote:5,add:6,report:7};
+  const m={dashboard:0,list:1,interest:2,holdtrack:3,fxlog:4,quote:5,add:6,report:7,fund:9};
   if(m[n]!==undefined)document.querySelectorAll('.ni')[m[n]].classList.add('active');
   if(n==='dashboard')rdash();
   else if(n==='list')rlist();
@@ -739,6 +815,7 @@ function showSec(n){
   else if(n==='quote')initQuote();
   else if(n==='add')resetF();
   else if(n==='report')rrep();
+  else if(n==='fund')initFund();
 }
 
 let dashCF='all';
@@ -2350,4 +2427,194 @@ refreshAll();
 </script>
 </body>
 </html>
+
+// ── FUND ────────────────────────────────────────────────────
+let FD=JSON.parse(localStorage.getItem('fcnFD')||'[]');
+function saveFD(){localStorage.setItem('fcnFD',JSON.stringify(FD));}
+
+function initFund(){fundRender();}
+
+// form calc
+function fmCalc(){
+  const face=parseFloat(document.getElementById('fm-face').value)||0;
+  const fx=parseFloat(document.getElementById('fm-fx').value)||0;
+  const redeem=parseFloat(document.getElementById('fm-redeem').value)||0;
+  const interest=parseFloat(document.getElementById('fm-interest').value)||0;
+  if(face&&fx) document.getElementById('fm-twd').value=(face*fx).toFixed(0);
+  const twd=parseFloat(document.getElementById('fm-twd').value)||0;
+  fmPL(face,redeem,interest,twd,fx);
+}
+function fmCalc2(){
+  const face=parseFloat(document.getElementById('fm-face').value)||0;
+  const twd=parseFloat(document.getElementById('fm-twd').value)||0;
+  if(face&&twd) document.getElementById('fm-fx').value=(twd/face).toFixed(4);
+  const redeem=parseFloat(document.getElementById('fm-redeem').value)||0;
+  const interest=parseFloat(document.getElementById('fm-interest').value)||0;
+  fmPL(face,redeem,interest,twd,0);
+}
+function fmPL(face,redeem,interest,twd,fx){
+  const ccy=document.getElementById('fm-ccy').value;
+  if(!redeem||!face){document.getElementById('fm-pl').value='';document.getElementById('fm-plPct').value='';return;}
+  const pl=redeem+interest-face;
+  const pct=face?((pl/face)*100).toFixed(1):'';
+  const sym=ccy==='JPY'?'¥':ccy==='TWD'?'NT$':'$';
+  document.getElementById('fm-pl').value=sym+F(pl,0);
+  document.getElementById('fm-plPct').value=(pl>=0?'+':'')+pct+'%';
+}
+
+function fundOpenForm(id){
+  document.getElementById('fm-id').value=id||'';
+  document.getElementById('fm-title').textContent=id?'編輯基金':'新增基金';
+  if(id){
+    const r=FD.find(x=>x.id===id);
+    if(r){
+      ['date','exitDate','bank','isin','name','rate','yield','acct','note'].forEach(f=>{
+        const el=document.getElementById('fm-'+f);if(el)el.value=r[f]||'';
+      });
+      ['face','fx','twd','redeem','interest','buyPrice','units','distPerUnit'].forEach(f=>{
+        const el=document.getElementById('fm-'+f);if(el)el.value=r[f]||'';
+      });
+      document.getElementById('fm-ccy').value=r.ccy||'USD';
+      document.getElementById('fm-distType').value=r.distType||'月配';
+      document.getElementById('fm-maturity').value=r.maturity||'';
+      fmCalc();
+    }
+  } else {
+    document.getElementById('fm-date').value=new Date().toISOString().slice(0,10);
+    ['fm-exitDate','fm-bank','fm-isin','fm-name','fm-rate','fm-yield','fm-acct','fm-note',
+     'fm-face','fm-fx','fm-twd','fm-redeem','fm-interest','fm-buyPrice','fm-units','fm-distPerUnit','fm-maturity']
+      .forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    document.getElementById('fm-ccy').value='USD';
+    document.getElementById('fm-distType').value='月配';
+    document.getElementById('fm-pl').value='';
+    document.getElementById('fm-plPct').value='';
+  }
+  document.getElementById('fund-modal').classList.add('open');
+}
+function fundCloseForm(){document.getElementById('fund-modal').classList.remove('open');}
+
+function fundSave(){
+  const bank=document.getElementById('fm-bank').value.trim();
+  const name=document.getElementById('fm-name').value.trim();
+  const date=document.getElementById('fm-date').value;
+  if(!bank||!name||!date){alert('請填寫買進日、銀行、基金名稱');return;}
+  const r={
+    id:document.getElementById('fm-id').value||(Date.now()+''),
+    date, bank, name,
+    exitDate:document.getElementById('fm-exitDate').value,
+    ccy:document.getElementById('fm-ccy').value,
+    face:parseFloat(document.getElementById('fm-face').value)||0,
+    fx:parseFloat(document.getElementById('fm-fx').value)||0,
+    twd:parseFloat(document.getElementById('fm-twd').value)||0,
+    redeem:parseFloat(document.getElementById('fm-redeem').value)||0,
+    interest:parseFloat(document.getElementById('fm-interest').value)||0,
+    isin:document.getElementById('fm-isin').value.trim(),
+    buyPrice:parseFloat(document.getElementById('fm-buyPrice').value)||0,
+    units:parseFloat(document.getElementById('fm-units').value)||0,
+    distType:document.getElementById('fm-distType').value,
+    distPerUnit:parseFloat(document.getElementById('fm-distPerUnit').value)||0,
+    rate:document.getElementById('fm-rate').value.trim(),
+    yield:document.getElementById('fm-yield').value.trim(),
+    maturity:document.getElementById('fm-maturity').value,
+    acct:document.getElementById('fm-acct').value.trim(),
+    note:document.getElementById('fm-note').value.trim(),
+  };
+  // calc PL
+  r.pl=r.redeem&&r.face?r.redeem+r.interest-r.face:0;
+  r.plPct=r.face&&r.pl?(r.pl/r.face*100).toFixed(1):0;
+  const eid=r.id;
+  const idx=FD.findIndex(x=>x.id===eid);
+  if(idx>=0) FD[idx]=r; else FD.unshift(r);
+  saveFD();fundCloseForm();fundRender();
+}
+
+function fundDelete(id){
+  if(!confirm('刪除這筆基金紀錄？'))return;
+  FD=FD.filter(x=>x.id!==id);saveFD();fundRender();
+}
+
+function fundRender(){
+  const fx=getFX();
+  // summary by ccy
+  const ccys=['JPY','USD','TWD'];
+  const active=FD.filter(r=>!r.exitDate);
+  const closed=FD.filter(r=>r.exitDate);
+  const totalTWD=FD.reduce((a,r)=>a+r.twd,0);
+  const totalPL=closed.reduce((a,r)=>a+r.pl,0);
+
+  // summary cards
+  const summaryCards=ccys.map(ccy=>{
+    const rows=FD.filter(r=>r.ccy===ccy);
+    if(!rows.length)return'';
+    const sym=ccy==='JPY'?'¥':ccy==='TWD'?'NT$':'$';
+    const totalFace=rows.reduce((a,r)=>a+r.face,0);
+    const activeFace=rows.filter(r=>!r.exitDate).reduce((a,r)=>a+r.face,0);
+    const totalInt=rows.reduce((a,r)=>a+r.interest,0);
+    const pl=rows.filter(r=>r.exitDate).reduce((a,r)=>a+r.pl,0);
+    return`<div class="mc" style="flex:1;min-width:160px;">
+      <div class="ml">${ccy} 合計</div>
+      <div class="mv mono">${sym}${F(totalFace,0)}</div>
+      <div class="ms">進行中 ${sym}${F(activeFace,0)}</div>
+      ${totalInt?`<div class="ms cg">利息 ${sym}${F(totalInt,0)}</div>`:''}
+      ${pl?`<div class="ms ${pl>=0?'cg':'cr'}">已實現 ${pl>=0?'+':''}${sym}${F(pl,0)}</div>`:''}
+    </div>`;
+  }).join('');
+  document.getElementById('fund-summary').innerHTML=`<div style="display:flex;gap:10px;flex-wrap:wrap;">${summaryCards}</div>`;
+
+  // tables per ccy (active first, then closed)
+  const tableHtml=ccys.map(ccy=>{
+    const rows=FD.filter(r=>r.ccy===ccy).sort((a,b)=>b.date.localeCompare(a.date));
+    if(!rows.length)return'';
+    const sym=ccy==='JPY'?'¥':ccy==='TWD'?'NT$':'$';
+    const isJPY=ccy==='JPY';
+    const th=t=>`<th style="white-space:nowrap;font-size:10px">${t}</th>`;
+    return`<div class="card" style="margin-bottom:14px;">
+      <div class="ch">
+        <span class="ct">${ccy==='JPY'?'🇯🇵 日幣基金':ccy==='USD'?'🇺🇸 美元基金':'🇹🇼 台幣基金'}
+          <span style="font-size:11px;color:var(--tx3);font-weight:400">${rows.length} 筆</span></span>
+      </div>
+      <div class="tw"><table style="font-size:11px;border-collapse:collapse;">
+        <thead><tr>
+          ${th('狀態')}${th('買進日')}${th('賣出日')}${th('銀行')}${th('基金名稱')}
+          ${th('投資面額')}${th('台幣成本')}${th('匯率')}
+          ${th('贖回金額')}${th('利息')}
+          ${th('損益')}${th('報酬率')}
+          ${th('買進價')}${th('單位數')}${th('配息類型')}${th('帳號')}${th('備註')}${th('')}
+        </tr></thead>
+        <tbody>
+        ${rows.map(r=>{
+          const isExit=!!r.exitDate;
+          const plColor=r.pl>0?'var(--gn)':r.pl<0?'var(--rd)':'var(--tx3)';
+          const badge=isExit?`<span class="badge" style="background:var(--sur2);color:var(--tx3);font-size:9px">已出場</span>`
+                           :`<span class="badge" style="background:var(--gnl);color:var(--gn);font-size:9px">持有中</span>`;
+          return`<tr style="${isExit?'opacity:.8':''}">
+            <td>${badge}</td>
+            <td class="mono" style="white-space:nowrap">${r.date}</td>
+            <td class="mono" style="white-space:nowrap;color:var(--tx3)">${r.exitDate||'—'}</td>
+            <td style="white-space:nowrap;font-weight:600">${r.bank}</td>
+            <td style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${r.name}">${r.name}</td>
+            <td class="mono right">${r.face?sym+F(r.face,0):'—'}</td>
+            <td class="mono right">${r.twd?'NT$'+F(r.twd,0):'—'}</td>
+            <td class="mono right">${r.fx||'—'}</td>
+            <td class="mono right">${r.redeem?sym+F(r.redeem,0):'—'}</td>
+            <td class="mono right cg">${r.interest?sym+F(r.interest,0):'—'}</td>
+            <td class="mono right" style="color:${plColor};font-weight:600">${r.pl?(r.pl>0?'+':'')+sym+F(r.pl,0):'—'}</td>
+            <td class="mono right" style="color:${plColor}">${r.plPct?(r.plPct>0?'+':'')+r.plPct+'%':'—'}</td>
+            <td class="mono right">${r.buyPrice||'—'}</td>
+            <td class="mono right">${r.units||'—'}</td>
+            <td style="white-space:nowrap">${r.distType||'—'}</td>
+            <td style="font-size:10px;color:var(--tx3)">${r.acct||'—'}</td>
+            <td style="font-size:10px;color:var(--tx2);max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${r.note||''}">${r.note||'—'}</td>
+            <td style="white-space:nowrap">
+              <button class="btn btnsm" onclick="fundOpenForm('${r.id}')">編輯</button>
+              <button class="btn btnsm" onclick="fundDelete('${r.id}')" style="margin-top:2px;color:var(--rd)">刪除</button>
+            </td>
+          </tr>`;
+        }).join('')}
+        </tbody>
+      </table></div>
+    </div>`;
+  }).join('');
+  document.getElementById('fund-tables').innerHTML=tableHtml||'<div style="text-align:center;padding:32px;color:var(--tx3)">尚無基金紀錄，點右上角新增</div>';
+}
 document.getElementById('last-update').textContent=localStorage.getItem('fcnlast')||'首次載入';

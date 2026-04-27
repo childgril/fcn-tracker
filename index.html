@@ -264,6 +264,7 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
             <th class="right" style="vertical-align:middle">總配息</th>
             <th class="right" style="vertical-align:middle">已領配息</th>
             <th rowspan="2" class="right" style="vertical-align:middle">報酬率</th>
+            <th rowspan="2" style="vertical-align:middle"></th>
           </tr>
           <tr>
         </thead>
@@ -922,6 +923,7 @@ async function rdash(){
         <span style="font-size:9px;color:var(--tx3);display:block">${(d.paidDates||[]).length}/${d.payDates.length} 期</span>
       </td>
       <td class="${d.rate>0?'cg':'cmu'} mono" style="white-space:nowrap">${d.rate>0?d.rate+'%':'—'}</td>
+      <td style="white-space:nowrap"><button class="btn btnsm" onclick="editRec(${d.id})">編輯</button></td>
     </tr>`;
   }).join('');
 }

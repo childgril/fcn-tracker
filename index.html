@@ -383,7 +383,7 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
     </div>
     <div class="fg4" style="margin-bottom:10px;">
       <div class="fgrp"><label>保護價類型</label>
-        <select id="qm-kitype"><option value="EKI">EKI 歐式</option><option value="AKI">AKI 美式</option></select>
+        <select id="qm-kitype"><option value="EKI">EKI 最後一天比</option><option value="AKI">AKI 一次性保護</option><option value="無">無</option></select>
       </div>
       <div class="fgrp"><label style="color:var(--rd)">保護價 E/AKI %</label>
         <input type="number" id="qm-aki" placeholder="65" step="0.1">
@@ -2236,28 +2236,56 @@ async function quoteAI(id){
   }).join('\n');
   const prompt=`你是FCN投資顧問。請根據以下報價條件，用繁體中文、100字內回答：各標的建議在哪個股價區間承購（給具體數字範圍），以及主要敲入風險提示。
 
-報價條件：
-天期 ${r.term}，Coupon ${r.coupon}%，${r.kiType} 保護價 ${r.aki}%，出場價 ${r.ko}%
+報價條件：天期 ${r.term}，Coupon ${r.coupon}%，${r.kiType} 保護價 ${r.aki}%，出場價 ${r.ko}%
 
 標的現況：
 ${symDetails}`;
   try{
     const resp=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
-      headers:{'Content-Type':'application/json','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:300,messages:[{role:'user',content:prompt}]})
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':'',
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,messages:[{role:'user',content:prompt}]})
     });
     if(!resp.ok){
       const err=await resp.json().catch(()=>({}));
-      throw new Error(err.error?.message||resp.status);
+      const msg=err.error?.message||`HTTP ${resp.status}`;
+      // API key 未設定時，提示用戶輸入
+      if(resp.status===401||msg.includes('x-api-key')){
+        const key=prompt('請輸入您的 Anthropic API Key（僅本次使用，不會儲存）：');
+        if(!key)return;
+        el.innerHTML='<span style="color:var(--tx3);font-size:10px">🤖 重新詢問中…</span>';
+        const resp2=await fetch('https://api.anthropic.com/v1/messages',{
+          method:'POST',
+          headers:{
+            'Content-Type':'application/json',
+            'x-api-key':key,
+            'anthropic-version':'2023-06-01',
+            'anthropic-dangerous-direct-browser-access':'true'
+          },
+          body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,messages:[{role:'user',content:prompt}]})
+        });
+        if(!resp2.ok){const e2=await resp2.json().catch(()=>({}));throw new Error(e2.error?.message||resp2.status);}
+        const data2=await resp2.json();
+        const text2=data2.content?.[0]?.text||'無法取得建議';
+        r.aiAdvice=`<div style="color:var(--tx);white-space:pre-wrap;font-size:10px;line-height:1.5">${text2}</div>`;
+        saveQT();
+        el.innerHTML=r.aiAdvice+'<div style="margin-top:4px"><button class="btn btnsm" onclick="quoteAI(\''+id+'\')">↻ 重問</button></div>';
+        return;
+      }
+      throw new Error(msg);
     }
     const data=await resp.json();
     const text=data.content?.[0]?.text||'無法取得建議';
-    r.aiAdvice=`<div style="color:var(--tx);white-space:pre-wrap">${text}</div>`;
+    r.aiAdvice=`<div style="color:var(--tx);white-space:pre-wrap;font-size:10px;line-height:1.5">${text}</div>`;
     saveQT();
     el.innerHTML=r.aiAdvice+'<div style="margin-top:4px"><button class="btn btnsm" onclick="quoteAI(\''+id+'\')">↻ 重問</button></div>';
   }catch(e){
-    el.innerHTML=`<span style="color:var(--rd);font-size:10px">失敗：${e.message}</span> <button class="btn btnsm" onclick="quoteAI('${id}')">重試</button>`;
+    el.innerHTML=`<span style="color:var(--rd);font-size:10px">失敗：${e.message}</span> <button class="btn btnsm" onclick="quoteAI('${id}')" style="margin-left:4px">重試</button>`;
   }
 }
 

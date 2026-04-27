@@ -2426,10 +2426,6 @@ function quoteToAdd(id){
 rdash();
 // auto-fetch FX + stock prices on load
 refreshAll();
-</script>
-</body>
-</html>
-
 // ── FUND ────────────────────────────────────────────────────
 let FD=JSON.parse(localStorage.getItem('fcnFD')||'[]');
 function saveFD(){localStorage.setItem('fcnFD',JSON.stringify(FD));}
@@ -2620,3 +2616,6 @@ function fundRender(){
   document.getElementById('fund-tables').innerHTML=tableHtml||'<div style="text-align:center;padding:32px;color:var(--tx3)">尚無基金紀錄，點右上角新增</div>';
 }
 document.getElementById('last-update').textContent=localStorage.getItem('fcnlast')||'首次載入';
+</script>
+</body>
+</html>

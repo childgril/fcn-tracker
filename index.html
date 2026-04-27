@@ -1815,9 +1815,12 @@ function rFxLog(){
           ${avgRate?`<span style="font-size:10px;color:var(--tx3);margin-left:6px;">均匯 ${avgRate.toFixed(avgRate>10?3:5)}</span>`:''}
         </span>
       </div>
-      ${transferOut?`<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;">
+      ${transferOut?`<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:7px;">
         <span style="font-size:12px;color:var(--tx2);">已轉出</span>
-        <span style="font-family:var(--mono);font-size:13px;color:var(--rd);">－ ${sym}${F(transferOut,isJPY?0:2)}</span>
+        <div style="text-align:right;">
+          <div style="font-family:var(--mono);font-size:13px;color:var(--rd);">－ ${sym}${F(transferOut,isJPY?0:2)}</div>
+          ${FXL.filter(r=>fromCcy(r)===ccy).map(r=>`<div style="font-size:10px;color:var(--tx3);margin-top:1px">${r.date}${r.note?'　'+r.note:''}</div>`).join('')}
+        </div>
       </div>`:''}
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;">
         <span style="font-size:12px;color:var(--tx2);">正在使用（投資中）</span>

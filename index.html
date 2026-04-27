@@ -1193,7 +1193,7 @@ function rint(){
         const monthAmt=overrides[dt]!==undefined?overrides[dt]:d.monthly;
         // 已出場：鎖住，不能點擊
         if(isClosed){
-          return`<td class="int-cell ${paid?'paid':'pend'}" style="border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);min-width:${exp?CW:28}px;width:${exp?CW:28}px;vertical-align:middle;opacity:.75;cursor:default;">
+          return`<td class="int-cell ${paid?'paid':'pend'}" onclick="togPaidForce(${d.id},'${dt}')" oncontextmenu="editMonthAmt(event,${d.id},'${dt}',${monthAmt})" title="左鍵切換已收；右鍵修改金額（已出場仍可修改）" style="border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);min-width:${exp?CW:28}px;width:${exp?CW:28}px;vertical-align:middle;opacity:.75;">
             <div class="int-cell-inner">
               ${exp?`
               <div style="font-size:9px;color:${paid?'var(--gn)':'var(--tx3)'};margin-bottom:1px">${dt}</div>
@@ -1236,6 +1236,11 @@ function togPaid(id,dt){
   if(d.paidDates.includes(dt))d.paidDates=d.paidDates.filter(x=>x!==dt);
   else d.paidDates.push(dt);
   save();rint();
+}
+
+// 已出場投資也可以修改（左鍵切換）
+function togPaidForce(id,dt){
+  togPaid(id,dt);
 }
 
 function editMonthAmt(e,id,dt,cur){

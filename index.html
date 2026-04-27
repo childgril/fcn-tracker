@@ -2427,7 +2427,138 @@ rdash();
 // auto-fetch FX + stock prices on load
 refreshAll();
 // ── FUND ────────────────────────────────────────────────────
-let FD=JSON.parse(localStorage.getItem('fcnFD')||'[]');
+const FD_DEFAULT=[
+  // ── 日幣基金 ────────────────────────────────────────────
+  {id:'fd01',date:'2025-01-24',bank:'湯-永豐',exitDate:'',ccy:'JPY',
+   face:5000000,twd:1047350,fx:0.20947,redeem:4762762,interest:381741,
+   isin:'LU2829150577',name:'富達-全球優質債卷基金B股',
+   buyPrice:971.6,units:5146.15,distPerUnit:6.94,distType:'月配',
+   rate:'8.57%',yield:'',maturity:'',acct:'176-08E-42500073',note:'',
+   pl:4762762+381741-5000000,plPct:((4762762+381741-5000000)/5000000*100).toFixed(1)},
+
+  {id:'fd02',date:'2025-04-24',bank:'湯-永豐',exitDate:'',ccy:'JPY',
+   face:13530000,twd:3105135,fx:0.2295,redeem:13253613,interest:767079,
+   isin:'LU2829150577',name:'富達-全球優質債卷基金B股',
+   buyPrice:944.8,units:14320.49,distPerUnit:0,distType:'月配',
+   rate:'0.00%',yield:'',maturity:'',acct:'176-08E-42500182',note:'FIDELITY-GLOBAL-QUAL-BOND-B',
+   pl:13253613+767079-13530000,plPct:((13253613+767079-13530000)/13530000*100).toFixed(1)},
+
+  {id:'fd03',date:'2025-04-24',bank:'湯-永豐',exitDate:'定期定額',ccy:'JPY',
+   face:0,twd:0,fx:0.2295,redeem:2380135,interest:0,
+   isin:'',name:'元大日本龍頭企業基金A不配息',
+   buyPrice:10.52756,units:68392,distPerUnit:0,distType:'定期定額',
+   rate:'',yield:'',maturity:'',acct:'176-BO0-D2500006',note:'定期定額90000，每月7.13.21日',
+   pl:0,plPct:0},
+
+  {id:'fd04',date:'2025-04-24',bank:'湯-永豐',exitDate:'2025-12-22',ccy:'JPY',
+   face:11110000,twd:2549745,fx:0.2295,redeem:10841710,interest:625817,
+   isin:'LU2868952123',name:'富達-全球優質債卷基金A股',
+   buyPrice:945.1,units:11638.98,distPerUnit:0,distType:'月配',
+   rate:'',yield:'',maturity:'',acct:'176-F2M42500180',note:'FIDELITY-GLOBAL-QUAL-BOND-A',
+   pl:-268290,plPct:-2.4},
+
+  {id:'fd05',date:'2025-04-24',bank:'湯-永豐',exitDate:'2025-12-22',ccy:'JPY',
+   face:11110000,twd:2549745,fx:0.2295,redeem:10841710,interest:625817,
+   isin:'LU2868952123',name:'富達-全球優質債卷基金A股',
+   buyPrice:945.1,units:11638.98,distPerUnit:0,distType:'月配',
+   rate:'',yield:'',maturity:'',acct:'176-F2M42500181',note:'',
+   pl:-268290,plPct:-2.4},
+
+  // ── 美元基金 ────────────────────────────────────────────
+  {id:'fd06',date:'2025-04-24',bank:'湯-永豐',exitDate:'2025-08-05',ccy:'USD',
+   face:50500,twd:1666500,fx:33,redeem:56126.74,interest:2413.56,
+   isin:'LU2859284783',name:'聯博-美國成長基金ＡＰ',
+   buyPrice:68.96,units:725.058,distPerUnit:0,distType:'月配',
+   rate:'',yield:'',maturity:'',acct:'176-L3T-42500178',note:'AB-US-GROWTH-AP',
+   pl:8040.3,plPct:15.9},
+
+  {id:'fd07',date:'2025-04-24',bank:'湯-永豐',exitDate:'2025-08-05',ccy:'USD',
+   face:50500,twd:1666500,fx:33,redeem:56126.74,interest:2413.56,
+   isin:'LU2859284783',name:'聯博-美國成長基金ＡＰ',
+   buyPrice:68.96,units:725.058,distPerUnit:0,distType:'月配',
+   rate:'',yield:'',maturity:'',acct:'176-L3T-42500179',note:'',
+   pl:8040.3,plPct:15.9},
+
+  {id:'fd08',date:'2025-08-11',bank:'湯-永豐',exitDate:'2025-12-19',ccy:'USD',
+   face:55571,twd:0,fx:0,redeem:57105.98,interest:1919.41,
+   isin:'',name:'施羅德環球收益成長Ａ月配固定2',
+   buyPrice:128.4416,units:432.66,distPerUnit:0,distType:'月配',
+   rate:'',yield:'',maturity:'',acct:'176-04L-42500344',note:'永豐8/5聯博轉單，轉自176-L3T-42500178',
+   pl:3454.36,plPct:6.2},
+
+  {id:'fd09',date:'2025-08-11',bank:'湯-永豐',exitDate:'2025-12-19',ccy:'USD',
+   face:55571,twd:0,fx:0,redeem:55696.63,interest:2064.3,
+   isin:'',name:'摩根多重收益基金-JPM-A股穩定月配(美元對沖)',
+   buyPrice:74.03,units:750.656,distPerUnit:0,distType:'月配',
+   rate:'',yield:'',maturity:'',acct:'176-03K-42500343',note:'永豐8/5聯博轉單，轉自176-L3T-42500179',
+   pl:2189.9,plPct:3.9},
+
+  {id:'fd10',date:'2024-11-25',bank:'湯-玉山',exitDate:'2025-12-19',ccy:'USD',
+   face:32000,twd:1039040,fx:32.47,redeem:29658.45,interest:3588,
+   isin:'LU1802467206',name:'聯博全球非投等債EA美穩',
+   buyPrice:9.6,units:3333.3,distPerUnit:0,distType:'月配',
+   rate:'8.28%',yield:'10.35%',maturity:'',acct:'27~30號',note:'配息276/月，年3312',
+   pl:1246.45,plPct:3.9},
+
+  {id:'fd11',date:'2024-11-25',bank:'湯-玉山',exitDate:'2025-12-19',ccy:'USD',
+   face:32000,twd:1039040,fx:32.47,redeem:29658.45,interest:3588,
+   isin:'LU1802467206',name:'聯博全球非投等債EA美穩',
+   buyPrice:9.6,units:3333.3,distPerUnit:0,distType:'月配',
+   rate:'8.28%',yield:'10.35%',maturity:'',acct:'27~30號',note:'配息276/月，年3312',
+   pl:1246.45,plPct:3.9},
+
+  {id:'fd12',date:'2024-11-25',bank:'湯-玉山',exitDate:'2025-12-19',ccy:'USD',
+   face:34000,twd:1103980,fx:32.47,redeem:31512.12,interest:3812.25,
+   isin:'LU1802467206',name:'聯博全球非投等債EA美穩',
+   buyPrice:9.6,units:3541.7,distPerUnit:0,distType:'月配',
+   rate:'8.28%',yield:'10.35%',maturity:'',acct:'27~30號',note:'配息293/月，年3519',
+   pl:1324.37,plPct:3.9},
+
+  {id:'fd13',date:'2024-09-06',bank:'頂陽-陽信',exitDate:'2025-04-14',ccy:'USD',
+   face:65292.5,twd:2089947.63,fx:32.009,redeem:61009.16,interest:3550.12,
+   isin:'',name:'法巴永續高評等企業債卷基金',
+   buyPrice:76.67,units:851.6,distPerUnit:0,distType:'月配',
+   rate:'5.35%',yield:'5.91%',maturity:'',acct:'',note:'',
+   pl:-733.22,plPct:-1.1},
+
+  // ── 台幣基金 ────────────────────────────────────────────
+  {id:'fd14',date:'2024-11-20',bank:'湯-元大',exitDate:'2025-12-19',ccy:'TWD',
+   face:1000000,twd:1000000,fx:1,redeem:847270,interest:0,
+   isin:'00969B',name:'元大零息超長美債',
+   buyPrice:10,units:100000,distPerUnit:0,distType:'無配息',
+   rate:'',yield:'',maturity:'',acct:'',note:'沒配息 有資本利得',
+   pl:-152730,plPct:-15.3},
+
+  {id:'fd15',date:'2024-11-20',bank:'湯-元大',exitDate:'2025-12-19',ccy:'TWD',
+   face:1012000,twd:1012000,fx:1,redeem:1284133,interest:0,
+   isin:'日本龍企A',name:'元大日本龍頭企業基金A不配息',
+   buyPrice:10.34,units:96711.8,distPerUnit:0,distType:'無配息',
+   rate:'',yield:'',maturity:'',acct:'',note:'',
+   pl:272133,plPct:26.9},
+
+  {id:'fd16',date:'2024-11-20',bank:'湯-元大',exitDate:'2025-12-19',ccy:'TWD',
+   face:30180,twd:30180,fx:1,redeem:46643,interest:0,
+   isin:'',name:'黃金期貨基金',
+   buyPrice:10.99,units:30000,distPerUnit:0,distType:'無配息',
+   rate:'',yield:'',maturity:'',acct:'',note:'',
+   pl:16463,plPct:54.5},
+
+  {id:'fd17',date:'2024-11-20',bank:'湯-元大',exitDate:'2025-01-09',ccy:'TWD',
+   face:1000000,twd:1000000,fx:1,redeem:950111,interest:0,
+   isin:'00967B',name:'元大優息美債',
+   buyPrice:10,units:100000,distPerUnit:0,distType:'月配',
+   rate:'',yield:'',maturity:'',acct:'',note:'',
+   pl:-49889,plPct:-5.0},
+
+  {id:'fd18',date:'2024-11-20',bank:'湯-元大',exitDate:'2025-01-09',ccy:'TWD',
+   face:1000000,twd:1000000,fx:1,redeem:938119,interest:0,
+   isin:'00968B',name:'元大優息投等債',
+   buyPrice:10,units:100000,distPerUnit:0,distType:'月配',
+   rate:'',yield:'',maturity:'',acct:'',note:'風險高 配息好',
+   pl:-61881,plPct:-6.2},
+];
+let FD=JSON.parse(localStorage.getItem('fcnFD')||'null');
+if(!FD){FD=FD_DEFAULT;localStorage.setItem('fcnFD',JSON.stringify(FD));}
 function saveFD(){localStorage.setItem('fcnFD',JSON.stringify(FD));}
 
 function initFund(){fundRender();}

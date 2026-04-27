@@ -736,13 +736,13 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
       <div class="fgrp"><label>利率</label><input type="text" id="fm-rate" placeholder="8.57%"></div>
       <div class="fgrp"><label>到期殖利率</label><input type="text" id="fm-yield" placeholder="5.91%"></div>
       <div class="fgrp"><label>到期日</label><input type="date" id="fm-maturity"></div>
-      <div class="fgrp"><label>帳號/代碼</label><input type="text" id="fm-acct" placeholder="176-08E-42500073"></div>
+      <div class="fgrp"><label>交易代碼</label><input type="text" id="fm-acct" placeholder="176-08E-42500073"></div>
     </div>
     <div class="fg" style="margin-bottom:10px;">
       <div class="fgrp"><label>損益（自動）</label><input type="text" id="fm-pl" readonly style="background:var(--sur2);font-family:var(--mono)"></div>
       <div class="fgrp"><label>報酬率（自動）</label><input type="text" id="fm-plPct" readonly style="background:var(--sur2);font-family:var(--mono)"></div>
     </div>
-    <div class="fgrp" style="margin-bottom:14px;"><label>備註</label><input type="text" id="fm-note" placeholder="例：定期定額90000，每月7.13.21日"></div>
+    <div class="fgrp" style="margin-bottom:14px;"><label>備註</label><input type="text" id="fm-note" placeholder="例：轉單來源、特殊說明"></div>
     <div class="mba">
       <button class="btn" onclick="fundCloseForm()">取消</button>
       <button class="btn btnp" onclick="fundSave()">儲存</button>
@@ -1190,7 +1190,7 @@ function rint(){
     return{usd,jpy};
   };
 
-  const INFO_LABELS=['狀態','帳戶','買進日','出場日','幣別・面額','利率・期限','月配息','已收利息'];
+  const INFO_LABELS=['狀態','帳戶','買進日','出場日','幣別・面額','利率・期限','月配息','已領利息'];
   const infoVal=(d,li)=>[
     `<span style="white-space:nowrap;display:inline-block">${bdg(d.status)}</span>`,
     `<span style="font-size:10px">${d.bank}</span>`,
@@ -2433,35 +2433,35 @@ const FD_DEFAULT=[
    face:5000000,twd:1047350,fx:0.20947,redeem:4762762,interest:381741,
    isin:'LU2829150577',name:'富達-全球優質債卷基金B股',
    buyPrice:971.6,units:5146.15,distPerUnit:6.94,distType:'月配',
-   rate:'8.57%',yield:'',maturity:'',acct:'176-08E-42500073',note:'',
+   rate:'8.57%',yield:'',maturity:'',acct:'',note:'',
    pl:4762762+381741-5000000,plPct:((4762762+381741-5000000)/5000000*100).toFixed(1)},
 
   {id:'fd02',date:'2025-04-24',bank:'湯-永豐',exitDate:'',ccy:'JPY',
    face:13530000,twd:3105135,fx:0.2295,redeem:13253613,interest:767079,
    isin:'LU2829150577',name:'富達-全球優質債卷基金B股',
    buyPrice:944.8,units:14320.49,distPerUnit:0,distType:'月配',
-   rate:'0.00%',yield:'',maturity:'',acct:'176-08E-42500182',note:'FIDELITY-GLOBAL-QUAL-BOND-B',
+   rate:'0.00%',yield:'',maturity:'',acct:'FIDELITY-GLOBAL-QUAL-BOND-B',note:'',
    pl:13253613+767079-13530000,plPct:((13253613+767079-13530000)/13530000*100).toFixed(1)},
 
   {id:'fd03',date:'2025-04-24',bank:'湯-永豐',exitDate:'定期定額',ccy:'JPY',
    face:0,twd:0,fx:0.2295,redeem:2380135,interest:0,
    isin:'',name:'元大日本龍頭企業基金A不配息',
    buyPrice:10.52756,units:68392,distPerUnit:0,distType:'定期定額',
-   rate:'',yield:'',maturity:'',acct:'176-BO0-D2500006',note:'定期定額90000，每月7.13.21日',
+   rate:'',yield:'',maturity:'',acct:'定期定額90000，每月7.13.21日',note:'',
    pl:0,plPct:0},
 
   {id:'fd04',date:'2025-04-24',bank:'湯-永豐',exitDate:'2025-12-22',ccy:'JPY',
    face:11110000,twd:2549745,fx:0.2295,redeem:10841710,interest:625817,
    isin:'LU2868952123',name:'富達-全球優質債卷基金A股',
    buyPrice:945.1,units:11638.98,distPerUnit:0,distType:'月配',
-   rate:'',yield:'',maturity:'',acct:'176-F2M42500180',note:'FIDELITY-GLOBAL-QUAL-BOND-A',
+   rate:'',yield:'',maturity:'',acct:'FIDELITY-GLOBAL-QUAL-BOND-A',note:'',
    pl:-268290,plPct:-2.4},
 
   {id:'fd05',date:'2025-04-24',bank:'湯-永豐',exitDate:'2025-12-22',ccy:'JPY',
    face:11110000,twd:2549745,fx:0.2295,redeem:10841710,interest:625817,
    isin:'LU2868952123',name:'富達-全球優質債卷基金A股',
    buyPrice:945.1,units:11638.98,distPerUnit:0,distType:'月配',
-   rate:'',yield:'',maturity:'',acct:'176-F2M42500181',note:'',
+   rate:'',yield:'',maturity:'',acct:'',note:'',
    pl:-268290,plPct:-2.4},
 
   // ── 美元基金 ────────────────────────────────────────────
@@ -2469,49 +2469,49 @@ const FD_DEFAULT=[
    face:50500,twd:1666500,fx:33,redeem:56126.74,interest:2413.56,
    isin:'LU2859284783',name:'聯博-美國成長基金ＡＰ',
    buyPrice:68.96,units:725.058,distPerUnit:0,distType:'月配',
-   rate:'',yield:'',maturity:'',acct:'176-L3T-42500178',note:'AB-US-GROWTH-AP',
+   rate:'',yield:'',maturity:'',acct:'AB-US-GROWTH-AP',note:'',
    pl:8040.3,plPct:15.9},
 
   {id:'fd07',date:'2025-04-24',bank:'湯-永豐',exitDate:'2025-08-05',ccy:'USD',
    face:50500,twd:1666500,fx:33,redeem:56126.74,interest:2413.56,
    isin:'LU2859284783',name:'聯博-美國成長基金ＡＰ',
    buyPrice:68.96,units:725.058,distPerUnit:0,distType:'月配',
-   rate:'',yield:'',maturity:'',acct:'176-L3T-42500179',note:'',
+   rate:'',yield:'',maturity:'',acct:'',note:'',
    pl:8040.3,plPct:15.9},
 
   {id:'fd08',date:'2025-08-11',bank:'湯-永豐',exitDate:'2025-12-19',ccy:'USD',
    face:55571,twd:0,fx:0,redeem:57105.98,interest:1919.41,
    isin:'',name:'施羅德環球收益成長Ａ月配固定2',
    buyPrice:128.4416,units:432.66,distPerUnit:0,distType:'月配',
-   rate:'',yield:'',maturity:'',acct:'176-04L-42500344',note:'永豐8/5聯博轉單，轉自176-L3T-42500178',
+   rate:'',yield:'',maturity:'',acct:'永豐8/5聯博轉單，轉自176-L3T-42500178',note:'',
    pl:3454.36,plPct:6.2},
 
   {id:'fd09',date:'2025-08-11',bank:'湯-永豐',exitDate:'2025-12-19',ccy:'USD',
    face:55571,twd:0,fx:0,redeem:55696.63,interest:2064.3,
    isin:'',name:'摩根多重收益基金-JPM-A股穩定月配(美元對沖)',
    buyPrice:74.03,units:750.656,distPerUnit:0,distType:'月配',
-   rate:'',yield:'',maturity:'',acct:'176-03K-42500343',note:'永豐8/5聯博轉單，轉自176-L3T-42500179',
+   rate:'',yield:'',maturity:'',acct:'永豐8/5聯博轉單，轉自176-L3T-42500179',note:'',
    pl:2189.9,plPct:3.9},
 
   {id:'fd10',date:'2024-11-25',bank:'湯-玉山',exitDate:'2025-12-19',ccy:'USD',
    face:32000,twd:1039040,fx:32.47,redeem:29658.45,interest:3588,
    isin:'LU1802467206',name:'聯博全球非投等債EA美穩',
    buyPrice:9.6,units:3333.3,distPerUnit:0,distType:'月配',
-   rate:'8.28%',yield:'10.35%',maturity:'',acct:'27~30號',note:'配息276/月，年3312',
+   rate:'8.28%',yield:'10.35%',maturity:'',acct:'配息276/月，年3312',note:'',
    pl:1246.45,plPct:3.9},
 
   {id:'fd11',date:'2024-11-25',bank:'湯-玉山',exitDate:'2025-12-19',ccy:'USD',
    face:32000,twd:1039040,fx:32.47,redeem:29658.45,interest:3588,
    isin:'LU1802467206',name:'聯博全球非投等債EA美穩',
    buyPrice:9.6,units:3333.3,distPerUnit:0,distType:'月配',
-   rate:'8.28%',yield:'10.35%',maturity:'',acct:'27~30號',note:'配息276/月，年3312',
+   rate:'8.28%',yield:'10.35%',maturity:'',acct:'配息276/月，年3312',note:'',
    pl:1246.45,plPct:3.9},
 
   {id:'fd12',date:'2024-11-25',bank:'湯-玉山',exitDate:'2025-12-19',ccy:'USD',
    face:34000,twd:1103980,fx:32.47,redeem:31512.12,interest:3812.25,
    isin:'LU1802467206',name:'聯博全球非投等債EA美穩',
    buyPrice:9.6,units:3541.7,distPerUnit:0,distType:'月配',
-   rate:'8.28%',yield:'10.35%',maturity:'',acct:'27~30號',note:'配息293/月，年3519',
+   rate:'8.28%',yield:'10.35%',maturity:'',acct:'配息293/月，年3519',note:'',
    pl:1324.37,plPct:3.9},
 
   {id:'fd13',date:'2024-09-06',bank:'頂陽-陽信',exitDate:'2025-04-14',ccy:'USD',
@@ -2526,7 +2526,7 @@ const FD_DEFAULT=[
    face:1000000,twd:1000000,fx:1,redeem:847270,interest:0,
    isin:'00969B',name:'元大零息超長美債',
    buyPrice:10,units:100000,distPerUnit:0,distType:'無配息',
-   rate:'',yield:'',maturity:'',acct:'',note:'沒配息 有資本利得',
+   rate:'',yield:'',maturity:'',acct:'沒配息 有資本利得',note:'',
    pl:-152730,plPct:-15.3},
 
   {id:'fd15',date:'2024-11-20',bank:'湯-元大',exitDate:'2025-12-19',ccy:'TWD',
@@ -2554,11 +2554,17 @@ const FD_DEFAULT=[
    face:1000000,twd:1000000,fx:1,redeem:938119,interest:0,
    isin:'00968B',name:'元大優息投等債',
    buyPrice:10,units:100000,distPerUnit:0,distType:'月配',
-   rate:'',yield:'',maturity:'',acct:'',note:'風險高 配息好',
+   rate:'',yield:'',maturity:'',acct:'風險高 配息好',note:'',
    pl:-61881,plPct:-6.2},
 ];
 let FD=JSON.parse(localStorage.getItem('fcnFD')||'null');
 if(!FD){FD=FD_DEFAULT;localStorage.setItem('fcnFD',JSON.stringify(FD));}
+// migrate: swap acct↔note if old data has note with content and acct with code-like content
+// 如果 localStorage 有舊資料，幫它把 note→acct、acct→note 對調
+else if(FD.some(r=>r.note&&r.note.length>0)){
+  FD=FD.map(r=>{const tmp=r.acct;return{...r,acct:r.note||'',note:''};});
+  localStorage.setItem('fcnFD',JSON.stringify(FD));
+}
 function saveFD(){localStorage.setItem('fcnFD',JSON.stringify(FD));}
 
 function initFund(){fundRender();}
@@ -2708,7 +2714,7 @@ function fundRender(){
           ${th('投資面額')}${th('台幣成本')}${th('匯率')}
           ${th('贖回金額')}${th('利息')}
           ${th('損益')}${th('報酬率')}
-          ${th('買進價')}${th('單位數')}${th('配息類型')}${th('帳號')}${th('備註')}${th('')}
+          ${th('買進價')}${th('單位數')}${th('配息類型')}${th('交易代碼')}${th('備註')}${th('')}
         </tr></thead>
         <tbody>
         ${rows.map(r=>{

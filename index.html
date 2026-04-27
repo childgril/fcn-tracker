@@ -700,7 +700,7 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
       <div class="fgrp"><label>賣出日</label><input type="date" id="fm-exitDate"></div>
       <div class="fgrp"><label>銀行 *</label><input type="text" id="fm-bank" placeholder="例：湯-永豐"></div>
       <div class="fgrp"><label>投資幣別</label>
-        <select id="fm-ccy">
+        <select id="fm-ccy" onchange="fmCcyChange()">
           <option value="JPY">日幣 JPY</option>
           <option value="USD">美元 USD</option>
           <option value="TWD">台幣 TWD</option>
@@ -708,29 +708,54 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
       </div>
     </div>
     <div class="fgrp" style="margin-bottom:10px;"><label>基金名稱 *</label><input type="text" id="fm-name" placeholder="富達-全球優質債卷基金B股"></div>
+    <!-- 目前淨值 + 買淨值 -->
     <div class="fg4" style="margin-bottom:10px;">
+      <div class="fgrp">
+        <label>目前淨值（自動抓取）</label>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <input type="text" id="fm-curNav" readonly style="background:var(--sur2);flex:1;font-family:var(--mono);" placeholder="—">
+          <button class="btn btnsm" onclick="fmFetchNav()" type="button">↻ 抓取</button>
+        </div>
+      </div>
       <div class="fgrp"><label>買淨值</label><input type="number" id="fm-buyPrice" placeholder="971.6" step="0.001"></div>
       <div class="fgrp"><label>單位數</label><input type="number" id="fm-units" placeholder="5146.15" step="0.001"></div>
-      <div class="fgrp"><label>投資金額（幣別）</label><input type="number" id="fm-face" placeholder="5000000" step="1"></div>
-      <div class="fgrp"><label>贖回金額</label><input type="number" id="fm-redeem" placeholder="0" step="1" oninput="fmCalc()"></div>
+      <div class="fgrp">
+        <label>投資金額（幣別）</label>
+        <input type="number" id="fm-face" placeholder="5000000" step="1" oninput="fmCalc()">
+        <div class="hint" id="fm-face-hint" style="color:var(--tx3);margin-top:2px;"></div>
+      </div>
     </div>
+    <!-- 贖回 / 利息 / 損益 -->
     <div class="fg4" style="margin-bottom:10px;">
-      <div class="fgrp"><label>已領利息</label><input type="number" id="fm-interest" placeholder="0" step="0.01" oninput="fmCalc()"></div>
-      <div class="fgrp"><label>損益（自動）</label><input type="text" id="fm-pl" readonly style="background:var(--sur2);font-family:var(--mono)"></div>
+      <div class="fgrp">
+        <label>贖回金額</label>
+        <input type="number" id="fm-redeem" placeholder="0" step="1" oninput="fmCalc()">
+        <div class="hint" id="fm-redeem-hint" style="color:var(--tx3);"></div>
+      </div>
+      <div class="fgrp">
+        <label>已領利息</label>
+        <input type="number" id="fm-interest" placeholder="0" step="0.01" oninput="fmCalc()">
+        <div class="hint" id="fm-interest-hint" style="color:var(--gn);"></div>
+      </div>
+      <div class="fgrp"><label>損益（自動）</label>
+        <input type="text" id="fm-pl" readonly style="background:var(--sur2);font-family:var(--mono)">
+        <div class="hint" id="fm-pl-hint" style="color:var(--tx3);"></div>
+      </div>
       <div class="fgrp"><label>報酬率（自動）</label><input type="text" id="fm-plPct" readonly style="background:var(--sur2);font-family:var(--mono)"></div>
-      <div class="fgrp"><label>台幣成本</label><input type="number" id="fm-twd" placeholder="自動計算" step="1" oninput="fmCalc2()"></div>
     </div>
+    <!-- 隱藏台幣成本與匯率（保留資料，不顯示） -->
+    <input type="hidden" id="fm-twd">
+    <input type="hidden" id="fm-fx">
+    <!-- 配息 -->
     <div class="fg4" style="margin-bottom:10px;">
-      <div class="fgrp"><label>匯率</label><input type="number" id="fm-fx" placeholder="0.2295" step="0.0001" oninput="fmCalc()"></div>
       <div class="fgrp"><label>配息類型</label>
         <select id="fm-distType">
-          <option value="月配">月配</option>
-          <option value="季配">季配</option>
-          <option value="年配">年配</option>
-          <option value="無配息">無配息</option>
+          <option value="月配">月配</option><option value="季配">季配</option>
+          <option value="年配">年配</option><option value="無配息">無配息</option>
           <option value="定期定額">定期定額</option>
         </select>
       </div>
+      <div class="fgrp"><label>配息日</label><input type="text" id="fm-distDate" placeholder="例：每月15日 或 1/15"></div>
       <div class="fgrp"><label>每單位配息金</label><input type="number" id="fm-distPerUnit" placeholder="6.94" step="0.0001"></div>
       <div class="fgrp"><label>到期日</label><input type="date" id="fm-maturity"></div>
     </div>
@@ -738,7 +763,6 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
       <div class="fgrp"><label>ISIN</label><input type="text" id="fm-isin" placeholder="LU2829150577"></div>
       <div class="fgrp"><label>利率</label><input type="text" id="fm-rate" placeholder="8.57%"></div>
       <div class="fgrp"><label>到期殖利率</label><input type="text" id="fm-yield" placeholder="5.91%"></div>
-      <!-- 交易代碼隱藏 -->
       <input type="hidden" id="fm-acct">
     </div>
     <div class="fgrp" style="margin-bottom:10px;"><label>資料來源網址</label><input type="text" id="fm-url" placeholder="https://..."></div>
@@ -2594,32 +2618,79 @@ function saveFD(){localStorage.setItem('fcnFD',JSON.stringify(FD));}
 function initFund(){fundRender();}
 
 // form calc
+// fund form calc
+function fmGetFx(){
+  const ccy=document.getElementById('fm-ccy').value;
+  if(ccy==='TWD')return 1;
+  if(ccy==='USD')return getFX();
+  return getFX()*0.0068||0.22; // JPY approx
+}
+function fmCcyChange(){
+  const fx=fmGetFx();
+  document.getElementById('fm-fx').value=fx.toFixed(4);
+  fmCalc();
+}
+function fmTwdHint(face,fx,ccy){
+  const el=document.getElementById('fm-face-hint');if(!el)return;
+  if(!face||!fx||ccy==='TWD'){el.textContent='';return;}
+  el.textContent=`× ${fx} ≈ NT$${F(Math.round(face*fx))} 台幣成本`;
+}
 function fmCalc(){
   const face=parseFloat(document.getElementById('fm-face').value)||0;
-  const fx=parseFloat(document.getElementById('fm-fx').value)||0;
-  const redeem=parseFloat(document.getElementById('fm-redeem').value)||0;
-  const interest=parseFloat(document.getElementById('fm-interest').value)||0;
-  if(face&&fx) document.getElementById('fm-twd').value=(face*fx).toFixed(0);
-  const twd=parseFloat(document.getElementById('fm-twd').value)||0;
-  fmPL(face,redeem,interest,twd,fx);
-}
-function fmCalc2(){
-  const face=parseFloat(document.getElementById('fm-face').value)||0;
-  const twd=parseFloat(document.getElementById('fm-twd').value)||0;
-  if(face&&twd) document.getElementById('fm-fx').value=(twd/face).toFixed(4);
-  const redeem=parseFloat(document.getElementById('fm-redeem').value)||0;
-  const interest=parseFloat(document.getElementById('fm-interest').value)||0;
-  fmPL(face,redeem,interest,twd,0);
-}
-function fmPL(face,redeem,interest,twd,fx){
   const ccy=document.getElementById('fm-ccy').value;
-  if(!redeem||!face){document.getElementById('fm-pl').value='';document.getElementById('fm-plPct').value='';return;}
-  const pl=redeem+interest-face;
-  const pct=face?((pl/face)*100).toFixed(1):'';
   const sym=ccy==='JPY'?'¥':ccy==='TWD'?'NT$':'$';
-  document.getElementById('fm-pl').value=sym+F(pl,0);
-  document.getElementById('fm-plPct').value=(pl>=0?'+':'')+pct+'%';
+  let fx=parseFloat(document.getElementById('fm-fx').value)||0;
+  if(!fx){fx=fmGetFx();document.getElementById('fm-fx').value=fx.toFixed(4);}
+  const redeem=parseFloat(document.getElementById('fm-redeem').value)||0;
+  const interest=parseFloat(document.getElementById('fm-interest').value)||0;
+  const twd=face&&fx?face*fx:0;
+  document.getElementById('fm-twd').value=twd?Math.round(twd):'';
+  fmTwdHint(face,fx,ccy);
+  // redeem hint
+  const rh=document.getElementById('fm-redeem-hint');
+  if(rh) rh.textContent=redeem&&fx&&ccy!=='TWD'?`≈ NT$${F(Math.round(redeem*fx))}`:'';
+  // interest hint
+  const ih=document.getElementById('fm-interest-hint');
+  if(ih) ih.textContent=interest&&fx&&ccy!=='TWD'?`≈ NT$${F(Math.round(interest*fx))}`:'';
+  // PL
+  const plEl=document.getElementById('fm-pl');
+  const plHint=document.getElementById('fm-pl-hint');
+  if(redeem&&face){
+    const pl=redeem+interest-face;
+    const pct=face?(pl/face*100).toFixed(1):'';
+    plEl.value=(pl>=0?'+':'')+sym+F(pl,0);
+    if(plHint&&fx&&ccy!=='TWD') plHint.textContent=`≈ NT$${F(Math.round(pl*fx))}`;
+    document.getElementById('fm-plPct').value=(pl>=0?'+':'')+pct+'%';
+  } else {
+    plEl.value=''; if(plHint) plHint.textContent='';
+    document.getElementById('fm-plPct').value='';
+  }
 }
+function fmCalc2(){fmCalc();}
+function fmPL(){fmCalc();}
+
+async function fmFetchNav(){
+  const url=document.getElementById('fm-url').value.trim();
+  const el=document.getElementById('fm-curNav');
+  if(!url){el.value='請先填入資料來源網址';return;}
+  el.value='抓取中…';
+  try{
+    const proxyUrl=`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+    const r=await fetch(proxyUrl,{signal:AbortSignal.timeout(10000)});
+    const text=await r.text();
+    const patterns=[
+      /"nav":\s*([\d.]+)/,/"netAssetValue":\s*([\d.]+)/,/"price":\s*([\d.]+)/,
+      /淨值[^\d]*([\d,]+\.?\d*)/,/當前淨值[^\d]*([\d,]+\.?\d*)/,
+      /price">([\d,]+\.?\d*)</,/"currentPrice":([\d.]+)/,
+    ];
+    for(const p of patterns){
+      const m=text.match(p);
+      if(m){const v=parseFloat(m[1].replace(/,/g,''));if(v>0){el.value=v;return;}}
+    }
+    el.value='無法解析（請手動填買淨值）';
+  }catch(e){el.value='抓取失敗（請手動填）';}
+}
+
 
 function fundOpenForm(id){
   document.getElementById('fm-id').value=id||'';
@@ -2627,7 +2698,7 @@ function fundOpenForm(id){
   if(id){
     const r=FD.find(x=>x.id===id);
     if(r){
-      ['date','exitDate','bank','isin','name','rate','yield','acct','url','note'].forEach(f=>{
+      ['date','exitDate','bank','isin','name','rate','yield','acct','url','note','distDate'].forEach(f=>{
         const el=document.getElementById('fm-'+f);if(el)el.value=r[f]||'';
       });
       ['face','fx','twd','redeem','interest','buyPrice','units','distPerUnit'].forEach(f=>{
@@ -2636,17 +2707,21 @@ function fundOpenForm(id){
       document.getElementById('fm-ccy').value=r.ccy||'USD';
       document.getElementById('fm-distType').value=r.distType||'月配';
       document.getElementById('fm-maturity').value=r.maturity||'';
+      // auto-fill fx if missing
+      if(!r.fx) document.getElementById('fm-fx').value=fmGetFx().toFixed(4);
+      document.getElementById('fm-curNav').value='';
       fmCalc();
     }
   } else {
     document.getElementById('fm-date').value=new Date().toISOString().slice(0,10);
-    ['fm-exitDate','fm-bank','fm-isin','fm-name','fm-rate','fm-yield','fm-acct','fm-url','fm-note',
+    ['fm-exitDate','fm-bank','fm-isin','fm-name','fm-rate','fm-yield','fm-acct','fm-url','fm-note','fm-distDate',
      'fm-face','fm-fx','fm-twd','fm-redeem','fm-interest','fm-buyPrice','fm-units','fm-distPerUnit','fm-maturity']
       .forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
     document.getElementById('fm-ccy').value='USD';
     document.getElementById('fm-distType').value='月配';
-    document.getElementById('fm-pl').value='';
-    document.getElementById('fm-plPct').value='';
+    document.getElementById('fm-pl').value='';document.getElementById('fm-plPct').value='';
+    document.getElementById('fm-curNav').value='';
+    document.getElementById('fm-fx').value=getFX().toFixed(4);
   }
   document.getElementById('fund-modal').classList.add('open');
 }
@@ -2671,6 +2746,7 @@ function fundSave(){
     buyPrice:parseFloat(document.getElementById('fm-buyPrice').value)||0,
     units:parseFloat(document.getElementById('fm-units').value)||0,
     distType:document.getElementById('fm-distType').value,
+    distDate:document.getElementById('fm-distDate').value.trim(),
     distPerUnit:parseFloat(document.getElementById('fm-distPerUnit').value)||0,
     rate:document.getElementById('fm-rate').value.trim(),
     yield:document.getElementById('fm-yield').value.trim(),
@@ -2736,10 +2812,9 @@ function fundRender(){
       <div class="tw"><table style="font-size:11px;border-collapse:collapse;">
         <thead><tr>
           ${th('狀態')}${th('買進日')}${th('賣出日')}${th('銀行')}${th('基金名稱')}
-          ${th('買淨值')}${th('單位數')}${th('投資金額')}${th('贖回金額')}${th('已領利息')}
+          ${th('目前淨值')}${th('買淨值')}${th('單位數')}${th('投資金額')}${th('贖回金額')}${th('已領利息')}
           ${th('損益')}${th('報酬率')}
-          ${th('台幣成本')}${th('匯率')}
-          ${th('配息類型')}${th('資料來源')}${th('備註')}${th('')}
+          ${th('配息類型')}${th('配息日')}${th('資料來源')}${th('備註')}${th('')}
         </tr></thead>
         <tbody>
         ${rows.map(r=>{
@@ -2753,16 +2828,16 @@ function fundRender(){
             <td class="mono" style="white-space:nowrap;color:var(--tx3)">${r.exitDate||'—'}</td>
             <td style="white-space:nowrap;font-weight:600">${r.bank}</td>
             <td style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${r.name}">${r.name}</td>
+            <td class="mono right" style="color:var(--tx3)">—</td>
             <td class="mono right">${r.buyPrice||'—'}</td>
             <td class="mono right">${r.units||'—'}</td>
-            <td class="mono right">${r.face?sym+F(r.face,0):'—'}</td>
-            <td class="mono right">${r.redeem?sym+F(r.redeem,0):'—'}</td>
-            <td class="mono right cg">${r.interest?sym+F(r.interest,0):'—'}</td>
-            <td class="mono right" style="color:${plColor};font-weight:600">${r.pl?(r.pl>0?'+':'')+sym+F(r.pl,0):'—'}</td>
+            <td class="mono right">${r.face?sym+F(r.face,0):'—'}${r.twd?`<div style="font-size:9px;color:var(--tx3)">NT$${F(Math.round(r.twd),0)}</div>`:''}</td>
+            <td class="mono right">${r.redeem?sym+F(r.redeem,0):'—'}${r.redeem&&r.twd&&r.face?`<div style="font-size:9px;color:var(--tx3)">NT$${F(Math.round(r.redeem*(r.twd/r.face)))}</div>`:''}</td>
+            <td class="mono right cg">${r.interest?sym+F(r.interest,0):'—'}${r.interest&&r.twd&&r.face?`<div style="font-size:9px;color:var(--gn)">NT$${F(Math.round(r.interest*(r.twd/r.face)))}</div>`:''}</td>
+            <td class="mono right" style="color:${plColor};font-weight:600">${r.pl?(r.pl>0?'+':'')+sym+F(r.pl,0):'—'}${r.pl&&r.twd&&r.face?`<div style="font-size:9px;color:var(--tx3)">NT$${F(Math.round(r.pl*(r.twd/r.face)))}</div>`:''}</td>
             <td class="mono right" style="color:${plColor}">${r.plPct?(r.plPct>0?'+':'')+r.plPct+'%':'—'}</td>
-            <td class="mono right">${r.twd?'NT$'+F(r.twd,0):'—'}</td>
-            <td class="mono right">${r.fx||'—'}</td>
             <td style="white-space:nowrap">${r.distType||'—'}</td>
+            <td style="font-size:10px;color:var(--tx2);white-space:nowrap">${r.distDate||'—'}</td>
             <td style="text-align:center">${r.url?`<a href="${r.url}" target="_blank" style="font-size:10px;color:var(--ac2)">🔗 連結</a>`:'—'}</td>
             <td style="font-size:10px;color:var(--tx2);max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${r.note||''}">${r.note||'—'}</td>
             <td style="white-space:nowrap">

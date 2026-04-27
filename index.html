@@ -707,20 +707,21 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
         </select>
       </div>
     </div>
+    <div class="fgrp" style="margin-bottom:10px;"><label>基金名稱 *</label><input type="text" id="fm-name" placeholder="富達-全球優質債卷基金B股"></div>
     <div class="fg4" style="margin-bottom:10px;">
-      <div class="fgrp"><label>投資面額</label><input type="number" id="fm-face" placeholder="5000000" step="1"></div>
-      <div class="fgrp"><label>匯率</label><input type="number" id="fm-fx" placeholder="0.2295" step="0.0001" oninput="fmCalc()"></div>
-      <div class="fgrp"><label>台幣成本</label><input type="number" id="fm-twd" placeholder="自動計算" step="1" oninput="fmCalc2()"></div>
+      <div class="fgrp"><label>買淨值</label><input type="number" id="fm-buyPrice" placeholder="971.6" step="0.001"></div>
+      <div class="fgrp"><label>單位數</label><input type="number" id="fm-units" placeholder="5146.15" step="0.001"></div>
+      <div class="fgrp"><label>投資金額（幣別）</label><input type="number" id="fm-face" placeholder="5000000" step="1"></div>
       <div class="fgrp"><label>贖回金額</label><input type="number" id="fm-redeem" placeholder="0" step="1" oninput="fmCalc()"></div>
     </div>
     <div class="fg4" style="margin-bottom:10px;">
-      <div class="fgrp"><label>利息（幣別）</label><input type="number" id="fm-interest" placeholder="0" step="0.01" oninput="fmCalc()"></div>
-      <div class="fgrp"><label>ISIN</label><input type="text" id="fm-isin" placeholder="LU2829150577"></div>
-      <div class="fgrp"><label>基金名稱 *</label><input type="text" id="fm-name" placeholder="富達-全球優質債卷基金B股" style="grid-column:span 2"></div>
+      <div class="fgrp"><label>已領利息</label><input type="number" id="fm-interest" placeholder="0" step="0.01" oninput="fmCalc()"></div>
+      <div class="fgrp"><label>損益（自動）</label><input type="text" id="fm-pl" readonly style="background:var(--sur2);font-family:var(--mono)"></div>
+      <div class="fgrp"><label>報酬率（自動）</label><input type="text" id="fm-plPct" readonly style="background:var(--sur2);font-family:var(--mono)"></div>
+      <div class="fgrp"><label>台幣成本</label><input type="number" id="fm-twd" placeholder="自動計算" step="1" oninput="fmCalc2()"></div>
     </div>
     <div class="fg4" style="margin-bottom:10px;">
-      <div class="fgrp"><label>買進價格</label><input type="number" id="fm-buyPrice" placeholder="971.6" step="0.001"></div>
-      <div class="fgrp"><label>持有單位數</label><input type="number" id="fm-units" placeholder="5146.15" step="0.001"></div>
+      <div class="fgrp"><label>匯率</label><input type="number" id="fm-fx" placeholder="0.2295" step="0.0001" oninput="fmCalc()"></div>
       <div class="fgrp"><label>配息類型</label>
         <select id="fm-distType">
           <option value="月配">月配</option>
@@ -731,18 +732,16 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
         </select>
       </div>
       <div class="fgrp"><label>每單位配息金</label><input type="number" id="fm-distPerUnit" placeholder="6.94" step="0.0001"></div>
+      <div class="fgrp"><label>到期日</label><input type="date" id="fm-maturity"></div>
     </div>
     <div class="fg4" style="margin-bottom:10px;">
+      <div class="fgrp"><label>ISIN</label><input type="text" id="fm-isin" placeholder="LU2829150577"></div>
       <div class="fgrp"><label>利率</label><input type="text" id="fm-rate" placeholder="8.57%"></div>
       <div class="fgrp"><label>到期殖利率</label><input type="text" id="fm-yield" placeholder="5.91%"></div>
-      <div class="fgrp"><label>到期日</label><input type="date" id="fm-maturity"></div>
-      <div class="fgrp"><label>交易代碼</label><input type="text" id="fm-acct" placeholder="176-08E-42500073"></div>
+      <!-- 交易代碼隱藏 -->
+      <input type="hidden" id="fm-acct">
     </div>
-    <div class="fg" style="margin-bottom:10px;">
-      <div class="fgrp"><label>損益（自動）</label><input type="text" id="fm-pl" readonly style="background:var(--sur2);font-family:var(--mono)"></div>
-      <div class="fgrp"><label>報酬率（自動）</label><input type="text" id="fm-plPct" readonly style="background:var(--sur2);font-family:var(--mono)"></div>
-    </div>
-    <div class="fgrp" style="margin-bottom:14px;"><label>資料來源網址</label><input type="text" id="fm-url" placeholder="https://..."></div>
+    <div class="fgrp" style="margin-bottom:10px;"><label>資料來源網址</label><input type="text" id="fm-url" placeholder="https://..."></div>
     <div class="fgrp" style="margin-bottom:14px;"><label>備註</label><input type="text" id="fm-note" placeholder="例：轉單來源、特殊說明"></div>
     <div class="mba">
       <button class="btn" onclick="fundCloseForm()">取消</button>
@@ -2737,10 +2736,10 @@ function fundRender(){
       <div class="tw"><table style="font-size:11px;border-collapse:collapse;">
         <thead><tr>
           ${th('狀態')}${th('買進日')}${th('賣出日')}${th('銀行')}${th('基金名稱')}
-          ${th('投資面額')}${th('台幣成本')}${th('匯率')}
-          ${th('贖回金額')}${th('利息')}
+          ${th('買淨值')}${th('單位數')}${th('投資金額')}${th('贖回金額')}${th('已領利息')}
           ${th('損益')}${th('報酬率')}
-          ${th('買進價')}${th('單位數')}${th('配息類型')}${th('交易代碼')}${th('資料來源')}${th('備註')}${th('')}
+          ${th('台幣成本')}${th('匯率')}
+          ${th('配息類型')}${th('資料來源')}${th('備註')}${th('')}
         </tr></thead>
         <tbody>
         ${rows.map(r=>{
@@ -2754,17 +2753,16 @@ function fundRender(){
             <td class="mono" style="white-space:nowrap;color:var(--tx3)">${r.exitDate||'—'}</td>
             <td style="white-space:nowrap;font-weight:600">${r.bank}</td>
             <td style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${r.name}">${r.name}</td>
+            <td class="mono right">${r.buyPrice||'—'}</td>
+            <td class="mono right">${r.units||'—'}</td>
             <td class="mono right">${r.face?sym+F(r.face,0):'—'}</td>
-            <td class="mono right">${r.twd?'NT$'+F(r.twd,0):'—'}</td>
-            <td class="mono right">${r.fx||'—'}</td>
             <td class="mono right">${r.redeem?sym+F(r.redeem,0):'—'}</td>
             <td class="mono right cg">${r.interest?sym+F(r.interest,0):'—'}</td>
             <td class="mono right" style="color:${plColor};font-weight:600">${r.pl?(r.pl>0?'+':'')+sym+F(r.pl,0):'—'}</td>
             <td class="mono right" style="color:${plColor}">${r.plPct?(r.plPct>0?'+':'')+r.plPct+'%':'—'}</td>
-            <td class="mono right">${r.buyPrice||'—'}</td>
-            <td class="mono right">${r.units||'—'}</td>
+            <td class="mono right">${r.twd?'NT$'+F(r.twd,0):'—'}</td>
+            <td class="mono right">${r.fx||'—'}</td>
             <td style="white-space:nowrap">${r.distType||'—'}</td>
-            <td style="font-size:10px;color:var(--tx3);white-space:nowrap">${r.acct||'—'}</td>
             <td style="text-align:center">${r.url?`<a href="${r.url}" target="_blank" style="font-size:10px;color:var(--ac2)">🔗 連結</a>`:'—'}</td>
             <td style="font-size:10px;color:var(--tx2);max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${r.note||''}">${r.note||'—'}</td>
             <td style="white-space:nowrap">

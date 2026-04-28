@@ -711,11 +711,12 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
     <!-- 目前淨值 + 買淨值 -->
     <div class="fg4" style="margin-bottom:10px;">
       <div class="fgrp">
-        <label>目前淨值（自動抓取）</label>
+        <label>目前淨值（手動輸入）</label>
         <div style="display:flex;gap:6px;align-items:center;">
-          <input type="text" id="fm-curNav" readonly style="background:var(--sur2);flex:1;font-family:var(--mono);" placeholder="—">
-          <button class="btn btnsm" onclick="fmFetchNav()" type="button">↻ 抓取</button>
+          <input type="number" id="fm-curNav" step="0.001" style="flex:1;font-family:var(--mono);" placeholder="請輸入最新淨值">
+          <button class="btn btnsm" onclick="fmOpenUrl()" type="button" title="開啟資料來源頁面查詢">🔗 開啟頁面</button>
         </div>
+        <div class="hint">查詢後手動填入最新淨值</div>
       </div>
       <div class="fgrp"><label>買淨值</label><input type="number" id="fm-buyPrice" placeholder="971.6" step="0.001"></div>
       <div class="fgrp"><label>單位數</label><input type="number" id="fm-units" placeholder="5146.15" step="0.001"></div>
@@ -2669,58 +2670,10 @@ function fmCalc(){
 function fmCalc2(){fmCalc();}
 function fmPL(){fmCalc();}
 
-async function fmFetchNav(){
+function fmOpenUrl(){
   const url=document.getElementById('fm-url').value.trim();
-  const el=document.getElementById('fm-curNav');
-  if(!url){el.value='請先填入資料來源網址';return;}
-  el.value='抓取中…';
-
-  try{
-    // ── cnyes 基金：從 URL 取 fundId，呼叫 API ──────────────
-    const cnyesMatch=url.match(/\/([A-Z0-9]{6,8})\/?(?:document)?$/i)||url.match(/\/([AB]\d{5,7})\//i);
-    if(url.includes('fund.cnyes.com')&&cnyesMatch){
-      const fundId=cnyesMatch[1];
-      const apiUrl=`https://fund.api.cnyes.com/fund/api/v2/funds/${fundId}/nav?format=simple`;
-      const proxy=`https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl)}`;
-      const r=await fetch(proxy,{signal:AbortSignal.timeout(10000)});
-      const j=await r.json();
-      // cnyes response: {items:{nav:...}} or array
-      const nav=j?.items?.nav||j?.data?.nav||j?.nav||
-                (Array.isArray(j?.items)?j.items[0]?.nav:null)||
-                j?.items?.[0]?.nav;
-      if(nav&&parseFloat(nav)>0){el.value=parseFloat(nav);return;}
-      // fallback: try another cnyes endpoint
-      const api2=`https://fund.api.cnyes.com/fund/api/v2/funds/${fundId}/quotes`;
-      const proxy2=`https://api.allorigins.win/raw?url=${encodeURIComponent(api2)}`;
-      const r2=await fetch(proxy2,{signal:AbortSignal.timeout(8000)});
-      const j2=await r2.json();
-      const nav2=j2?.items?.[0]?.nav||j2?.data?.[0]?.nav||j2?.items?.nav;
-      if(nav2&&parseFloat(nav2)>0){el.value=parseFloat(nav2);return;}
-    }
-
-    // ── TradingView / FINRA 美債：用 Yahoo Finance 抓 ──────
-    if(url.includes('tradingview.com')||url.includes('FINRA')||url.includes('LUXSE')){
-      const acct=document.getElementById('fm-acct').value.trim();
-      const isin=document.getElementById('fm-isin').value.trim();
-      // try common bond price formats
-      const syms=[acct,isin].filter(Boolean);
-      for(const sym of syms){
-        const p=await yahooFetch(sym);
-        if(p){el.value=p;return;}
-      }
-    }
-
-    // ── 最後嘗試：Yahoo Finance 用交易代碼 ──────────────────
-    const acct=document.getElementById('fm-acct').value.trim();
-    if(acct){
-      const p=await yahooFetch(acct);
-      if(p){el.value=p;return;}
-    }
-
-    el.value='無法抓取（請手動填入買淨值）';
-  }catch(e){
-    el.value='抓取失敗：'+e.message.slice(0,30);
-  }
+  if(!url){alert('請先填入資料來源網址');return;}
+  window.open(url,'_blank');
 }
 
 

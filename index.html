@@ -2674,21 +2674,53 @@ async function fmFetchNav(){
   const el=document.getElementById('fm-curNav');
   if(!url){el.value='請先填入資料來源網址';return;}
   el.value='抓取中…';
+
   try{
-    const proxyUrl=`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
-    const r=await fetch(proxyUrl,{signal:AbortSignal.timeout(10000)});
-    const text=await r.text();
-    const patterns=[
-      /"nav":\s*([\d.]+)/,/"netAssetValue":\s*([\d.]+)/,/"price":\s*([\d.]+)/,
-      /淨值[^\d]*([\d,]+\.?\d*)/,/當前淨值[^\d]*([\d,]+\.?\d*)/,
-      /price">([\d,]+\.?\d*)</,/"currentPrice":([\d.]+)/,
-    ];
-    for(const p of patterns){
-      const m=text.match(p);
-      if(m){const v=parseFloat(m[1].replace(/,/g,''));if(v>0){el.value=v;return;}}
+    // ── cnyes 基金：從 URL 取 fundId，呼叫 API ──────────────
+    const cnyesMatch=url.match(/\/([A-Z0-9]{6,8})\/?(?:document)?$/i)||url.match(/\/([AB]\d{5,7})\//i);
+    if(url.includes('fund.cnyes.com')&&cnyesMatch){
+      const fundId=cnyesMatch[1];
+      const apiUrl=`https://fund.api.cnyes.com/fund/api/v2/funds/${fundId}/nav?format=simple`;
+      const proxy=`https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl)}`;
+      const r=await fetch(proxy,{signal:AbortSignal.timeout(10000)});
+      const j=await r.json();
+      // cnyes response: {items:{nav:...}} or array
+      const nav=j?.items?.nav||j?.data?.nav||j?.nav||
+                (Array.isArray(j?.items)?j.items[0]?.nav:null)||
+                j?.items?.[0]?.nav;
+      if(nav&&parseFloat(nav)>0){el.value=parseFloat(nav);return;}
+      // fallback: try another cnyes endpoint
+      const api2=`https://fund.api.cnyes.com/fund/api/v2/funds/${fundId}/quotes`;
+      const proxy2=`https://api.allorigins.win/raw?url=${encodeURIComponent(api2)}`;
+      const r2=await fetch(proxy2,{signal:AbortSignal.timeout(8000)});
+      const j2=await r2.json();
+      const nav2=j2?.items?.[0]?.nav||j2?.data?.[0]?.nav||j2?.items?.nav;
+      if(nav2&&parseFloat(nav2)>0){el.value=parseFloat(nav2);return;}
     }
-    el.value='無法解析（請手動填買淨值）';
-  }catch(e){el.value='抓取失敗（請手動填）';}
+
+    // ── TradingView / FINRA 美債：用 Yahoo Finance 抓 ──────
+    if(url.includes('tradingview.com')||url.includes('FINRA')||url.includes('LUXSE')){
+      const acct=document.getElementById('fm-acct').value.trim();
+      const isin=document.getElementById('fm-isin').value.trim();
+      // try common bond price formats
+      const syms=[acct,isin].filter(Boolean);
+      for(const sym of syms){
+        const p=await yahooFetch(sym);
+        if(p){el.value=p;return;}
+      }
+    }
+
+    // ── 最後嘗試：Yahoo Finance 用交易代碼 ──────────────────
+    const acct=document.getElementById('fm-acct').value.trim();
+    if(acct){
+      const p=await yahooFetch(acct);
+      if(p){el.value=p;return;}
+    }
+
+    el.value='無法抓取（請手動填入買淨值）';
+  }catch(e){
+    el.value='抓取失敗：'+e.message.slice(0,30);
+  }
 }
 
 
@@ -2709,7 +2741,7 @@ function fundOpenForm(id){
       document.getElementById('fm-maturity').value=r.maturity||'';
       // auto-fill fx if missing
       if(!r.fx) document.getElementById('fm-fx').value=fmGetFx().toFixed(4);
-      document.getElementById('fm-curNav').value='';
+      document.getElementById('fm-curNav').value=r.curNav||'';
       fmCalc();
     }
   } else {
@@ -2753,6 +2785,7 @@ function fundSave(){
     maturity:document.getElementById('fm-maturity').value,
     acct:document.getElementById('fm-acct').value.trim(),
     url:document.getElementById('fm-url').value.trim(),
+    curNav:parseFloat(document.getElementById('fm-curNav').value)||0,
     note:document.getElementById('fm-note').value.trim(),
   };
   // calc PL
@@ -2828,7 +2861,7 @@ function fundRender(){
             <td class="mono" style="white-space:nowrap;color:var(--tx3)">${r.exitDate||'—'}</td>
             <td style="white-space:nowrap;font-weight:600">${r.bank}</td>
             <td style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${r.name}">${r.name}</td>
-            <td class="mono right" style="color:var(--tx3)">—</td>
+            <td class="mono right" style="color:var(--tx3)">${r.curNav?r.curNav:'—'}</td>
             <td class="mono right">${r.buyPrice||'—'}</td>
             <td class="mono right">${r.units||'—'}</td>
             <td class="mono right">${r.face?sym+F(r.face,0):'—'}${r.twd?`<div style="font-size:9px;color:var(--tx3)">NT$${F(Math.round(r.twd),0)}</div>`:''}</td>

@@ -2755,6 +2755,23 @@ function fundDelete(id){
   FD=FD.filter(x=>x.id!==id);saveFD();fundRender();
 }
 
+function fundEditNav(id){
+  const r=FD.find(x=>x.id===id);if(!r)return;
+  const url=r.url;
+  const cur=r.curNav?r.curNav:'';
+  // open url in background if available
+  if(url){
+    const open=confirm(`開啟基金頁面查詢淨值？\n${r.name}\n\n確定=開啟頁面後填入，取消=直接輸入`);
+    if(open){window.open(url,'_blank');}
+  }
+  const val=prompt(`${r.name}\n\n請輸入目前淨值：`,cur);
+  if(val===null)return;
+  const n=parseFloat(val);
+  if(isNaN(n)||n<=0){alert('請輸入有效的數字');return;}
+  r.curNav=n;
+  saveFD();fundRender();
+}
+
 function fundRender(){
   const fx=getFX();
   // summary by ccy
@@ -2814,7 +2831,9 @@ function fundRender(){
             <td class="mono" style="white-space:nowrap;color:var(--tx3)">${r.exitDate||'—'}</td>
             <td style="white-space:nowrap;font-weight:600">${r.bank}</td>
             <td style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${r.name}">${r.name}</td>
-            <td class="mono right" style="color:var(--tx3)">${r.curNav?r.curNav:'—'}</td>
+            <td class="mono right" style="color:${r.curNav?'var(--tx)':'var(--tx3)'};cursor:pointer;" onclick="fundEditNav('${r.id}')" title="點擊更新淨值">
+              ${r.curNav?F(r.curNav,3):'<span style="font-size:10px;color:var(--ac2)">點擊填入</span>'}
+            </td>
             <td class="mono right">${r.buyPrice||'—'}</td>
             <td class="mono right">${r.units||'—'}</td>
             <td class="mono right">${r.face?sym+F(r.face,0):'—'}${r.twd?`<div style="font-size:9px;color:var(--tx3)">NT$${F(Math.round(r.twd),0)}</div>`:''}</td>

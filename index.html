@@ -222,6 +222,14 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
       <button class="btn btnsm" onclick="document.getElementById('import-file').click()" style="flex:1;font-size:10px;">📥 匯入</button>
       <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(this)">
     </div>
+    <div style="display:flex;gap:6px;margin-top:6px;">
+      <button class="btn btnsm" onclick="gistPush()" id="gist-push-btn" style="flex:1;font-size:10px;background:var(--gnl);border-color:var(--gn);color:var(--gn);">☁ 上傳雲端</button>
+      <button class="btn btnsm" onclick="gistPull()" id="gist-pull-btn" style="flex:1;font-size:10px;">⬇ 從雲端讀取</button>
+    </div>
+    <div style="margin-top:5px;">
+      <button class="btn btnsm" onclick="gistSetup()" style="width:100%;font-size:10px;color:var(--tx3);">⚙ GitHub Gist 設定</button>
+    </div>
+    <div id="gist-status" style="font-size:10px;color:var(--tx3);margin-top:4px;text-align:center;"></div>
   </div>
 </nav>
 <main class="main">
@@ -687,7 +695,9 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
 <div id="sec-fund" class="sec">
   <div class="ph">
     <div><div class="pt">基金管理</div><div class="ps">記錄每筆基金投資，追蹤配息紀錄</div></div>
-    <div style="display:flex;gap:8px;">
+    <div style="display:flex;gap:8px;align-items:center;">
+      <span id="fund-nav-updated" style="font-size:10px;color:var(--tx3)"></span>
+      <button class="btn btnsm" onclick="fetchGistNav().then(()=>fundRender())">↻ 更新淨值</button>
       <button class="btn btnsm" onclick="fundOpenForm()">＋ 新增基金</button>
     </div>
   </div>
@@ -2644,7 +2654,43 @@ if(FD&&FD.some(r=>r.url===undefined)){
 }
 function saveFD(){localStorage.setItem('fcnFD',JSON.stringify(FD));}
 
-function initFund(){fundRender();}
+const FUND_NAV_GIST='https://gist.githubusercontent.com/childgril/c1ecf1eadce99ef4807064c9bf16e669/raw/fund_nav.json';
+let gistNavCache={};
+
+async function fetchGistNav(){
+  try{
+    const r=await fetch(FUND_NAV_GIST+'?t='+Date.now(),{cache:'no-store'});
+    if(!r.ok)return;
+    const j=await r.json();
+    gistNavCache=j.funds||{};
+    // 自動更新 FD 裡有對應 ISIN 的基金淨值
+    let updated=false;
+    FD.forEach(fd=>{
+      const key=fd.isin||fd.acct;
+      if(key&&gistNavCache[key]){
+        fd.curNav=gistNavCache[key].nav;
+        updated=true;
+      }
+    });
+    if(updated){saveFD();}
+    return j.updated_at;
+  }catch(e){
+    console.log('Gist fetch error:',e);
+  }
+}
+
+function initFund(){
+  fundRender();
+  fetchGistNav().then(ts=>{
+    if(ts){
+      const d=new Date(ts);
+      const label=d.toLocaleDateString('zh-TW')+' '+d.toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
+      const el=document.getElementById('fund-nav-updated');
+      if(el)el.textContent='淨值更新：'+label;
+      fundRender();
+    }
+  });
+}
 
 // form calc
 // fund form calc
@@ -3301,6 +3347,157 @@ function importData(input){
   };
   reader.readAsText(file);
   input.value=''; // reset so same file can be re-selected
+}
+
+// ── GIST SYNC ───────────────────────────────────────────────
+function gistGetConfig(){
+  return{
+    token: localStorage.getItem('gistToken')||'',
+    gistId: localStorage.getItem('gistId')||'',
+  };
+}
+function gistSetStatus(msg,color='var(--tx3)'){
+  const el=document.getElementById('gist-status');
+  if(el){el.textContent=msg;el.style.color=color;}
+}
+
+function gistSetup(){
+  const cfg=gistGetConfig();
+  const modal=document.createElement('div');
+  modal.className='mo open';
+  modal.innerHTML=`<div class="mb2" style="width:480px;">
+    <h3 style="margin-bottom:12px;">⚙ GitHub Gist 設定</h3>
+    <p style="font-size:12px;color:var(--tx2);margin-bottom:14px;line-height:1.6;">
+      設定後，點「☁ 上傳雲端」將資料儲存到你的 GitHub Gist，<br>
+      任何人開啟此網頁都可點「⬇ 從雲端讀取」看到你的最新資料。
+    </p>
+    <div class="fgrp" style="margin-bottom:10px;">
+      <label>GitHub Personal Access Token</label>
+      <input type="password" id="gs-token" value="${cfg.token}" placeholder="ghp_xxxxxxxxxxxx"
+        style="font-family:var(--mono);font-size:12px;">
+      <div class="hint">需要 gist 權限。到 GitHub → Settings → Developer settings → Personal access tokens 建立</div>
+    </div>
+    <div class="fgrp" style="margin-bottom:14px;">
+      <label>Gist ID（第一次留空，系統自動建立）</label>
+      <input type="text" id="gs-gistid" value="${cfg.gistId}" placeholder="自動建立後會填入"
+        style="font-family:var(--mono);font-size:12px;">
+    </div>
+    <div class="mba">
+      <button class="btn" onclick="this.closest('.mo').remove()">取消</button>
+      ${cfg.gistId?`<button class="btn" style="color:var(--rd)" onclick="gistClearConfig(this)">清除設定</button>`:''}
+      <button class="btn btnp" onclick="gistSaveConfig(this)">儲存設定</button>
+    </div>
+  </div>`;
+  modal.onclick=e=>{if(e.target===modal)modal.remove();};
+  document.body.appendChild(modal);
+}
+
+function gistSaveConfig(btn){
+  const token=document.getElementById('gs-token').value.trim();
+  const gistId=document.getElementById('gs-gistid').value.trim();
+  if(!token){alert('請填入 Token');return;}
+  localStorage.setItem('gistToken',token);
+  if(gistId)localStorage.setItem('gistId',gistId);
+  btn.closest('.mo').remove();
+  gistSetStatus('設定已儲存','var(--gn)');
+}
+
+function gistClearConfig(btn){
+  if(!confirm('清除 Gist 設定？'))return;
+  localStorage.removeItem('gistToken');
+  localStorage.removeItem('gistId');
+  btn.closest('.mo').remove();
+  gistSetStatus('設定已清除');
+}
+
+function gistCollectData(){
+  return{
+    exportedAt: new Date().toISOString(),
+    version: 1,
+    fcnv3: JSON.parse(localStorage.getItem('fcnv3')||'[]'),
+    fcnfxl: JSON.parse(localStorage.getItem('fcnfxl')||'[]'),
+    fcnQT: JSON.parse(localStorage.getItem('fcnQT')||'[]'),
+    fcnFD: JSON.parse(localStorage.getItem('fcnFD')||'[]'),
+    fcnFDDist: JSON.parse(localStorage.getItem('fcnFDDist')||'{}'),
+    fcnEV3: JSON.parse(localStorage.getItem('fcnEV3')||'[]'),
+  };
+}
+
+async function gistPush(){
+  const cfg=gistGetConfig();
+  if(!cfg.token){gistSetup();return;}
+  const btn=document.getElementById('gist-push-btn');
+  if(btn){btn.textContent='上傳中…';btn.disabled=true;}
+  gistSetStatus('上傳中…');
+  try{
+    const content=JSON.stringify(gistCollectData(),null,2);
+    let gistId=cfg.gistId;
+    let method='POST', url='https://api.github.com/gists';
+    if(gistId){method='PATCH'; url=`https://api.github.com/gists/${gistId}`;}
+    const resp=await fetch(url,{
+      method,
+      headers:{'Authorization':`token ${cfg.token}`,'Content-Type':'application/json'},
+      body:JSON.stringify({
+        description:'FCN投資管理系統資料備份',
+        public:false,
+        files:{'fcn_data.json':{content}}
+      })
+    });
+    if(!resp.ok){const e=await resp.json();throw new Error(e.message||resp.status);}
+    const j=await resp.json();
+    if(!gistId){
+      localStorage.setItem('gistId',j.id);
+      gistId=j.id;
+    }
+    const time=new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
+    gistSetStatus(`✓ 已上傳 ${time}`,'var(--gn)');
+    localStorage.setItem('fcnlast',new Date().toLocaleDateString('zh-TW'));
+    document.getElementById('last-update').textContent=localStorage.getItem('fcnlast');
+  }catch(e){
+    gistSetStatus('上傳失敗：'+e.message,'var(--rd)');
+  }finally{
+    if(btn){btn.textContent='☁ 上傳雲端';btn.disabled=false;}
+  }
+}
+
+async function gistPull(){
+  const cfg=gistGetConfig();
+  if(!cfg.token||!cfg.gistId){
+    alert('請先設定 Token 和 Gist ID，或先上傳一次讓系統自動建立');
+    gistSetup();return;
+  }
+  if(!confirm('從雲端讀取資料？這會覆蓋本機資料！'))return;
+  const btn=document.getElementById('gist-pull-btn');
+  if(btn){btn.textContent='讀取中…';btn.disabled=true;}
+  gistSetStatus('讀取中…');
+  try{
+    const resp=await fetch(`https://api.github.com/gists/${cfg.gistId}`,{
+      headers:{'Authorization':`token ${cfg.token}`}
+    });
+    if(!resp.ok){const e=await resp.json();throw new Error(e.message||resp.status);}
+    const j=await resp.json();
+    const raw=j.files?.['fcn_data.json']?.content;
+    if(!raw)throw new Error('找不到資料檔案');
+    const data=JSON.parse(raw);
+    if(data.fcnv3) localStorage.setItem('fcnv3',JSON.stringify(data.fcnv3));
+    if(data.fcnfxl) localStorage.setItem('fcnfxl',JSON.stringify(data.fcnfxl));
+    if(data.fcnQT) localStorage.setItem('fcnQT',JSON.stringify(data.fcnQT));
+    if(data.fcnFD) localStorage.setItem('fcnFD',JSON.stringify(data.fcnFD));
+    if(data.fcnFDDist) localStorage.setItem('fcnFDDist',JSON.stringify(data.fcnFDDist));
+    if(data.fcnEV3) localStorage.setItem('fcnEV3',JSON.stringify(data.fcnEV3));
+    gistSetStatus('✓ 讀取成功，重新載入中…','var(--gn)');
+    setTimeout(()=>location.reload(),800);
+  }catch(e){
+    gistSetStatus('讀取失敗：'+e.message,'var(--rd)');
+  }finally{
+    if(btn){btn.textContent='⬇ 從雲端讀取';btn.disabled=false;}
+  }
+}
+
+// ── INIT ────────────────────────────────────────────────────
+// Show gist config status on load
+if(localStorage.getItem('gistToken')&&localStorage.getItem('gistId')){
+  gistSetStatus('☁ 雲端同步已設定');
 }
 
 document.getElementById('last-update').textContent=localStorage.getItem('fcnlast')||'首次載入';

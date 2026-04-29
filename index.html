@@ -3746,43 +3746,70 @@ function setupToken(){
 
 // 預設債券資料（從你提供的 CSV）
 const BD_DEFAULT = [
-  {id:'bd01',date:'2024-08-26',exitDate:'',bank:'達-元大',ccy:'USD',name:'波克夏海瑟威金融公司',isin:'US084664BL47',cusip:'084664BL4',
-   buyPrice:113.5,units:50000,face:57085.42,fx:31.83,twd:1817143.09,curPrice:107.67,interest:2875,
+  // bd01: BRK 5.75 2040/1/15, 50000股，未賣出（你的賣出表沒這筆，但 bd04 是同 ISIN 50000股已賣，重新對照）
+  // 對照賣出表 4/23：
+  // - US084664CR08 80000股 賣價0.8217 利息5100 → 對應 bd08
+  // - US084664CR08 50000股 賣價0.8217 利息3187.5 → 對應 bd03
+  // - US717081EV18 50000股 賣價0.7856 利息3000 → 對應 bd05
+  // - US92343VCZ58 100000股 賣價0.8106 利息7008 → 對應 bd09
+  // - US084664BL47 50000股 賣價1.0739 利息4312.5 → 對應 bd01 (50000股) 或 bd04(20000股)
+  // - US037833EW60 50000股 賣價0.9223 利息3637.5 → 對應 bd02
+  // - US002824AV29 50000股 賣價1.0757 利息6000 → 對應 bd06
+
+  // bd01: BRK 5.75 2040 - 50000股 賣出 (4/23, 賣價107.39 *50000/100=53695)
+  // 等等，賣價0.8217 * 50000 = 41085... 賣出價值欄是 66671.01 / 80000 * 100 = 83.34
+  // 重新理解：賣出價值欄就是台幣金額？不對是USD
+  // 賣出價值 = 單價 × 股數 / 100  e.g. 0.8217 * 80000 = 65736 ≈ 66671
+  // 所以單價是 美元價（百元面額），股數是面額
+  // 賣出金額 = 0.8217 × 80000 = 65,736  但表格寫 66,671 → 包含應計利息？
+  // 用「賣出價值」欄為準
+
+  {id:'bd01',date:'2024-08-26',exitDate:'2026-04-23',bank:'達-元大',ccy:'USD',name:'波克夏海瑟威金融公司 BRK 5.75 2040/1/15',isin:'US084664BL47',cusip:'084664BL4',
+   buyPrice:113.5,units:50000,face:57085.42,fx:31.83,twd:1817143.09,curPrice:107.39,sellAmt:54485.62,interest:4312.5,
    coupon:'5.75%',yield:'4.51%',maturity:'2040-01-15',distFreq:'半年',distDates:'1/15, 7/15',
-   couponAmt:1437.5,holdYears:15,note:''},
-  {id:'bd02',date:'2024-09-11',exitDate:'',bank:'達-元大',ccy:'USD',name:'蘋果公司',isin:'US037833EW60',cusip:'037833EW6',
-   buyPrice:105.98,units:50000,face:53811.81,fx:32.16,twd:1730695.43,curPrice:96.57,interest:3637.5,
+   couponAmt:1437.5,holdYears:15,note:'2026/4/23 賣出'},
+
+  {id:'bd02',date:'2024-09-11',exitDate:'2026-04-23',bank:'達-元大',ccy:'USD',name:'蘋果公司 AAPL 4.85 2053/5/10',isin:'US037833EW60',cusip:'037833EW6',
+   buyPrice:105.98,units:50000,face:53811.81,fx:32.16,twd:1730695.43,curPrice:92.23,sellAmt:47219.72,interest:3637.5,
    coupon:'4.85%',yield:'4.48%',maturity:'2053-05-10',distFreq:'半年',distDates:'5/10, 11/10',
-   couponAmt:1212.5,holdYears:28,note:''},
-  {id:'bd03',date:'2024-09-11',exitDate:'',bank:'達-元大',ccy:'USD',name:'波克夏海瑟威金融公司',isin:'US084664CR08',cusip:'084664CR0',
-   buyPrice:94.3,units:50000,face:47486.46,fx:32.16,twd:1527259.53,curPrice:84.95,interest:2125,
+   couponAmt:1212.5,holdYears:28,note:'2026/4/23 賣出'},
+
+  {id:'bd03',date:'2024-09-11',exitDate:'2026-04-23',bank:'達-元大',ccy:'USD',name:'波克夏海瑟威金融公司 BRK 4.25 2049/1/15',isin:'US084664CR08',cusip:'084664CR0',
+   buyPrice:94.3,units:50000,face:47486.46,fx:32.16,twd:1527259.53,curPrice:82.17,sellAmt:41669.37,interest:3187.5,
    coupon:'4.25%',yield:'4.64%',maturity:'2049-01-05',distFreq:'半年',distDates:'1/15, 7/15',
-   couponAmt:1062.5,holdYears:24,note:''},
-  {id:'bd04',date:'2024-09-12',exitDate:'',bank:'達-元大',ccy:'USD',name:'波克夏海瑟威金融公司',isin:'US084664BL47',cusip:'084664BL4',
+   couponAmt:1062.5,holdYears:24,note:'2026/4/23 賣出'},
+
+  {id:'bd04',date:'2024-09-12',exitDate:'',bank:'達-元大',ccy:'USD',name:'波克夏海瑟威金融公司 BRK 5.75 2040/1/15',isin:'US084664BL47',cusip:'084664BL4',
    buyPrice:114.9,units:20000,face:23165.28,fx:32.15,twd:744833.25,curPrice:107.67,interest:1150,
    coupon:'5.75%',yield:'4.40%',maturity:'2040-01-15',distFreq:'半年',distDates:'1/15, 7/15',
    couponAmt:575,holdYears:15,note:''},
-  {id:'bd05',date:'2024-09-16',exitDate:'',bank:'達-元大',ccy:'USD',name:'輝瑞大藥廠',isin:'US717081EV18',cusip:'717081EV1',
-   buyPrice:89.45,units:50000,face:44741.67,fx:31.90,twd:1427348.76,curPrice:80.47,interest:2000,
+
+  {id:'bd05',date:'2024-09-16',exitDate:'2026-04-23',bank:'達-元大',ccy:'USD',name:'輝瑞大藥廠 PFE 4 2049/3/15',isin:'US717081EV18',cusip:'717081EV1',
+   buyPrice:89.45,units:50000,face:44741.67,fx:31.90,twd:1427348.76,curPrice:78.56,sellAmt:39496.67,interest:3000,
    coupon:'4%',yield:'4.73%',maturity:'2049-03-15',distFreq:'半年',distDates:'3/15, 9/15',
-   couponAmt:1000,holdYears:24,note:''},
-  {id:'bd06',date:'2024-09-16',exitDate:'',bank:'達-元大',ccy:'USD',name:'亞培',isin:'US002824AV29',cusip:'002824AV2',
-   buyPrice:118.25,units:50000,face:60516.67,fx:31.90,twd:1930602.81,curPrice:110.37,interest:4500,
+   couponAmt:1000,holdYears:24,note:'2026/4/23 賣出'},
+
+  {id:'bd06',date:'2024-09-16',exitDate:'2026-04-23',bank:'達-元大',ccy:'USD',name:'亞培 ABT 6 2039/4/1',isin:'US002824AV29',cusip:'002824AV2',
+   buyPrice:118.25,units:50000,face:60516.67,fx:31.90,twd:1930602.81,curPrice:107.57,sellAmt:53976.67,interest:6000,
    coupon:'6%',yield:'4.30%',maturity:'2039-04-01',distFreq:'半年',distDates:'4/1, 10/1',
-   couponAmt:1500,holdYears:14,note:''},
-  {id:'bd07',date:'2024-09-16',exitDate:'',bank:'達-元大',ccy:'USD',name:'波克夏海瑟威金融公司',isin:'US084664BL47',cusip:'084664BL4',
+   couponAmt:1500,holdYears:14,note:'2026/4/23 賣出'},
+
+  {id:'bd07',date:'2024-09-16',exitDate:'',bank:'達-元大',ccy:'USD',name:'波克夏海瑟威金融公司 BRK 5.75 2040/1/15',isin:'US084664BL47',cusip:'084664BL4',
    buyPrice:115,units:30000,face:34801.88,fx:31.90,twd:1110249.58,curPrice:107.67,interest:1725,
    coupon:'5.75%',yield:'4.39%',maturity:'2040-01-15',distFreq:'半年',distDates:'1/15, 7/15',
    couponAmt:862.5,holdYears:15,note:''},
-  {id:'bd08',date:'2024-09-16',exitDate:'',bank:'達-元大',ccy:'USD',name:'波克夏海瑟威金融公司',isin:'US084664CR08',cusip:'084664CR0',
-   buyPrice:94.5,units:80000,face:76195,fx:31.90,twd:2430772.89,curPrice:84.95,interest:3400,
+
+  {id:'bd08',date:'2024-09-16',exitDate:'2026-04-23',bank:'達-元大',ccy:'USD',name:'波克夏海瑟威金融公司 BRK 4.25 2049/1/15',isin:'US084664CR08',cusip:'084664CR0',
+   buyPrice:94.5,units:80000,face:76195,fx:31.90,twd:2430772.89,curPrice:82.17,sellAmt:66671.01,interest:5100,
    coupon:'4.25%',yield:'4.63%',maturity:'2049-01-15',distFreq:'半年',distDates:'1/15, 7/15',
-   couponAmt:1700,holdYears:24,note:''},
-  {id:'bd09',date:'2024-09-16',exitDate:'',bank:'達-元大',ccy:'USD',name:'威瑞森電信公司',isin:'US92343VCZ58',cusip:'92343VCZ5',
-   buyPrice:95.75,units:100000,face:95788.93,fx:31.90,twd:3055858.44,curPrice:85.52,interest:4672,
+   couponAmt:1700,holdYears:24,note:'2026/4/23 賣出'},
+
+  {id:'bd09',date:'2024-09-16',exitDate:'2026-04-23',bank:'達-元大',ccy:'USD',name:'威瑞森電信 VZ 4.672 2055/3/15',isin:'US92343VCZ58',cusip:'92343VCZ5',
+   buyPrice:95.75,units:100000,face:95788.93,fx:31.90,twd:3055858.44,curPrice:81.06,sellAmt:81566.13,interest:7008,
    coupon:'4.67%',yield:'4.94%',maturity:'2055-03-15',distFreq:'半年',distDates:'3/15, 9/15',
-   couponAmt:2336,holdYears:30,note:''},
-  {id:'bd10',date:'2024-09-16',exitDate:'',bank:'達-國泰',ccy:'USD',name:'英特爾',isin:'US458140CK47',cusip:'458140CK4',
+   couponAmt:2336,holdYears:30,note:'2026/4/23 賣出'},
+
+  {id:'bd10',date:'2024-09-16',exitDate:'',bank:'達-國泰',ccy:'USD',name:'英特爾 INTC 5.9 2063/2/10',isin:'US458140CK47',cusip:'458140CK4',
    buyPrice:102.15,units:50000,face:153225,fx:31.88,twd:4884813,curPrice:95.39,interest:0,
    coupon:'5.90%',yield:'',maturity:'2063-02-10',distFreq:'半年',distDates:'2/10, 8/10',
    couponAmt:4410,holdYears:38,note:''},
@@ -3792,6 +3819,14 @@ let BD = JSON.parse(localStorage.getItem('fcnBD') || 'null');
 if (!BD) {
   BD = BD_DEFAULT;
   localStorage.setItem('fcnBD', JSON.stringify(BD));
+}
+// 遷移：如果是舊預設資料（沒有 sellAmt 欄位且符合預設 ID 範圍），用新預設覆蓋
+else if (BD.length > 0 && BD[0].id && BD[0].id.startsWith('bd') && BD.every(b => b.sellAmt === undefined)) {
+  // 保留使用者新增的非預設資料
+  const userAdded = BD.filter(b => !b.id.match(/^bd0[1-9]$|^bd10$/));
+  BD = [...BD_DEFAULT, ...userAdded];
+  localStorage.setItem('fcnBD', JSON.stringify(BD));
+  console.log('已更新債券預設資料（含 4/23 賣出紀錄）');
 }
 function saveBD() { localStorage.setItem('fcnBD', JSON.stringify(BD)); syncToGist(); }
 
@@ -3886,6 +3921,7 @@ function bondSave() {
     fx: parseFloat(document.getElementById('bm-fx').value) || 0,
     twd: 0,
     curPrice: parseFloat(document.getElementById('bm-curPrice').value) || 0,
+    sellAmt: 0, // 預留，編輯時可手動填入
     interest: parseFloat(document.getElementById('bm-interest').value) || 0,
     coupon: document.getElementById('bm-coupon').value.trim(),
     yield: document.getElementById('bm-yield').value.trim(),
@@ -3926,24 +3962,43 @@ function bondRender() {
   const totalFace = BD.reduce((a,r) => a + r.face, 0);
   const totalTWD = BD.reduce((a,r) => a + r.twd, 0);
   const totalInt = BD.reduce((a,r) => a + r.interest, 0);
+  // 持有中：用 curPrice * units / 100；已出場：用 sellAmt
   const totalCur = BD.reduce((a,r) => {
     if (r.exitDate) return a;
     return a + (r.curPrice && r.units ? r.curPrice * r.units / 100 : 0);
   }, 0);
+  const totalRealized = BD.reduce((a,r) => {
+    if (!r.exitDate) return a;
+    const sell = r.sellAmt || (r.curPrice * r.units / 100);
+    return a + sell;
+  }, 0);
   const totalPL = BD.reduce((a,r) => {
-    const sell = r.exitDate ? 0 : (r.curPrice * r.units / 100);
-    return a + (sell ? sell + r.interest - r.face : 0);
+    const sell = r.exitDate ? (r.sellAmt || r.curPrice * r.units / 100) : (r.curPrice * r.units / 100);
+    return sell ? a + sell + r.interest - r.face : a;
   }, 0);
   const plPct = totalFace ? (totalPL / totalFace * 100).toFixed(2) : 0;
 
+  // 已實現 vs 未實現損益
+  const realizedPL = BD.reduce((a,r) => {
+    if (!r.exitDate) return a;
+    const sell = r.sellAmt || r.curPrice * r.units / 100;
+    return sell ? a + sell + r.interest - r.face : a;
+  }, 0);
+  const unrealizedPL = BD.reduce((a,r) => {
+    if (r.exitDate) return a;
+    const sell = r.curPrice * r.units / 100;
+    return sell ? a + sell + r.interest - r.face : a;
+  }, 0);
+
   document.getElementById('bond-summary').innerHTML = `
     <div class="card" style="padding:14px;">
-      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;">
+      <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:14px;">
         <div><div class="ml">投資面額</div><div style="font-size:18px;font-weight:600;font-family:var(--mono)">$${F(Math.round(totalFace))}</div><div class="ms">NT$${F(Math.round(totalTWD))}</div></div>
-        <div><div class="ml">目前金額</div><div style="font-size:18px;font-weight:600;font-family:var(--mono);color:var(--bl)">$${F(Math.round(totalCur))}</div></div>
+        <div><div class="ml">目前持有金額</div><div style="font-size:18px;font-weight:600;font-family:var(--mono);color:var(--bl)">$${F(Math.round(totalCur))}</div></div>
         <div><div class="ml">已領利息</div><div style="font-size:18px;font-weight:600;font-family:var(--mono);color:var(--gn)">$${F(Math.round(totalInt))}</div></div>
-        <div><div class="ml">損益（含息）</div><div style="font-size:18px;font-weight:600;font-family:var(--mono);color:${totalPL>=0?'var(--gn)':'var(--rd)'}">${totalPL>=0?'+':''}$${F(Math.round(totalPL))}</div></div>
-        <div><div class="ml">報酬率</div><div style="font-size:18px;font-weight:600;font-family:var(--mono);color:${totalPL>=0?'var(--gn)':'var(--rd)'}">${totalPL>=0?'+':''}${plPct}%</div></div>
+        <div><div class="ml">已實現損益</div><div style="font-size:18px;font-weight:600;font-family:var(--mono);color:${realizedPL>=0?'var(--gn)':'var(--rd)'}">${realizedPL>=0?'+':''}$${F(Math.round(realizedPL))}</div></div>
+        <div><div class="ml">未實現損益</div><div style="font-size:18px;font-weight:600;font-family:var(--mono);color:${unrealizedPL>=0?'var(--gn)':'var(--rd)'}">${unrealizedPL>=0?'+':''}$${F(Math.round(unrealizedPL))}</div></div>
+        <div><div class="ml">總報酬率</div><div style="font-size:18px;font-weight:600;font-family:var(--mono);color:${totalPL>=0?'var(--gn)':'var(--rd)'}">${totalPL>=0?'+':''}${plPct}%</div></div>
       </div>
     </div>`;
 
@@ -3954,35 +4009,49 @@ function bondRender() {
     <div class="ch"><span class="ct">🇺🇸 美元公司債 <span style="font-size:13px;color:var(--tx3);font-weight:400">${rows.length} 筆</span></span></div>
     <div class="tw"><table style="font-size:13px;border-collapse:collapse;">
       <thead><tr>
-        ${th('狀態')}${th('買進日')}${th('銀行')}${th('債券名稱')}${th('CUSIP')}
-        ${th('買進價')}${th('面額')}${th('投資面額')}${th('目前價格')}${th('目前金額')}${th('已領利息')}
-        ${th('損益')}${th('報酬率')}
+        ${th('狀態')}${th('買進日')}${th('賣出日')}${th('銀行')}${th('債券名稱')}${th('CUSIP')}
+        ${th('買進價')}${th('面額')}${th('投資面額')}${th('目前價格')}${th('目前/賣出金額')}${th('已領利息')}
+        ${th('損益（含息）')}${th('報酬率')}
         ${th('利率')}${th('殖利率')}${th('到期日')}${th('配息日')}${th('')}
       </tr></thead>
       <tbody>
       ${rows.map(r => {
         const isExit = !!r.exitDate;
-        const sellAmt = !isExit && r.curPrice && r.units ? r.curPrice * r.units / 100 : 0;
+        // 已出場用 sellAmt（實際賣出價值）；持有中用 curPrice * units / 100
+        const sellAmt = isExit
+          ? (r.sellAmt || (r.curPrice && r.units ? r.curPrice * r.units / 100 : 0))
+          : (r.curPrice && r.units ? r.curPrice * r.units / 100 : 0);
         const pl = sellAmt ? sellAmt + r.interest - r.face : 0;
         const pct = r.face && pl ? (pl / r.face * 100).toFixed(2) : null;
         const plColor = pl > 0 ? 'var(--gn)' : pl < 0 ? 'var(--rd)' : 'var(--tx3)';
         const badge = isExit
           ? `<span class="badge" style="background:var(--sur2);color:var(--tx3);font-size:11px">已出場</span>`
           : `<span class="badge" style="background:var(--bll);color:var(--bl);font-size:11px">持有中</span>`;
-        return `<tr style="${isExit?'opacity:.7':''}">
+        const isEstimate = !isExit && sellAmt > 0;
+        return `<tr style="${isExit?'opacity:.85':''}">
           <td>${badge}</td>
           <td class="mono" style="white-space:nowrap">${r.date}</td>
+          <td class="mono" style="white-space:nowrap;color:var(--rd)">${r.exitDate||'—'}</td>
           <td style="white-space:nowrap;font-weight:600">${r.bank}</td>
-          <td style="max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${r.name}">${r.name}</td>
+          <td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${r.name}">${r.name}</td>
           <td class="mono" style="font-size:11px;color:var(--tx3);white-space:nowrap">${r.cusip||'—'}</td>
           <td class="mono right">${r.buyPrice||'—'}</td>
           <td class="mono right">${F(r.units,0)}</td>
           <td class="mono right">$${F(r.face,0)}<div style="font-size:11px;color:var(--tx3)">NT$${F(Math.round(r.twd))}</div></td>
-          <td class="mono right" style="cursor:pointer;color:${r.curPrice?'var(--bl)':'var(--tx3)'}" onclick="bondEditPrice('${r.id}')" title="點擊更新">${r.curPrice||'點擊填入'}</td>
-          <td class="mono right" style="color:var(--bl)">${sellAmt?'$'+F(Math.round(sellAmt)):'—'}</td>
+          <td class="mono right" style="cursor:pointer;color:${r.curPrice?(isExit?'var(--tx2)':'var(--bl)'):'var(--tx3)'}" onclick="bondEditPrice('${r.id}')" title="點擊更新">${r.curPrice||'點擊填入'}</td>
+          <td class="mono right" style="color:${isExit?'var(--tx)':'var(--bl)'};font-weight:${isExit?'600':'400'}">
+            ${sellAmt?'$'+F(Math.round(sellAmt)):'—'}
+            ${isEstimate?'<div style="font-size:11px;color:var(--gd)">暫估</div>':''}
+          </td>
           <td class="mono right cg">$${F(r.interest,0)}</td>
-          <td class="mono right" style="color:${plColor};font-weight:600">${pl?(pl>=0?'+':'')+'$'+F(Math.round(pl)):'—'}</td>
-          <td class="mono right" style="color:${plColor}">${pct?(pl>=0?'+':'')+pct+'%':'—'}</td>
+          <td class="mono right" style="color:${plColor};font-weight:600">
+            ${pl?(pl>=0?'+':'')+'$'+F(Math.round(pl)):'—'}
+            ${isEstimate?'<div style="font-size:11px;color:var(--gd)">暫估</div>':''}
+          </td>
+          <td class="mono right" style="color:${plColor}">
+            ${pct?(pl>=0?'+':'')+pct+'%':'—'}
+            ${isEstimate?'<div style="font-size:11px;color:var(--gd)">暫估</div>':''}
+          </td>
           <td class="mono right">${r.coupon||'—'}</td>
           <td class="mono right">${r.yield||'—'}</td>
           <td class="mono" style="white-space:nowrap;font-size:11px">${r.maturity||'—'}</td>

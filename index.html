@@ -679,15 +679,27 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
 <!-- FUND -->
 <div id="sec-fund" class="sec">
   <div class="ph">
-    <div><div class="pt">基金管理</div><div class="ps">記錄每筆基金投資，自動計算損益與報酬率</div></div>
+    <div><div class="pt">基金管理</div><div class="ps">記錄每筆基金投資，追蹤配息紀錄</div></div>
     <div style="display:flex;gap:8px;">
       <button class="btn btnsm" onclick="fundOpenForm()">＋ 新增基金</button>
     </div>
   </div>
-  <!-- 摘要卡片 -->
-  <div id="fund-summary" style="margin-bottom:12px;"></div>
-  <!-- 分幣別表格 -->
-  <div id="fund-tables"></div>
+  <!-- 分頁切換 -->
+  <div style="display:flex;gap:2px;margin-bottom:12px;border-bottom:2px solid var(--bdr);">
+    <button id="ftab-list" class="btn" onclick="fundTab('list')"
+      style="border-radius:var(--r) var(--r) 0 0;border-bottom:none;padding:6px 18px;font-size:12px;background:var(--ac);color:#fff;">基金清單</button>
+    <button id="ftab-dist" class="btn" onclick="fundTab('dist')"
+      style="border-radius:var(--r) var(--r) 0 0;border-bottom:none;padding:6px 18px;font-size:12px;">配息紀錄</button>
+  </div>
+  <!-- 基金清單 tab -->
+  <div id="ftab-list-body">
+    <div id="fund-summary" style="margin-bottom:12px;"></div>
+    <div id="fund-tables"></div>
+  </div>
+  <!-- 配息紀錄 tab -->
+  <div id="ftab-dist-body" style="display:none;">
+    <div id="fund-dist-wrap"></div>
+  </div>
 </div>
 
 <!-- 基金新增/編輯 Modal -->
@@ -2891,6 +2903,260 @@ function fundRender(){
     </div>`;
   }).join('');
   document.getElementById('fund-tables').innerHTML=tableHtml||'<div style="text-align:center;padding:32px;color:var(--tx3)">尚無基金紀錄，點右上角新增</div>';
+}
+
+// ── FUND DISTRIBUTION (配息紀錄) ─────────────────────────
+// Storage: fdDist[fundId] = { 'YYYY-MM': { units, perUnit, total, rate } }
+let fdDist = JSON.parse(localStorage.getItem('fcnFDDist') || '{}');
+function saveFdDist() { localStorage.setItem('fcnFDDist', JSON.stringify(fdDist)); }
+
+let _fundTab = 'list';
+function fundTab(t) {
+  _fundTab = t;
+  document.getElementById('ftab-list-body').style.display = t === 'list' ? '' : 'none';
+  document.getElementById('ftab-dist-body').style.display = t === 'dist' ? '' : 'none';
+  const btnL = document.getElementById('ftab-list');
+  const btnD = document.getElementById('ftab-dist');
+  if (t === 'list') {
+    btnL.style.background = 'var(--ac)'; btnL.style.color = '#fff';
+    btnD.style.background = ''; btnD.style.color = '';
+  } else {
+    btnD.style.background = 'var(--ac)'; btnD.style.color = '#fff';
+    btnL.style.background = ''; btnL.style.color = '';
+    fundDistRender();
+  }
+}
+
+function fundDistRender() {
+  const el = document.getElementById('fund-dist-wrap');
+  // 只顯示有配息類型（非無配息）的基金
+  const distFunds = FD.filter(r => r.distType && r.distType !== '無配息');
+  if (!distFunds.length) {
+    el.innerHTML = '<div style="text-align:center;padding:48px;color:var(--tx3)">尚無配息基金</div>';
+    return;
+  }
+
+  // 產生月份列表：從最早買進日到今天+3個月
+  const allDates = distFunds.map(r => new Date(r.date)).filter(d => !isNaN(d));
+  const minDate = new Date(Math.min(...allDates));
+  const maxDate = new Date(); maxDate.setMonth(maxDate.getMonth() + 2);
+  const months = [];
+  let cur = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
+  while (cur <= maxDate) {
+    months.push(`${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,'0')}`);
+    cur.setMonth(cur.getMonth() + 1);
+  }
+
+  const MW = 62, CW = 110;
+
+  let h = `<div class="int-wrap" style="max-height:calc(100vh - 200px);">
+  <table class="int-table" style="border-collapse:collapse;">
+  <thead>
+    <tr>
+      <th style="position:sticky;top:0;left:0;z-index:5;background:var(--sur2);width:${MW}px;min-width:${MW}px;
+          padding:5px 6px;font-size:10px;text-align:center;border-right:3px solid var(--ac2);">月份</th>
+      ${distFunds.map(r => `
+        <th style="position:sticky;top:0;z-index:3;background:var(--sur2);min-width:${CW}px;width:${CW}px;
+            border-right:1px solid var(--bdr);padding:4px 6px;text-align:center;cursor:default;">
+          <div style="font-size:9px;font-weight:600;color:var(--tx2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:${CW-8}px;">
+            ${r.name.length > 12 ? r.name.slice(0, 12) + '…' : r.name}
+          </div>
+          <div style="font-size:9px;color:var(--tx3);">${r.ccy} · ${r.distType}</div>
+          ${r.distPerUnit ? `<div style="font-size:9px;color:var(--bl);">單位配息 ${r.distPerUnit}</div>` : ''}
+        </th>`).join('')}
+      <th style="position:sticky;top:0;z-index:3;background:var(--sur2);min-width:90px;
+          border-left:3px solid var(--ac2);font-size:9px;font-weight:600;color:var(--tx3);text-align:center;">當月合計</th>
+    </tr>
+  </thead>
+  <tbody>`;
+
+  let prevY = null;
+  months.forEach(ym => {
+    const [y, m] = ym.split('-');
+    if (y !== prevY) {
+      prevY = y;
+      h += `<tr style="background:var(--ac);"><td colspan="${distFunds.length + 2}"
+        style="padding:3px 10px;font-size:10px;font-weight:700;color:rgba(255,255,255,.8)">${y} 年</td></tr>`;
+    }
+
+    // 各基金當月總計
+    let monthTotals = {};
+    distFunds.forEach(r => {
+      const d = fdDist[r.id] && fdDist[r.id][ym];
+      if (d && d.total) {
+        monthTotals[r.ccy] = (monthTotals[r.ccy] || 0) + d.total;
+      }
+    });
+    const totHtml = Object.entries(monthTotals).map(([ccy, v]) =>
+      `<div class="mono" style="font-size:11px;font-weight:600;color:var(--gn)">${SY(ccy)}${F(v, 2)}</div>`
+    ).join('') || '<span style="color:var(--tx3);font-size:11px">—</span>';
+
+    h += `<tr>
+      <td style="position:sticky;left:0;z-index:2;background:var(--sur2);font-weight:700;font-size:12px;
+          text-align:center;padding:5px 4px;border-right:3px solid var(--ac2);border-bottom:1px solid var(--bdr);">
+        ${parseInt(m)}月</td>
+      ${distFunds.map(r => {
+        const sym = SY(r.ccy);
+        const isJP = r.ccy === 'JPY';
+        const d = (fdDist[r.id] || {})[ym] || {};
+        const hasData = !!d.total;
+        // 判斷這個基金是否在這個月有效（買進後、賣出前）
+        const buyYM = r.date ? r.date.slice(0, 7) : '9999-99';
+        const exitYM = r.exitDate && /^\d{4}-\d{2}/.test(r.exitDate) ? r.exitDate.slice(0, 7) : '9999-12';
+        const inRange = ym >= buyYM && ym <= exitYM;
+        if (!inRange) {
+          return `<td style="border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);
+            background:var(--bg);min-width:${CW}px;"></td>`;
+        }
+        return `<td onclick="fundDistEdit('${r.id}','${ym}')"
+          style="border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);min-width:${CW}px;
+          cursor:pointer;vertical-align:middle;background:${hasData ? 'var(--gnl)' : 'var(--bg)'};">
+          <div style="padding:5px 6px;font-size:10px;">
+            ${hasData ? `
+              <div class="mono" style="font-weight:600;color:var(--gn)">${sym}${F(d.total, 2)}</div>
+              <div style="color:var(--tx3);margin-top:1px;">
+                ${d.units ? F(d.units, 0) + '單位' : ''}
+                ${d.perUnit ? '× ' + d.perUnit : ''}
+              </div>
+              ${d.rate ? `<div style="color:var(--bl);font-size:9px;">實際配息率 ${d.rate}%</div>` : ''}
+            ` : `<div style="color:var(--tx3);text-align:center;">＋</div>`}
+          </div>
+        </td>`;
+      }).join('')}
+      <td style="border-left:3px solid var(--ac2);border-bottom:1px solid var(--bdr);
+          text-align:center;padding:4px;background:${Object.keys(monthTotals).length ? 'var(--gnl)' : 'var(--bg)'};">
+        ${totHtml}
+      </td>
+    </tr>`;
+  });
+
+  h += '</tbody></table></div>';
+  el.innerHTML = h;
+}
+
+function fundDistEdit(fundId, ym) {
+  const r = FD.find(x => x.id === fundId);
+  if (!r) return;
+  const existing = (fdDist[fundId] || {})[ym] || {};
+  const [y, m] = ym.split('-');
+
+  // 自動帶入每單位配息率
+  const autoPerUnit = r.distPerUnit || '';
+  const autoUnits = r.units || '';
+
+  const html = `
+    <div style="font-size:13px;font-weight:600;margin-bottom:12px;">
+      ${r.name}<br>
+      <span style="font-size:11px;color:var(--tx3);font-weight:400">${y}年${parseInt(m)}月 配息紀錄</span>
+    </div>
+    <div class="fg" style="margin-bottom:10px;">
+      <div class="fgrp">
+        <label>持有單位數</label>
+        <input type="number" id="fd-edit-units" value="${existing.units || autoUnits}" placeholder="${autoUnits || '例：5146'}" step="0.001">
+        <div class="hint">基金持有的單位數</div>
+      </div>
+      <div class="fgrp">
+        <label>每單位配息率（基金公告）</label>
+        <input type="number" id="fd-edit-perUnit" value="${existing.perUnit !== undefined ? existing.perUnit : autoPerUnit}" placeholder="${autoPerUnit || '例：6.94'}" step="0.0001">
+        <div class="hint" style="color:var(--bl)">系統自動帶入：${autoPerUnit || '請填入'}</div>
+      </div>
+    </div>
+    <div class="fg" style="margin-bottom:10px;">
+      <div class="fgrp">
+        <label style="color:var(--gn)">實際配息金額（手動輸入）</label>
+        <input type="number" id="fd-edit-total" value="${existing.total || ''}"
+          placeholder="實際入帳金額" step="0.01" oninput="fdEditCalcRate()">
+        <div class="hint" style="color:var(--gn)">從帳單確認的實際入帳金額</div>
+      </div>
+      <div class="fgrp">
+        <label style="color:var(--bl)">計算配息金額（自動）</label>
+        <input type="text" id="fd-edit-calc" readonly style="background:var(--sur2);font-family:var(--mono);"
+          placeholder="單位數 × 每單位配息率">
+      </div>
+    </div>
+    <div class="fg" style="margin-bottom:10px;">
+      <div class="fgrp">
+        <label>實際配息率（自動計算）</label>
+        <input type="text" id="fd-edit-rate" readonly style="background:var(--sur2);font-family:var(--mono);"
+          placeholder="實際配息金額 ÷ 投資面額 × 12">
+        <div class="hint">年化配息率 = 實際配息 ÷ 投資面額 × 12</div>
+      </div>
+      <div class="fgrp">
+        <label>備註</label>
+        <input type="text" id="fd-edit-note" value="${existing.note || ''}" placeholder="例：含匯率損益">
+      </div>
+    </div>
+    <div id="fd-edit-hint" style="font-size:11px;color:var(--tx3);margin-bottom:10px;"></div>`;
+
+  // 用 modal 顯示
+  const modal = document.createElement('div');
+  modal.className = 'mo open';
+  modal.innerHTML = `<div class="mb2" style="width:560px;">
+    ${html}
+    <div class="mba">
+      <button class="btn" onclick="this.closest('.mo').remove()">取消</button>
+      ${existing.total ? `<button class="btn" style="color:var(--rd)" onclick="fdDistDelete('${fundId}','${ym}',this)">刪除</button>` : ''}
+      <button class="btn btnp" onclick="fdDistSave('${fundId}','${ym}',${r.face||0},this)">儲存</button>
+    </div>
+  </div>`;
+  modal.onclick = e => { if (e.target === modal) modal.remove(); };
+  document.body.appendChild(modal);
+
+  // 自動計算
+  setTimeout(() => fdEditCalcRate(r.face), 50);
+}
+
+function fdEditCalcRate(face) {
+  const units = parseFloat(document.getElementById('fd-edit-units')?.value) || 0;
+  const perUnit = parseFloat(document.getElementById('fd-edit-perUnit')?.value) || 0;
+  const total = parseFloat(document.getElementById('fd-edit-total')?.value) || 0;
+  const calcEl = document.getElementById('fd-edit-calc');
+  const rateEl = document.getElementById('fd-edit-rate');
+  const hintEl = document.getElementById('fd-edit-hint');
+
+  // 計算配息金額 = 單位數 × 每單位配息率
+  if (units && perUnit && calcEl) {
+    const calc = units * perUnit;
+    calcEl.value = F(calc, 2);
+  } else if (calcEl) calcEl.value = '';
+
+  // 實際配息率 = 實際配息 ÷ 投資面額 × 12（年化）
+  if (total && face && rateEl) {
+    const rate = (total / face * 12 * 100).toFixed(4);
+    rateEl.value = rate + '%';
+  } else if (rateEl) rateEl.value = '';
+
+  // hint：實際 vs 計算差異
+  if (total && units && perUnit && hintEl) {
+    const calc = units * perUnit;
+    const diff = total - calc;
+    const diffPct = calc ? (diff / calc * 100).toFixed(2) : 0;
+    hintEl.innerHTML = diff !== 0
+      ? `<span style="color:${diff > 0 ? 'var(--gn)' : 'var(--rd)'}">實際 vs 計算差距：${diff > 0 ? '+' : ''}${F(diff, 2)}（${diffPct}%）</span>`
+      : '<span style="color:var(--gn)">✓ 實際與計算一致</span>';
+  }
+}
+
+function fdDistSave(fundId, ym, face, btn) {
+  const units = parseFloat(document.getElementById('fd-edit-units')?.value) || 0;
+  const perUnit = parseFloat(document.getElementById('fd-edit-perUnit')?.value) || 0;
+  const total = parseFloat(document.getElementById('fd-edit-total')?.value) || 0;
+  const note = document.getElementById('fd-edit-note')?.value.trim() || '';
+  if (!total) { alert('請輸入實際配息金額'); return; }
+  const rate = total && face ? (total / face * 12 * 100).toFixed(4) : '';
+  if (!fdDist[fundId]) fdDist[fundId] = {};
+  fdDist[fundId][ym] = { units, perUnit, total, rate, note, updatedAt: new Date().toISOString() };
+  saveFdDist();
+  btn.closest('.mo').remove();
+  fundDistRender();
+}
+
+function fdDistDelete(fundId, ym, btn) {
+  if (!confirm('刪除這筆配息紀錄？')) return;
+  if (fdDist[fundId]) delete fdDist[fundId][ym];
+  saveFdDist();
+  btn.closest('.mo').remove();
+  fundDistRender();
 }
 document.getElementById('last-update').textContent=localStorage.getItem('fcnlast')||'首次載入';
 </script>

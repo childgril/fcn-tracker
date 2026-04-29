@@ -2755,21 +2755,56 @@ function fundDelete(id){
   FD=FD.filter(x=>x.id!==id);saveFD();fundRender();
 }
 
-function fundEditNav(id){
+async function fundEditNav(id){
   const r=FD.find(x=>x.id===id);if(!r)return;
-  const url=r.url;
-  const cur=r.curNav?r.curNav:'';
-  // open url in background if available
-  if(url){
-    const open=confirm(`開啟基金頁面查詢淨值？\n${r.name}\n\n確定=開啟頁面後填入，取消=直接輸入`);
-    if(open){window.open(url,'_blank');}
+
+  // 嘗試從 cnyes API 自動抓取
+  if(r.url&&r.url.includes('fund.cnyes.com')){
+    const m=r.url.match(/\/([AB]\d{4,6})\b/i)||r.url.match(/\/([A-Z0-9]{5,8})(?:\/|$)/i);
+    if(m){
+      const fundId=m[1];
+      const endpoints=[
+        `https://fund.api.cnyes.com/fund/api/v2/funds/${fundId}/nav?format=simple`,
+        `https://fund.api.cnyes.com/fund/api/v2/funds/${fundId}/quotes`,
+        `https://fund.api.cnyes.com/fund/api/v2/funds/${fundId}`,
+      ];
+      const proxies=['https://corsproxy.io/?','https://api.allorigins.win/raw?url='];
+      for(const ep of endpoints){
+        for(const proxy of proxies){
+          try{
+            const url2=proxy.endsWith('=')? proxy+encodeURIComponent(ep) : proxy+encodeURIComponent(ep);
+            const resp=await fetch(url2,{signal:AbortSignal.timeout(7000)});
+            if(!resp.ok)continue;
+            const j=await resp.json();
+            // parse various response shapes
+            const nav=j?.items?.nav||j?.items?.[0]?.nav||
+                      j?.data?.nav||j?.data?.[0]?.nav||
+                      j?.nav||j?.price||j?.netAssetValue||
+                      (Array.isArray(j)?j[0]?.nav:null);
+            const v=parseFloat(nav);
+            if(v>0){
+              r.curNav=v; saveFD(); fundRender();
+              alert(`✓ 自動抓取成功：${r.name}\n目前淨值 = ${v}`);
+              return;
+            }
+          }catch(e){}
+        }
+      }
+    }
   }
-  const val=prompt(`${r.name}\n\n請輸入目前淨值：`,cur);
+
+  // 若有網址，先問要不要開啟
+  if(r.url){
+    if(confirm(`無法自動抓取，要開啟基金頁面查詢嗎？\n${r.name}`)){
+      window.open(r.url,'_blank');
+    }
+  }
+  // 手動輸入
+  const val=prompt(`${r.name}\n\n請輸入目前淨值：`,r.curNav||'');
   if(val===null)return;
   const n=parseFloat(val);
-  if(isNaN(n)||n<=0){alert('請輸入有效的數字');return;}
-  r.curNav=n;
-  saveFD();fundRender();
+  if(isNaN(n)||n<=0){alert('請輸入有效數字');return;}
+  r.curNav=n; saveFD(); fundRender();
 }
 
 function fundRender(){

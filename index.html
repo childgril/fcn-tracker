@@ -2677,23 +2677,33 @@ function setToken(t){localStorage.setItem('fcnGithubToken',t);}
 async function fetchGistNav(){
   try{
     const token=getToken();
-    const headers={'Accept':'application/vnd.github.v3+json'};
-    if(token) headers['Authorization']='token '+token;
+    if(!token){alert('請先點「🔑 設定 GitHub Token」');return null;}
+    const headers={'Accept':'application/vnd.github.v3+json','Authorization':'token '+token};
     const resp=await fetch('https://api.github.com/gists/'+GIST_NAV_ID,{headers,signal:AbortSignal.timeout(10000)});
-    if(!resp.ok)return null;
+    if(!resp.ok){console.log('Gist API error:',resp.status);return null;}
     const j=await resp.json();
     const content=j?.files?.['fund_nav.json']?.content;
-    if(!content)return null;
+    if(!content){console.log('No fund_nav.json in gist');return null;}
     const data=JSON.parse(content);
     gistNavCache=data.funds||{};
-    let updated=false;
+    console.log('Gist keys:',Object.keys(gistNavCache));
+    let updated=0;
     FD.forEach(fd=>{
-      const key=fd.isin||fd.acct;
-      if(key&&gistNavCache[key]){fd.curNav=gistNavCache[key].nav;updated=true;}
+      // 用多個欄位比對：isin, acct, id
+      const keys=[fd.isin,fd.acct,fd.id].filter(Boolean);
+      for(const key of keys){
+        if(gistNavCache[key]){
+          fd.curNav=gistNavCache[key].nav;
+          console.log('Match:',fd.name,'→',fd.curNav,'(key:',key+')');
+          updated++;
+          break;
+        }
+      }
     });
+    console.log('Updated',updated,'funds');
     if(updated) saveFD();
     return data.updated_at;
-  }catch(e){console.log('nav fetch error:',e);}
+  }catch(e){console.log('nav fetch error:',e);alert('錯誤：'+e.message);}
   return null;
 }
 

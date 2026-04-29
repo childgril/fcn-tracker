@@ -21,7 +21,7 @@ html{font-size:16px;}
 .ni.active{background:rgba(255,255,255,.12);color:#fff;border-left-color:var(--gd);font-weight:500;}
 .ni svg{width:15px;height:15px;flex-shrink:0;}
 .sbf{padding:10px 18px;border-top:1px solid rgba(255,255,255,.1);font-size:15px;color:rgba(255,255,255,.3);}
-.main{flex:1;min-width:0;height:100vh;overflow-y:auto;padding:14px 18px;}
+.main{flex:1;min-width:0;height:100vh;overflow-y:auto;overflow-x:auto;padding:14px 18px;}
 .ph{margin-bottom:8px;display:flex;align-items:flex-end;justify-content:space-between;}
 .pt{font-size:17px;font-weight:700;}
 .ps{font-size:16px;color:var(--tx2);margin-top:2px;}
@@ -30,7 +30,7 @@ html{font-size:16px;}
 .btnp{background:var(--ac);color:#fff;border-color:var(--ac);}
 .btnp:hover{background:var(--ac2);border-color:var(--ac2);}
 .btnsm{padding:3px 8px;font-size:16px;}
-.mr{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:8px;}
+.mr{display:grid;grid-template-columns:repeat(5,minmax(180px,1fr));gap:8px;margin-bottom:8px;min-width:980px;}
 .mc{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);padding:10px 14px;}
 .ml{font-size:16px;font-weight:600;color:var(--tx3);letter-spacing:.07em;text-transform:uppercase;margin-bottom:3px;}
 .mv{font-size:16px;font-weight:700;font-family:var(--mono);}
@@ -216,6 +216,9 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
     <div style="border-top:1px solid var(--bdr);margin:8px 12px;opacity:.5"></div>
     <div class="ni" data-sec="fund" onclick="showSec('fund')"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v1.5M8 9.5V11M6 7.5c0-.8.9-1.5 2-1.5s2 .7 2 1.5S9.1 9 8 9s-2 .7-2 1.5S7 12 8 12" stroke-linecap="round"/></svg>基金管理</div>
     <div class="ni" data-sec="funddist" onclick="showSec('funddist')"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="1.5"/><path d="M5 6h6M5 8.5h4M5 11h3" stroke-linecap="round"/><circle cx="12" cy="11" r="2.5" fill="var(--gn)" stroke="none" opacity=".8"/><path d="M11 11h2M12 10v2" stroke="white" stroke-width="1.2" stroke-linecap="round"/></svg>基金配息紀錄</div>
+    <div style="height:1px;background:rgba(255,255,255,.1);margin:10px 18px;"></div>
+    <div class="ni" data-sec="bond" onclick="showSec('bond')"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="12" height="10" rx="1"/><path d="M2 6h12M5 9h6M5 11h4" stroke-linecap="round"/></svg>債券管理</div>
+    <div class="ni" data-sec="bonddist" onclick="showSec('bonddist')"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="1.5"/><path d="M5 6h6M5 8.5h4M5 11h3" stroke-linecap="round"/><circle cx="12" cy="11" r="2.5" fill="var(--bl)" stroke="none" opacity=".8"/><path d="M11 11h2M12 10v2" stroke="white" stroke-width="1.2" stroke-linecap="round"/></svg>債券配息紀錄</div>
   </div>
   <div class="sbf">資料存於本機瀏覽器<br>最後更新：<span id="last-update">—</span>
     <span id="sync-status" style="font-size:16px;color:var(--gn);margin-left:6px;"></span>
@@ -817,6 +820,89 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
   <div id="funddist-wrap"></div>
 </div>
 
+<!-- BOND MANAGEMENT -->
+<div id="sec-bond" class="sec">
+  <div class="ph">
+    <div><div class="pt">債券管理</div><div class="ps">記錄美國公司債投資，追蹤目前價格與損益</div></div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <span id="bond-price-updated" style="font-size:11px;color:var(--tx3)"></span>
+      <button class="btn btnsm" onclick="(async()=>{const btn=event.target;btn.textContent='抓取中…';btn.disabled=true;const ts=await fetchBondPrices();if(ts){const d=new Date(ts);document.getElementById('bond-price-updated').textContent='價格更新：'+d.toLocaleDateString('zh-TW')+' '+d.toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});bondRender();btn.textContent='↻ 更新價格';}else{btn.textContent='更新失敗';}btn.disabled=false;})()">↻ 更新價格</button>
+      <button class="btn btnsm" onclick="bondOpenForm()">＋ 新增債券</button>
+    </div>
+  </div>
+  <div id="bond-summary" style="margin-bottom:12px;"></div>
+  <div id="bond-tables"></div>
+</div>
+
+<!-- BOND DIST -->
+<div id="sec-bonddist" class="sec">
+  <div class="ph">
+    <div><div class="pt">債券配息紀錄</div><div class="ps">半年配息，依配息日自動列出每期</div></div>
+  </div>
+  <div id="bonddist-wrap"></div>
+</div>
+
+<!-- 債券新增/編輯 Modal -->
+<div class="mo" id="bond-modal" onclick="if(event.target===this)bondCloseForm()">
+  <div class="mb2" style="width:680px;max-height:92vh;overflow-y:auto;">
+    <div class="mh"><h3 id="bm-title">新增債券</h3><button class="mc" onclick="bondCloseForm()">×</button></div>
+    <input type="hidden" id="bm-id">
+    <div class="fg4" style="margin-bottom:10px;">
+      <div class="fgrp"><label>買進日 *</label><input type="date" id="bm-date"></div>
+      <div class="fgrp"><label>賣出日</label><input type="date" id="bm-exitDate"></div>
+      <div class="fgrp"><label>銀行 *</label><input type="text" id="bm-bank" placeholder="達-元大"></div>
+      <div class="fgrp"><label>幣別</label>
+        <select id="bm-ccy"><option value="USD">美元 USD</option></select>
+      </div>
+    </div>
+    <div class="fgrp" style="margin-bottom:10px;"><label>債券名稱 *</label><input type="text" id="bm-name" placeholder="波克夏海瑟威金融公司"></div>
+    <div class="fg4" style="margin-bottom:10px;">
+      <div class="fgrp"><label>ISIN</label><input type="text" id="bm-isin" placeholder="US084664BL47" oninput="bmIsinChange()"></div>
+      <div class="fgrp"><label>CUSIP（自動）</label><input type="text" id="bm-cusip" readonly style="background:var(--sur2)"></div>
+      <div class="fgrp"><label>票面利率</label><input type="text" id="bm-coupon" placeholder="5.75%"></div>
+      <div class="fgrp"><label>到期殖利率</label><input type="text" id="bm-yield" placeholder="4.51%"></div>
+    </div>
+    <div class="fg4" style="margin-bottom:10px;">
+      <div class="fgrp"><label>買進價格</label><input type="number" id="bm-buyPrice" step="0.01" placeholder="113.5" oninput="bmCalc()"></div>
+      <div class="fgrp"><label>面額</label><input type="number" id="bm-units" step="1" placeholder="50000" oninput="bmCalc()"></div>
+      <div class="fgrp"><label>投資面額（自動）</label><input type="number" id="bm-face" step="0.01" readonly style="background:var(--sur2)"></div>
+      <div class="fgrp">
+        <label>匯率</label>
+        <input type="number" id="bm-fx" step="0.01" placeholder="31.83" oninput="bmCalc()">
+      </div>
+    </div>
+    <div class="fg4" style="margin-bottom:10px;">
+      <div class="fgrp">
+        <label>台幣成本（自動）</label>
+        <input type="text" id="bm-twd" readonly style="background:var(--sur2);font-family:var(--mono)">
+      </div>
+      <div class="fgrp">
+        <label>目前價格</label>
+        <input type="number" id="bm-curPrice" step="0.01" placeholder="107.67" oninput="bmCalc()">
+      </div>
+      <div class="fgrp"><label>已領利息</label><input type="number" id="bm-interest" step="0.01" placeholder="2875" oninput="bmCalc()"></div>
+      <div class="fgrp"><label>到期日</label><input type="date" id="bm-maturity"></div>
+    </div>
+    <div class="fg4" style="margin-bottom:10px;">
+      <div class="fgrp"><label>配息頻率</label>
+        <select id="bm-distFreq"><option value="半年">半年</option><option value="季配">季配</option><option value="月配">月配</option><option value="年配">年配</option></select>
+      </div>
+      <div class="fgrp"><label>配息日（M/D，逗號分隔）</label><input type="text" id="bm-distDates" placeholder="1/15, 7/15"></div>
+      <div class="fgrp"><label>每期配息金額</label><input type="number" id="bm-couponAmt" step="0.01" placeholder="1437.5"></div>
+      <div class="fgrp"><label>持有年限</label><input type="number" id="bm-holdYears" step="1" placeholder="15"></div>
+    </div>
+    <div class="fg" style="margin-bottom:10px;">
+      <div class="fgrp"><label>損益（自動）</label><input type="text" id="bm-pl" readonly style="background:var(--sur2);font-family:var(--mono)"></div>
+      <div class="fgrp"><label>報酬率（自動）</label><input type="text" id="bm-plPct" readonly style="background:var(--sur2);font-family:var(--mono)"></div>
+    </div>
+    <div class="fgrp" style="margin-bottom:14px;"><label>備註</label><input type="text" id="bm-note" placeholder=""></div>
+    <div class="mba">
+      <button class="btn" onclick="bondCloseForm()">取消</button>
+      <button class="btn btnp" onclick="bondSave()">儲存</button>
+    </div>
+  </div>
+</div>
+
 </main>
 </div>
 
@@ -895,6 +981,8 @@ function showSec(n){
   else if(n==='report')rrep();
   else if(n==='fund')initFund();
   else if(n==='funddist')initFundDist();
+  else if(n==='bond')initBond();
+  else if(n==='bonddist')initBondDist();
 }
 
 let dashCF='all';
@@ -2729,6 +2817,8 @@ async function syncToGist(){
     fcnQT:JSON.parse(localStorage.getItem('fcnQT')||'[]'),
     fcnFD:JSON.parse(localStorage.getItem('fcnFD')||'[]'),
     fcnFDDist:JSON.parse(localStorage.getItem('fcnFDDist')||'{}'),
+    fcnBD:JSON.parse(localStorage.getItem('fcnBD')||'[]'),
+    fcnBDDist:JSON.parse(localStorage.getItem('fcnBDDist')||'{}'),
   };
   const content=JSON.stringify(data,null,2);
   const headers={
@@ -2774,6 +2864,8 @@ async function loadFromGist(){
     if(data.fcnQT) localStorage.setItem('fcnQT',JSON.stringify(data.fcnQT));
     if(data.fcnFD) localStorage.setItem('fcnFD',JSON.stringify(data.fcnFD));
     if(data.fcnFDDist) localStorage.setItem('fcnFDDist',JSON.stringify(data.fcnFDDist));
+    if(data.fcnBD) localStorage.setItem('fcnBD',JSON.stringify(data.fcnBD));
+    if(data.fcnBDDist) localStorage.setItem('fcnBDDist',JSON.stringify(data.fcnBDDist));
     return data.savedAt;
   }catch(e){console.log('load error:',e);}
   return false;
@@ -3440,6 +3532,8 @@ function exportData(){
     fcnQT: JSON.parse(localStorage.getItem('fcnQT')||'[]'),
     fcnFD: JSON.parse(localStorage.getItem('fcnFD')||'[]'),
     fcnFDDist: JSON.parse(localStorage.getItem('fcnFDDist')||'{}'),
+    fcnBD: JSON.parse(localStorage.getItem('fcnBD')||'[]'),
+    fcnBDDist: JSON.parse(localStorage.getItem('fcnBDDist')||'{}'),
     fcnEV3: JSON.parse(localStorage.getItem('fcnEV3')||'[]'),
   };
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
@@ -3465,6 +3559,8 @@ function importData(input){
       if(data.fcnQT) localStorage.setItem('fcnQT',JSON.stringify(data.fcnQT));
       if(data.fcnFD) localStorage.setItem('fcnFD',JSON.stringify(data.fcnFD));
       if(data.fcnFDDist) localStorage.setItem('fcnFDDist',JSON.stringify(data.fcnFDDist));
+      if(data.fcnBD) localStorage.setItem('fcnBD',JSON.stringify(data.fcnBD));
+      if(data.fcnBDDist) localStorage.setItem('fcnBDDist',JSON.stringify(data.fcnBDDist));
       if(data.fcnEV3) localStorage.setItem('fcnEV3',JSON.stringify(data.fcnEV3));
       alert('✓ 匯入成功！頁面即將重新載入');
       location.reload();
@@ -3546,6 +3642,8 @@ function gistCollectData(){
     fcnQT: JSON.parse(localStorage.getItem('fcnQT')||'[]'),
     fcnFD: JSON.parse(localStorage.getItem('fcnFD')||'[]'),
     fcnFDDist: JSON.parse(localStorage.getItem('fcnFDDist')||'{}'),
+    fcnBD: JSON.parse(localStorage.getItem('fcnBD')||'[]'),
+    fcnBDDist: JSON.parse(localStorage.getItem('fcnBDDist')||'{}'),
     fcnEV3: JSON.parse(localStorage.getItem('fcnEV3')||'[]'),
   };
 }
@@ -3640,6 +3738,557 @@ function setupToken(){
 (function initToken(){
   if(!getToken()) console.log('請點左下角設定 GitHub Token');
 })();
+
+
+// ═══════════════════════════════════════════════════════════
+// ── BOND MANAGEMENT ────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+
+// 預設債券資料（從你提供的 CSV）
+const BD_DEFAULT = [
+  {id:'bd01',date:'2024-08-26',exitDate:'',bank:'達-元大',ccy:'USD',name:'波克夏海瑟威金融公司',isin:'US084664BL47',cusip:'084664BL4',
+   buyPrice:113.5,units:50000,face:57085.42,fx:31.83,twd:1817143.09,curPrice:107.67,interest:2875,
+   coupon:'5.75%',yield:'4.51%',maturity:'2040-01-15',distFreq:'半年',distDates:'1/15, 7/15',
+   couponAmt:1437.5,holdYears:15,note:''},
+  {id:'bd02',date:'2024-09-11',exitDate:'',bank:'達-元大',ccy:'USD',name:'蘋果公司',isin:'US037833EW60',cusip:'037833EW6',
+   buyPrice:105.98,units:50000,face:53811.81,fx:32.16,twd:1730695.43,curPrice:96.57,interest:3637.5,
+   coupon:'4.85%',yield:'4.48%',maturity:'2053-05-10',distFreq:'半年',distDates:'5/10, 11/10',
+   couponAmt:1212.5,holdYears:28,note:''},
+  {id:'bd03',date:'2024-09-11',exitDate:'',bank:'達-元大',ccy:'USD',name:'波克夏海瑟威金融公司',isin:'US084664CR08',cusip:'084664CR0',
+   buyPrice:94.3,units:50000,face:47486.46,fx:32.16,twd:1527259.53,curPrice:84.95,interest:2125,
+   coupon:'4.25%',yield:'4.64%',maturity:'2049-01-05',distFreq:'半年',distDates:'1/15, 7/15',
+   couponAmt:1062.5,holdYears:24,note:''},
+  {id:'bd04',date:'2024-09-12',exitDate:'',bank:'達-元大',ccy:'USD',name:'波克夏海瑟威金融公司',isin:'US084664BL47',cusip:'084664BL4',
+   buyPrice:114.9,units:20000,face:23165.28,fx:32.15,twd:744833.25,curPrice:107.67,interest:1150,
+   coupon:'5.75%',yield:'4.40%',maturity:'2040-01-15',distFreq:'半年',distDates:'1/15, 7/15',
+   couponAmt:575,holdYears:15,note:''},
+  {id:'bd05',date:'2024-09-16',exitDate:'',bank:'達-元大',ccy:'USD',name:'輝瑞大藥廠',isin:'US717081EV18',cusip:'717081EV1',
+   buyPrice:89.45,units:50000,face:44741.67,fx:31.90,twd:1427348.76,curPrice:80.47,interest:2000,
+   coupon:'4%',yield:'4.73%',maturity:'2049-03-15',distFreq:'半年',distDates:'3/15, 9/15',
+   couponAmt:1000,holdYears:24,note:''},
+  {id:'bd06',date:'2024-09-16',exitDate:'',bank:'達-元大',ccy:'USD',name:'亞培',isin:'US002824AV29',cusip:'002824AV2',
+   buyPrice:118.25,units:50000,face:60516.67,fx:31.90,twd:1930602.81,curPrice:110.37,interest:4500,
+   coupon:'6%',yield:'4.30%',maturity:'2039-04-01',distFreq:'半年',distDates:'4/1, 10/1',
+   couponAmt:1500,holdYears:14,note:''},
+  {id:'bd07',date:'2024-09-16',exitDate:'',bank:'達-元大',ccy:'USD',name:'波克夏海瑟威金融公司',isin:'US084664BL47',cusip:'084664BL4',
+   buyPrice:115,units:30000,face:34801.88,fx:31.90,twd:1110249.58,curPrice:107.67,interest:1725,
+   coupon:'5.75%',yield:'4.39%',maturity:'2040-01-15',distFreq:'半年',distDates:'1/15, 7/15',
+   couponAmt:862.5,holdYears:15,note:''},
+  {id:'bd08',date:'2024-09-16',exitDate:'',bank:'達-元大',ccy:'USD',name:'波克夏海瑟威金融公司',isin:'US084664CR08',cusip:'084664CR0',
+   buyPrice:94.5,units:80000,face:76195,fx:31.90,twd:2430772.89,curPrice:84.95,interest:3400,
+   coupon:'4.25%',yield:'4.63%',maturity:'2049-01-15',distFreq:'半年',distDates:'1/15, 7/15',
+   couponAmt:1700,holdYears:24,note:''},
+  {id:'bd09',date:'2024-09-16',exitDate:'',bank:'達-元大',ccy:'USD',name:'威瑞森電信公司',isin:'US92343VCZ58',cusip:'92343VCZ5',
+   buyPrice:95.75,units:100000,face:95788.93,fx:31.90,twd:3055858.44,curPrice:85.52,interest:4672,
+   coupon:'4.67%',yield:'4.94%',maturity:'2055-03-15',distFreq:'半年',distDates:'3/15, 9/15',
+   couponAmt:2336,holdYears:30,note:''},
+  {id:'bd10',date:'2024-09-16',exitDate:'',bank:'達-國泰',ccy:'USD',name:'英特爾',isin:'US458140CK47',cusip:'458140CK4',
+   buyPrice:102.15,units:50000,face:153225,fx:31.88,twd:4884813,curPrice:95.39,interest:0,
+   coupon:'5.90%',yield:'',maturity:'2063-02-10',distFreq:'半年',distDates:'2/10, 8/10',
+   couponAmt:4410,holdYears:38,note:''},
+];
+
+let BD = JSON.parse(localStorage.getItem('fcnBD') || 'null');
+if (!BD) {
+  BD = BD_DEFAULT;
+  localStorage.setItem('fcnBD', JSON.stringify(BD));
+}
+function saveBD() { localStorage.setItem('fcnBD', JSON.stringify(BD)); syncToGist(); }
+
+let bdDist = JSON.parse(localStorage.getItem('fcnBDDist') || '{}');
+function saveBdDist() { localStorage.setItem('fcnBDDist', JSON.stringify(bdDist)); syncToGist(); }
+
+// ── ISIN → CUSIP 轉換 ─────────────────────────────────────
+function isinToCusip(isin) {
+  if (!isin) return '';
+  isin = isin.toUpperCase().replace(/\s/g, '');
+  if (isin.length === 12 && isin.startsWith('US')) {
+    return isin.slice(2, 11); // 去掉 US 開頭和最後檢查碼
+  }
+  return isin;
+}
+
+function bmIsinChange() {
+  const isin = document.getElementById('bm-isin').value.trim();
+  document.getElementById('bm-cusip').value = isinToCusip(isin);
+}
+
+function bmCalc() {
+  const buy = parseFloat(document.getElementById('bm-buyPrice').value) || 0;
+  const units = parseFloat(document.getElementById('bm-units').value) || 0;
+  let fx = parseFloat(document.getElementById('bm-fx').value) || 0;
+  if (!fx) { fx = getFX(); document.getElementById('bm-fx').value = fx.toFixed(2); }
+  const cur = parseFloat(document.getElementById('bm-curPrice').value) || 0;
+  const interest = parseFloat(document.getElementById('bm-interest').value) || 0;
+
+  // 投資面額 = 買價 × 面額 / 100
+  const face = (buy && units) ? buy * units / 100 : 0;
+  document.getElementById('bm-face').value = face.toFixed(2);
+
+  // 台幣成本
+  const twd = face * fx;
+  document.getElementById('bm-twd').value = twd ? 'NT$' + F(Math.round(twd)) : '';
+
+  // 損益 = 目前賣出$（cur×units/100）+ 利息 - 投資面額
+  if (cur && units && face) {
+    const sellAmt = cur * units / 100;
+    const pl = sellAmt + interest - face;
+    const pct = face ? (pl / face * 100).toFixed(2) : 0;
+    document.getElementById('bm-pl').value = (pl >= 0 ? '+' : '') + '$' + F(pl, 2);
+    document.getElementById('bm-plPct').value = (pl >= 0 ? '+' : '') + pct + '%';
+  } else {
+    document.getElementById('bm-pl').value = '';
+    document.getElementById('bm-plPct').value = '';
+  }
+}
+
+function bondOpenForm(id) {
+  document.getElementById('bm-id').value = id || '';
+  document.getElementById('bm-title').textContent = id ? '編輯債券' : '新增債券';
+  if (id) {
+    const r = BD.find(x => x.id === id);
+    if (r) {
+      ['date','exitDate','bank','isin','cusip','name','coupon','yield','maturity','distFreq','distDates','note']
+        .forEach(f => { const el=document.getElementById('bm-'+f); if(el) el.value=r[f]||''; });
+      ['buyPrice','units','face','fx','twd','curPrice','interest','couponAmt','holdYears']
+        .forEach(f => { const el=document.getElementById('bm-'+f); if(el) el.value=r[f]||''; });
+      bmCalc();
+    }
+  } else {
+    document.getElementById('bm-date').value = new Date().toISOString().slice(0,10);
+    ['bm-exitDate','bm-bank','bm-isin','bm-cusip','bm-name','bm-coupon','bm-yield','bm-maturity','bm-distDates','bm-note',
+     'bm-buyPrice','bm-units','bm-face','bm-curPrice','bm-interest','bm-couponAmt','bm-holdYears']
+      .forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+    document.getElementById('bm-fx').value = getFX().toFixed(2);
+    document.getElementById('bm-distFreq').value = '半年';
+    document.getElementById('bm-pl').value = '';
+    document.getElementById('bm-plPct').value = '';
+  }
+  document.getElementById('bond-modal').classList.add('open');
+}
+function bondCloseForm() { document.getElementById('bond-modal').classList.remove('open'); }
+
+function bondSave() {
+  const date = document.getElementById('bm-date').value;
+  const bank = document.getElementById('bm-bank').value.trim();
+  const name = document.getElementById('bm-name').value.trim();
+  if (!date || !bank || !name) { alert('請填寫買進日、銀行、債券名稱'); return; }
+  const r = {
+    id: document.getElementById('bm-id').value || ('bd' + Date.now()),
+    date, bank, name,
+    exitDate: document.getElementById('bm-exitDate').value,
+    ccy: 'USD',
+    isin: document.getElementById('bm-isin').value.trim(),
+    cusip: document.getElementById('bm-cusip').value.trim(),
+    buyPrice: parseFloat(document.getElementById('bm-buyPrice').value) || 0,
+    units: parseFloat(document.getElementById('bm-units').value) || 0,
+    face: parseFloat(document.getElementById('bm-face').value) || 0,
+    fx: parseFloat(document.getElementById('bm-fx').value) || 0,
+    twd: 0,
+    curPrice: parseFloat(document.getElementById('bm-curPrice').value) || 0,
+    interest: parseFloat(document.getElementById('bm-interest').value) || 0,
+    coupon: document.getElementById('bm-coupon').value.trim(),
+    yield: document.getElementById('bm-yield').value.trim(),
+    maturity: document.getElementById('bm-maturity').value,
+    distFreq: document.getElementById('bm-distFreq').value,
+    distDates: document.getElementById('bm-distDates').value.trim(),
+    couponAmt: parseFloat(document.getElementById('bm-couponAmt').value) || 0,
+    holdYears: parseFloat(document.getElementById('bm-holdYears').value) || 0,
+    note: document.getElementById('bm-note').value.trim(),
+  };
+  r.twd = r.face * r.fx;
+  const idx = BD.findIndex(x => x.id === r.id);
+  if (idx >= 0) BD[idx] = r; else BD.unshift(r);
+  saveBD(); bondCloseForm(); bondRender();
+}
+
+function bondDelete(id) {
+  if (!confirm('刪除這筆債券紀錄？')) return;
+  BD = BD.filter(x => x.id !== id);
+  saveBD(); bondRender();
+}
+
+function bondEditPrice(id) {
+  const r = BD.find(x => x.id === id);
+  if (!r) return;
+  if (r.cusip && confirm('開啟 FINRA 頁面查詢價格？\n'+r.name)) {
+    window.open(`https://www.finra.org/finra-data/fixed-income/bond?cusip=${r.cusip}&bondType=CA`, '_blank');
+  }
+  const v = prompt(`${r.name}\n請輸入目前價格：`, r.curPrice || '');
+  if (v === null) return;
+  const n = parseFloat(v);
+  if (isNaN(n) || n <= 0) { alert('請輸入有效數字'); return; }
+  r.curPrice = n; saveBD(); bondRender();
+}
+
+function bondRender() {
+  // summary card
+  const totalFace = BD.reduce((a,r) => a + r.face, 0);
+  const totalTWD = BD.reduce((a,r) => a + r.twd, 0);
+  const totalInt = BD.reduce((a,r) => a + r.interest, 0);
+  const totalCur = BD.reduce((a,r) => {
+    if (r.exitDate) return a;
+    return a + (r.curPrice && r.units ? r.curPrice * r.units / 100 : 0);
+  }, 0);
+  const totalPL = BD.reduce((a,r) => {
+    const sell = r.exitDate ? 0 : (r.curPrice * r.units / 100);
+    return a + (sell ? sell + r.interest - r.face : 0);
+  }, 0);
+  const plPct = totalFace ? (totalPL / totalFace * 100).toFixed(2) : 0;
+
+  document.getElementById('bond-summary').innerHTML = `
+    <div class="card" style="padding:14px;">
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;">
+        <div><div class="ml">投資面額</div><div style="font-size:18px;font-weight:600;font-family:var(--mono)">$${F(Math.round(totalFace))}</div><div class="ms">NT$${F(Math.round(totalTWD))}</div></div>
+        <div><div class="ml">目前金額</div><div style="font-size:18px;font-weight:600;font-family:var(--mono);color:var(--bl)">$${F(Math.round(totalCur))}</div></div>
+        <div><div class="ml">已領利息</div><div style="font-size:18px;font-weight:600;font-family:var(--mono);color:var(--gn)">$${F(Math.round(totalInt))}</div></div>
+        <div><div class="ml">損益（含息）</div><div style="font-size:18px;font-weight:600;font-family:var(--mono);color:${totalPL>=0?'var(--gn)':'var(--rd)'}">${totalPL>=0?'+':''}$${F(Math.round(totalPL))}</div></div>
+        <div><div class="ml">報酬率</div><div style="font-size:18px;font-weight:600;font-family:var(--mono);color:${totalPL>=0?'var(--gn)':'var(--rd)'}">${totalPL>=0?'+':''}${plPct}%</div></div>
+      </div>
+    </div>`;
+
+  const rows = [...BD].sort((a,b) => b.date.localeCompare(a.date));
+  const th = t => `<th style="white-space:nowrap;font-size:11px;padding:5px 8px">${t}</th>`;
+
+  const html = `<div class="card">
+    <div class="ch"><span class="ct">🇺🇸 美元公司債 <span style="font-size:13px;color:var(--tx3);font-weight:400">${rows.length} 筆</span></span></div>
+    <div class="tw"><table style="font-size:13px;border-collapse:collapse;">
+      <thead><tr>
+        ${th('狀態')}${th('買進日')}${th('銀行')}${th('債券名稱')}${th('CUSIP')}
+        ${th('買進價')}${th('面額')}${th('投資面額')}${th('目前價格')}${th('目前金額')}${th('已領利息')}
+        ${th('損益')}${th('報酬率')}
+        ${th('利率')}${th('殖利率')}${th('到期日')}${th('配息日')}${th('')}
+      </tr></thead>
+      <tbody>
+      ${rows.map(r => {
+        const isExit = !!r.exitDate;
+        const sellAmt = !isExit && r.curPrice && r.units ? r.curPrice * r.units / 100 : 0;
+        const pl = sellAmt ? sellAmt + r.interest - r.face : 0;
+        const pct = r.face && pl ? (pl / r.face * 100).toFixed(2) : null;
+        const plColor = pl > 0 ? 'var(--gn)' : pl < 0 ? 'var(--rd)' : 'var(--tx3)';
+        const badge = isExit
+          ? `<span class="badge" style="background:var(--sur2);color:var(--tx3);font-size:11px">已出場</span>`
+          : `<span class="badge" style="background:var(--bll);color:var(--bl);font-size:11px">持有中</span>`;
+        return `<tr style="${isExit?'opacity:.7':''}">
+          <td>${badge}</td>
+          <td class="mono" style="white-space:nowrap">${r.date}</td>
+          <td style="white-space:nowrap;font-weight:600">${r.bank}</td>
+          <td style="max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${r.name}">${r.name}</td>
+          <td class="mono" style="font-size:11px;color:var(--tx3);white-space:nowrap">${r.cusip||'—'}</td>
+          <td class="mono right">${r.buyPrice||'—'}</td>
+          <td class="mono right">${F(r.units,0)}</td>
+          <td class="mono right">$${F(r.face,0)}<div style="font-size:11px;color:var(--tx3)">NT$${F(Math.round(r.twd))}</div></td>
+          <td class="mono right" style="cursor:pointer;color:${r.curPrice?'var(--bl)':'var(--tx3)'}" onclick="bondEditPrice('${r.id}')" title="點擊更新">${r.curPrice||'點擊填入'}</td>
+          <td class="mono right" style="color:var(--bl)">${sellAmt?'$'+F(Math.round(sellAmt)):'—'}</td>
+          <td class="mono right cg">$${F(r.interest,0)}</td>
+          <td class="mono right" style="color:${plColor};font-weight:600">${pl?(pl>=0?'+':'')+'$'+F(Math.round(pl)):'—'}</td>
+          <td class="mono right" style="color:${plColor}">${pct?(pl>=0?'+':'')+pct+'%':'—'}</td>
+          <td class="mono right">${r.coupon||'—'}</td>
+          <td class="mono right">${r.yield||'—'}</td>
+          <td class="mono" style="white-space:nowrap;font-size:11px">${r.maturity||'—'}</td>
+          <td style="font-size:11px;color:var(--tx2);white-space:nowrap">${r.distDates||'—'}</td>
+          <td style="white-space:nowrap">
+            <button class="btn btnsm" onclick="bondOpenForm('${r.id}')">編輯</button>
+            <button class="btn btnsm" onclick="bondDelete('${r.id}')" style="margin-top:2px;color:var(--rd)">刪除</button>
+          </td>
+        </tr>`;
+      }).join('')}
+      </tbody>
+    </table></div>
+  </div>`;
+  document.getElementById('bond-tables').innerHTML = html;
+}
+
+function initBond() { bondRender(); }
+
+// ── 從 Gist 抓取債券價格 ────────────────────────────────────
+async function fetchBondPrices() {
+  try {
+    const token = getToken();
+    if (!token) { alert('請先設定 GitHub Token'); return null; }
+    const headers = { 'Accept':'application/vnd.github.v3+json', 'Authorization':'token '+token };
+    const resp = await fetch('https://api.github.com/gists/'+GIST_NAV_ID, { headers, signal: AbortSignal.timeout(10000) });
+    if (!resp.ok) return null;
+    const j = await resp.json();
+    const content = j?.files?.['bond_price.json']?.content;
+    if (!content) { console.log('Gist 裡沒有 bond_price.json'); return null; }
+    const data = JSON.parse(content);
+    const prices = data.bonds || {};
+    let updated = 0;
+    BD.forEach(b => {
+      const key = b.cusip || b.isin;
+      if (key && prices[key]) {
+        b.curPrice = prices[key].price;
+        updated++;
+      }
+    });
+    if (updated) saveBD();
+    console.log('Updated', updated, 'bonds');
+    return data.updated_at;
+  } catch (e) { console.log('Bond price fetch error:', e); return null; }
+}
+
+// ═══════════════════════════════════════════════════════════
+// ── BOND DISTRIBUTION (配息紀錄) ───────────────────────────
+// ═══════════════════════════════════════════════════════════
+
+function initBondDist() { bondDistRender('bonddist-wrap'); }
+
+function bondDistRender(targetId) {
+  const el = document.getElementById(targetId);
+  if (!el) return;
+  if (!BD.length) { el.innerHTML = '<div style="text-align:center;padding:48px;color:var(--tx3)">尚無債券紀錄</div>'; return; }
+
+  if (!window._bdExp) window._bdExp = new Set(BD.map(r => r.id));
+
+  // 根據每個債券的 distDates 和買賣日期生成所有配息日
+  function getBondPayDates(bond) {
+    if (!bond.distDates) return [];
+    const monthDays = bond.distDates.split(/[,，]/).map(s => s.trim()).filter(Boolean);
+    if (!monthDays.length) return [];
+    const buyDate = new Date(bond.date);
+    const endDate = bond.exitDate ? new Date(bond.exitDate) : (bond.maturity ? new Date(bond.maturity) : new Date());
+    const today = new Date(); today.setMonth(today.getMonth() + 2);
+    const limitDate = endDate < today ? endDate : today;
+    const dates = [];
+    let y = buyDate.getFullYear();
+    while (y <= limitDate.getFullYear() + 1) {
+      for (const md of monthDays) {
+        const [mm, dd] = md.split('/').map(s => parseInt(s));
+        if (!mm || !dd) continue;
+        const d = new Date(y, mm - 1, dd);
+        if (d >= buyDate && d <= limitDate) {
+          dates.push(`${y}-${String(mm).padStart(2,'0')}-${String(dd).padStart(2,'0')}`);
+        }
+      }
+      y++;
+    }
+    return dates.sort();
+  }
+
+  // 收集所有月份（取所有債券的配息月份聯集）
+  const allYM = new Set();
+  BD.forEach(b => {
+    getBondPayDates(b).forEach(d => allYM.add(d.slice(0,7)));
+  });
+  const months = [...allYM].sort();
+  if (!months.length) { el.innerHTML = '<div style="text-align:center;padding:48px;color:var(--tx3)">尚無配息資料</div>'; return; }
+
+  const MW = 62, CW = 110, CW_COL = 28;
+  const HEADER_H = 64, INFO_ROW_H = 24;
+
+  function bondTotalPaid(b) {
+    const recs = Object.values(bdDist[b.id] || {});
+    return recs.reduce((a, d) => a + (d.total || 0), 0);
+  }
+  function bondAvgRate(b) {
+    if (!b.face) return null;
+    const total = bondTotalPaid(b);
+    if (!total) return null;
+    return (total / b.face * 100).toFixed(2);
+  }
+  function bondPaidCount(b) {
+    return Object.values(bdDist[b.id] || {}).filter(d => d.total > 0).length;
+  }
+
+  const INFO_LABELS = ['狀態','買進日','賣出日','幣別','目前價格','買進價','面額','投資面額','實際領息率','已領利息'];
+  function infoVal(b, li) {
+    const isExit = !!b.exitDate;
+    const totalPaid = bondTotalPaid(b);
+    const avgRate = bondAvgRate(b);
+    return [
+      `<span style="white-space:nowrap">${isExit?'<span class="badge" style="background:var(--sur2);color:var(--tx3);font-size:11px">已出場</span>':'<span class="badge" style="background:var(--bll);color:var(--bl);font-size:11px">持有中</span>'}</span>`,
+      `<span class="mono" style="font-size:12px">${b.date||'—'}</span>`,
+      `<span class="mono" style="font-size:12px;color:var(--rd)">${b.exitDate||'—'}</span>`,
+      `<span style="font-size:12px">USD</span>`,
+      `<span class="mono" style="font-size:12px">${b.curPrice||'—'}</span>`,
+      `<span class="mono" style="font-size:12px">${b.buyPrice||'—'}</span>`,
+      `<span class="mono" style="font-size:12px">${F(b.units,0)}</span>`,
+      `<span class="mono" style="font-size:12px">$${F(b.face,0)}</span>`,
+      `<span class="mono" style="font-size:12px;color:var(--bl)">${avgRate?avgRate+'%':'—'}</span>`,
+      `<span class="mono" style="font-size:12px;color:var(--gn)">${totalPaid?'$'+F(totalPaid,2):'—'}</span>`,
+    ][li];
+  }
+
+  const anyExp = BD.some(b => window._bdExp.has(b.id));
+
+  let h = `<div class="int-wrap" style="max-height:calc(100vh - 180px);">
+  <table class="int-table" style="border-collapse:collapse;">
+  <thead>
+    <tr>
+      <th style="position:sticky;top:0;left:0;z-index:5;background:var(--sur2);width:${MW}px;min-width:${MW}px;
+          padding:5px 6px;font-size:12px;text-align:center;border-right:3px solid var(--bl);">月份</th>
+      ${BD.map(b => {
+        const exp = window._bdExp.has(b.id);
+        const cnt = bondPaidCount(b);
+        const shortName = b.name.length > 8 ? b.name.slice(0, 8) + '…' : b.name;
+        const w = exp ? CW : CW_COL;
+        return `<th style="position:sticky;top:0;z-index:3;background:var(--sur2);min-width:${w}px;width:${w}px;
+            border-right:1px solid var(--bdr);padding:0;cursor:pointer;" onclick="bdTogCol('${b.id}')">
+          <div style="padding:4px 4px 3px;text-align:center;overflow:hidden;">
+          ${exp?`
+            <div style="font-size:11px;font-weight:600;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:${w-6}px;">${shortName}</div>
+            <div style="font-size:11px;color:var(--tx3)">${b.bank}</div>
+            <div style="font-size:11px;color:var(--tx3)">${b.date?b.date.replace(/-/g,'/'):''}</div>
+            <div style="font-size:11px;color:var(--gd);margin-top:1px">${cnt}期</div>
+            <div style="font-size:11px;color:var(--ac2);margin-top:2px">◀</div>
+          `:`<div style="font-size:12px;color:var(--ac2);writing-mode:vertical-rl;margin:4px auto;white-space:nowrap;overflow:hidden;max-height:80px;">▶ ${shortName}</div>`}
+          </div>
+        </th>`;
+      }).join('')}
+      <th style="position:sticky;top:0;z-index:3;background:var(--sur2);min-width:90px;
+          border-left:3px solid var(--bl);font-size:11px;font-weight:600;color:var(--tx3);text-align:center;">當月合計</th>
+    </tr>
+    ${INFO_LABELS.map((lbl,li) => `<tr class="int-info-row" style="${anyExp?'':'display:none'}">
+      <th style="position:sticky;left:0;top:${HEADER_H+li*INFO_ROW_H}px;z-index:5;background:var(--bll);
+          font-size:11px;font-weight:600;color:var(--tx3);padding:3px 6px;white-space:nowrap;
+          width:${MW}px;min-width:${MW}px;text-align:right;border-right:3px solid var(--bl);
+          ${li===INFO_LABELS.length-1?'border-bottom:3px solid var(--bl);':''}">${lbl}</th>
+      ${BD.map(b => {
+        const exp = window._bdExp.has(b.id);
+        const w = exp ? CW : CW_COL;
+        return `<th style="position:sticky;top:${HEADER_H+li*INFO_ROW_H}px;z-index:3;
+            text-align:center;padding:3px 4px;border-right:1px solid var(--bdr);font-weight:400;
+            min-width:${w}px;width:${w}px;
+            background:${exp?'var(--bll)':'var(--sur2)'};vertical-align:middle;
+            ${li===INFO_LABELS.length-1?'border-bottom:3px solid var(--bl);':''}">
+          ${exp?infoVal(b,li):''}
+        </th>`;
+      }).join('')}
+      <th style="position:sticky;top:${HEADER_H+li*INFO_ROW_H}px;z-index:3;
+          border-left:3px solid var(--bl);background:var(--sur2);
+          ${li===INFO_LABELS.length-1?'border-bottom:3px solid var(--bl);':''}"></th>
+    </tr>`).join('')}
+  </thead>
+  <tbody>`;
+
+  let prevY = null;
+  months.forEach(ym => {
+    const [y, m] = ym.split('-');
+    if (y !== prevY) {
+      prevY = y;
+      h += `<tr style="background:var(--bl);"><td colspan="${BD.length + 2}"
+        style="padding:3px 10px;font-size:12px;font-weight:700;color:rgba(255,255,255,.85)">${y} 年</td></tr>`;
+    }
+    let monthTotals = {};
+    BD.forEach(b => {
+      const d = bdDist[b.id] && bdDist[b.id][ym];
+      if (d && d.total) monthTotals['USD'] = (monthTotals['USD']||0) + d.total;
+    });
+    const totHtml = Object.entries(monthTotals).map(([ccy,v]) =>
+      `<div class="mono" style="font-size:13px;font-weight:600;color:var(--gn)">$${F(v,2)}</div>`
+    ).join('') || '<span style="color:var(--tx3);font-size:13px">—</span>';
+
+    h += `<tr>
+      <td style="position:sticky;left:0;z-index:2;background:var(--sur2);font-weight:700;font-size:14px;
+          text-align:center;padding:5px 4px;border-right:3px solid var(--bl);border-bottom:1px solid var(--bdr);">
+        ${parseInt(m)}月</td>
+      ${BD.map(b => {
+        const exp = window._bdExp.has(b.id);
+        const w = exp ? CW : CW_COL;
+        const d = (bdDist[b.id]||{})[ym] || {};
+        const hasData = !!d.total;
+        // 判斷此月是否在持有期間，且該月有此債券的配息日
+        const payDates = getBondPayDates(b);
+        const monthHasPay = payDates.some(dt => dt.startsWith(ym));
+        if (!monthHasPay) return `<td style="border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);
+          background:var(--bg);min-width:${w}px;width:${w}px;"></td>`;
+        return `<td onclick="bondDistEdit('${b.id}','${ym}')"
+          style="border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);
+          min-width:${w}px;width:${w}px;cursor:pointer;vertical-align:middle;
+          background:${hasData?'var(--gnl)':'var(--bg)'};">
+          <div style="padding:4px 5px;font-size:12px;text-align:${exp?'left':'center'};">
+          ${hasData?(exp?`
+            <div class="mono" style="font-weight:600;color:var(--gn)">$${F(d.total,2)}</div>
+            ${d.note?`<div style="color:var(--tx3);font-size:11px">${d.note}</div>`:''}
+          `:`<div style="color:var(--gn);font-size:12px">✓</div>`)
+          :(exp?`<div style="color:var(--bl);text-align:center">＋</div>`
+               :`<div style="color:var(--bl)">+</div>`)}
+          </div>
+        </td>`;
+      }).join('')}
+      <td style="border-left:3px solid var(--bl);border-bottom:1px solid var(--bdr);
+          text-align:center;padding:4px;min-width:90px;
+          background:${Object.keys(monthTotals).length?'var(--gnl)':'var(--bg)'};">
+        ${totHtml}
+      </td>
+    </tr>`;
+  });
+
+  h += '</tbody></table></div>';
+  el.innerHTML = h;
+}
+
+function bdTogCol(id) {
+  if (!window._bdExp) window._bdExp = new Set();
+  if (window._bdExp.has(id)) window._bdExp.delete(id);
+  else window._bdExp.add(id);
+  ['bonddist-wrap'].forEach(tid => {
+    if (document.getElementById(tid) && document.getElementById(tid).innerHTML !== '')
+      bondDistRender(tid);
+  });
+}
+
+function bondDistEdit(bondId, ym) {
+  const b = BD.find(x => x.id === bondId);
+  if (!b) return;
+  const existing = (bdDist[bondId] || {})[ym] || {};
+  const [y, m] = ym.split('-');
+  const autoAmt = b.couponAmt || '';
+
+  const html = `
+    <div style="font-size:15px;font-weight:600;margin-bottom:12px;">
+      ${b.name}<br>
+      <span style="font-size:13px;color:var(--tx3);font-weight:400">${y}年${parseInt(m)}月 配息紀錄</span>
+    </div>
+    <div class="fg" style="margin-bottom:10px;">
+      <div class="fgrp">
+        <label>系統預設配息（每期）</label>
+        <input type="text" value="$${autoAmt||'—'}" readonly style="background:var(--sur2);font-family:var(--mono);">
+        <div class="hint" style="color:var(--bl)">面額 ${F(b.units,0)} × ${b.coupon||'—'} ÷ 2</div>
+      </div>
+      <div class="fgrp">
+        <label style="color:var(--gn)">實際配息金額（手動輸入）</label>
+        <input type="number" id="bd-edit-total" value="${existing.total||autoAmt}" placeholder="實際入帳金額" step="0.01">
+      </div>
+    </div>
+    <div class="fgrp" style="margin-bottom:14px;">
+      <label>備註</label>
+      <input type="text" id="bd-edit-note" value="${existing.note||''}" placeholder="例：配息日 1/15">
+    </div>`;
+
+  const modal = document.createElement('div');
+  modal.className = 'mo open';
+  modal.innerHTML = `<div class="mb2" style="width:520px;">
+    ${html}
+    <div class="mba">
+      <button class="btn" onclick="this.closest('.mo').remove()">取消</button>
+      ${existing.total?`<button class="btn" style="color:var(--rd)" onclick="bdDistDelete('${bondId}','${ym}',this)">刪除</button>`:''}
+      <button class="btn btnp" onclick="bdDistSave('${bondId}','${ym}',this)">儲存</button>
+    </div>
+  </div>`;
+  modal.onclick = e => { if (e.target === modal) modal.remove(); };
+  document.body.appendChild(modal);
+}
+
+function bdDistSave(bondId, ym, btn) {
+  const total = parseFloat(document.getElementById('bd-edit-total').value) || 0;
+  const note = document.getElementById('bd-edit-note').value.trim();
+  if (!total) { alert('請輸入配息金額'); return; }
+  if (!bdDist[bondId]) bdDist[bondId] = {};
+  bdDist[bondId][ym] = { total, note, updatedAt: new Date().toISOString() };
+  saveBdDist();
+  btn.closest('.mo').remove();
+  ['bonddist-wrap'].forEach(id => { if (document.getElementById(id)) bondDistRender(id); });
+}
+
+function bdDistDelete(bondId, ym, btn) {
+  if (!confirm('刪除這筆配息紀錄？')) return;
+  if (bdDist[bondId]) delete bdDist[bondId][ym];
+  saveBdDist();
+  btn.closest('.mo').remove();
+  ['bonddist-wrap'].forEach(id => { if (document.getElementById(id)) bondDistRender(id); });
+}
 
 document.getElementById('last-update').textContent=localStorage.getItem('fcnlast')||'首次載入';
 </script>

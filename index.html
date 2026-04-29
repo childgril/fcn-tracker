@@ -2694,8 +2694,7 @@ async function fetchGistNav(){
     console.log('Gist updated_at:',data.updated_at);
     console.log('Gist funds count:',Object.keys(data.funds||{}).length);
     if(!data.funds||!Object.keys(data.funds).length){
-      console.log('Gist 裡沒有基金資料，請先執行 GitHub Actions');
-      alert('Gist 裡還沒有淨值資料。\n請到 GitHub Actions 手動執行「每日基金淨值更新」');
+      console.log('Gist 裡沒有基金資料');
       return null;
     }
     gistNavCache=data.funds||{};
@@ -3608,9 +3607,9 @@ function setupToken(){
 }
 
 // Token 存在 localStorage，不放在程式碼裡
-// 第一次使用請點左下角「🔑 設定 GitHub Token」
+// 首次使用請點左下角「🔑 設定 GitHub Token」
 (function initToken(){
-  if(!getToken()) console.log('尚未設定 GitHub Token，請點左下角設定');
+  if(!getToken()) console.log('請點左下角設定 GitHub Token');
 })();
 
 document.getElementById('last-update').textContent=localStorage.getItem('fcnlast')||'首次載入';

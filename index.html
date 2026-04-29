@@ -3023,14 +3023,25 @@ function fundRender(){
       <div class="tw"><table style="font-size:11px;border-collapse:collapse;">
         <thead><tr>
           ${th('狀態')}${th('買進日')}${th('賣出日')}${th('銀行')}${th('基金名稱')}
-          ${th('目前淨值')}${th('買淨值')}${th('單位數')}${th('投資金額')}${th('贖回金額')}${th('已領利息')}
-          ${th('損益')}${th('報酬率')}
+          ${th('目前淨值')}${th('買淨值')}${th('單位數')}${th('投資金額')}${th('贖回金額')}${th('目前金額')}${th('已領利息')}
+          ${th('損益（不含息）')}${th('損益（含息）')}${th('報酬率（含息）')}
           ${th('配息類型')}${th('配息日')}${th('資料來源')}${th('備註')}${th('')}
         </tr></thead>
         <tbody>
         ${rows.map(r=>{
           const isExit=!!r.exitDate;
-          const plColor=r.pl>0?'var(--gn)':r.pl<0?'var(--rd)':'var(--tx3)';
+          // 目前金額 = 目前淨值 × 單位數（未出場才顯示）
+          const curAmt=(!isExit&&r.curNav&&r.units)?r.curNav*r.units:0;
+          const fx=r.twd&&r.face?r.twd/r.face:0;
+          // 損益計算
+          // 已出場：用贖回金額；未出場：用目前金額暫估
+          const baseAmt=isExit?r.redeem:curAmt;
+          const plNoInt=baseAmt&&r.face?baseAmt-r.face:0;          // 不含息損益
+          const plWithInt=baseAmt&&r.face?baseAmt+r.interest-r.face:0; // 含息損益
+          const pct=r.face&&plWithInt?(plWithInt/r.face*100).toFixed(1):null;
+          const isEstimate=!isExit&&curAmt>0; // 暫估標記
+          const plNoColor=plNoInt>0?'var(--gn)':plNoInt<0?'var(--rd)':'var(--tx3)';
+          const plColor=plWithInt>0?'var(--gn)':plWithInt<0?'var(--rd)':'var(--tx3)';
           const badge=isExit?`<span class="badge" style="background:var(--sur2);color:var(--tx3);font-size:9px">已出場</span>`
                            :`<span class="badge" style="background:var(--gnl);color:var(--gn);font-size:9px">持有中</span>`;
           return`<tr style="${isExit?'opacity:.8':''}">
@@ -3043,12 +3054,29 @@ function fundRender(){
               ${r.curNav?F(r.curNav,3):'<span style="font-size:10px;color:var(--ac2)">點擊填入</span>'}
             </td>
             <td class="mono right">${r.buyPrice||'—'}</td>
-            <td class="mono right">${r.units||'—'}</td>
+            <td class="mono right">${r.units?F(r.units,2):'—'}</td>
             <td class="mono right">${r.face?sym+F(r.face,0):'—'}${r.twd?`<div style="font-size:9px;color:var(--tx3)">NT$${F(Math.round(r.twd),0)}</div>`:''}</td>
-            <td class="mono right">${r.redeem?sym+F(r.redeem,0):'—'}${r.redeem&&r.twd&&r.face?`<div style="font-size:9px;color:var(--tx3)">NT$${F(Math.round(r.redeem*(r.twd/r.face)))}</div>`:''}</td>
-            <td class="mono right cg">${r.interest?sym+F(r.interest,0):'—'}${r.interest&&r.twd&&r.face?`<div style="font-size:9px;color:var(--gn)">NT$${F(Math.round(r.interest*(r.twd/r.face)))}</div>`:''}</td>
-            <td class="mono right" style="color:${plColor};font-weight:600">${r.pl?(r.pl>0?'+':'')+sym+F(r.pl,0):'—'}${r.pl&&r.twd&&r.face?`<div style="font-size:9px;color:var(--tx3)">NT$${F(Math.round(r.pl*(r.twd/r.face)))}</div>`:''}</td>
-            <td class="mono right" style="color:${plColor}">${r.plPct?(r.plPct>0?'+':'')+r.plPct+'%':'—'}</td>
+            <td class="mono right">${r.redeem?sym+F(r.redeem,0):'—'}${r.redeem&&fx?`<div style="font-size:9px;color:var(--tx3)">NT$${F(Math.round(r.redeem*fx))}</div>`:''}</td>
+            <td class="mono right" style="color:${curAmt?'var(--bl)':'var(--tx3)'}">
+              ${curAmt?sym+F(Math.round(curAmt),0):'—'}
+              ${curAmt&&fx?`<div style="font-size:9px;color:var(--tx3)">NT$${F(Math.round(curAmt*fx))}</div>`:''}
+              ${isEstimate?`<div style="font-size:9px;color:var(--gd)">暫估</div>`:''}
+            </td>
+            <td class="mono right cg">${r.interest?sym+F(r.interest,0):'—'}${r.interest&&fx?`<div style="font-size:9px;color:var(--gn)">NT$${F(Math.round(r.interest*fx))}</div>`:''}</td>
+            <td class="mono right" style="color:${plNoColor};font-weight:600">
+              ${plNoInt?(plNoInt>0?'+':'')+sym+F(Math.round(plNoInt),0):'—'}
+              ${plNoInt&&fx?`<div style="font-size:9px;color:var(--tx3)">NT$${F(Math.round(plNoInt*fx))}</div>`:''}
+              ${isEstimate&&plNoInt?`<div style="font-size:9px;color:var(--gd)">暫估</div>`:''}
+            </td>
+            <td class="mono right" style="color:${plColor};font-weight:600">
+              ${plWithInt?(plWithInt>0?'+':'')+sym+F(Math.round(plWithInt),0):'—'}
+              ${plWithInt&&fx?`<div style="font-size:9px;color:var(--tx3)">NT$${F(Math.round(plWithInt*fx))}</div>`:''}
+              ${isEstimate&&plWithInt?`<div style="font-size:9px;color:var(--gd)">暫估</div>`:''}
+            </td>
+            <td class="mono right" style="color:${plColor}">
+              ${pct?(parseFloat(pct)>0?'+':'')+pct+'%':'—'}
+              ${isEstimate&&pct?`<div style="font-size:9px;color:var(--gd)">暫估</div>`:''}
+            </td>
             <td style="white-space:nowrap">${r.distType||'—'}</td>
             <td style="font-size:10px;color:var(--tx2);white-space:nowrap">${r.distDate||'—'}</td>
             <td style="text-align:center">${r.url?`<a href="${r.url}" target="_blank" style="font-size:10px;color:var(--ac2)">🔗 連結</a>`:'—'}</td>

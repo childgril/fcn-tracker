@@ -217,14 +217,18 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
     <div class="ni" data-sec="funddist" onclick="showSec('funddist')"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="1.5"/><path d="M5 6h6M5 8.5h4M5 11h3" stroke-linecap="round"/><circle cx="12" cy="11" r="2.5" fill="var(--gn)" stroke="none" opacity=".8"/><path d="M11 11h2M12 10v2" stroke="white" stroke-width="1.2" stroke-linecap="round"/></svg>基金配息紀錄</div>
   </div>
   <div class="sbf">資料存於本機瀏覽器<br>最後更新：<span id="last-update">—</span>
+    <span id="sync-status" style="font-size:10px;color:var(--gn);margin-left:6px;"></span>
     <div style="display:flex;gap:6px;margin-top:8px;">
       <button class="btn btnsm" onclick="exportData()" style="flex:1;font-size:10px;">📤 匯出</button>
       <button class="btn btnsm" onclick="document.getElementById('import-file').click()" style="flex:1;font-size:10px;">📥 匯入</button>
       <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(this)">
     </div>
     <div style="display:flex;gap:6px;margin-top:6px;">
-      <button class="btn btnsm" onclick="gistPush()" id="gist-push-btn" style="flex:1;font-size:10px;background:var(--gnl);border-color:var(--gn);color:var(--gn);">☁ 上傳雲端</button>
-      <button class="btn btnsm" onclick="gistPull()" id="gist-pull-btn" style="flex:1;font-size:10px;">⬇ 從雲端讀取</button>
+      <button class="btn btnsm" onclick="syncToGist().then(ok=>alert(ok?'✓ 已同步到雲端':'✗ 同步失敗，請檢查Token'))" style="flex:1;font-size:10px;background:var(--gnl);border-color:var(--gn);color:var(--gn);">☁ 同步雲端</button>
+      <button class="btn btnsm" onclick="loadFromGist().then(ts=>ts?(alert('✓ 已從雲端載入\n時間：'+ts),location.reload()):alert('✗ 載入失敗'))" style="flex:1;font-size:10px;">⬇ 從雲端載入</button>
+    </div>
+    <div style="margin-top:6px;">
+      <button class="btn btnsm" onclick="setupToken()" style="width:100%;font-size:10px;color:var(--tx3);">🔑 設定 GitHub Token</button>
     </div>
     <div style="margin-top:5px;">
       <button class="btn btnsm" onclick="gistSetup()" style="width:100%;font-size:10px;color:var(--tx3);">⚙ GitHub Gist 設定</button>
@@ -852,7 +856,16 @@ let D=JSON.parse(localStorage.getItem('fcnv3')||'null')||DEF;
 if(!localStorage.getItem('fcnv3'))localStorage.setItem('fcnv3',JSON.stringify(D));
 let delId=null,cf='all',sc=0;
 
-function save(){localStorage.setItem('fcnv3',JSON.stringify(D));localStorage.setItem('fcnlast',new Date().toLocaleDateString('zh-TW'));document.getElementById('last-update').textContent=localStorage.getItem('fcnlast')||'—';}
+function save(){
+  localStorage.setItem('fcnv3',JSON.stringify(D));
+  localStorage.setItem('fcnlast',new Date().toLocaleDateString('zh-TW'));
+  document.getElementById('last-update').textContent=localStorage.getItem('fcnlast')||'—';
+  syncToGist().then(ok=>{
+    const el=document.getElementById('sync-status');
+    if(el)el.textContent=ok?'☁ 已同步':'☁ 同步失敗';
+    if(ok)setTimeout(()=>{if(el)el.textContent='';},3000);
+  });
+}
 const F=(n,d=0)=>Number(n||0).toLocaleString('zh-TW',{minimumFractionDigits:d,maximumFractionDigits:d});
 const SY=c=>c==='JPY'?'¥':c==='TWD'?'NT$':'$';
 function bdg(s){if(s==='active')return'<span class="badge ba">持有中</span>';if(s==='hold')return'<span class="badge bh">承接股票</span>';return'<span class="badge bc">已出場</span>';}
@@ -2654,29 +2667,95 @@ if(FD&&FD.some(r=>r.url===undefined)){
 }
 function saveFD(){localStorage.setItem('fcnFD',JSON.stringify(FD));}
 
-const FUND_NAV_GIST='https://gist.githubusercontent.com/childgril/c1ecf1eadce99ef4807064c9bf16e669/raw/fund_nav.json';
+const GIST_NAV_ID='c1ecf1eadce99ef4807064c9bf16e669';
+const GITHUB_USER='childgril';
 let gistNavCache={};
+let _gistDataId=localStorage.getItem('fcnGistDataId')||'';
+function getToken(){return localStorage.getItem('fcnGithubToken')||'';}
+function setToken(t){localStorage.setItem('fcnGithubToken',t);}
 
+// ── 讀淨值：用 jsDelivr CDN 繞過 CORS ──
 async function fetchGistNav(){
-  try{
-    const r=await fetch(FUND_NAV_GIST+'?t='+Date.now(),{cache:'no-store'});
-    if(!r.ok)return;
-    const j=await r.json();
-    gistNavCache=j.funds||{};
-    // 自動更新 FD 裡有對應 ISIN 的基金淨值
-    let updated=false;
-    FD.forEach(fd=>{
-      const key=fd.isin||fd.acct;
-      if(key&&gistNavCache[key]){
-        fd.curNav=gistNavCache[key].nav;
-        updated=true;
-      }
-    });
-    if(updated){saveFD();}
-    return j.updated_at;
-  }catch(e){
-    console.log('Gist fetch error:',e);
+  const ts=Date.now();
+  const urls=[
+    `https://cdn.jsdelivr.net/gh/${GITHUB_USER}/${GIST_NAV_ID}/fund_nav.json`,
+    `https://api.allorigins.win/raw?url=${encodeURIComponent('https://gist.githubusercontent.com/'+GITHUB_USER+'/'+GIST_NAV_ID+'/raw/fund_nav.json')}`,
+  ];
+  for(const url of urls){
+    try{
+      const r=await fetch(url+'?t='+ts,{cache:'no-store',signal:AbortSignal.timeout(8000)});
+      if(!r.ok)continue;
+      const j=await r.json();
+      gistNavCache=j.funds||{};
+      let updated=false;
+      FD.forEach(fd=>{
+        const key=fd.isin||fd.acct;
+        if(key&&gistNavCache[key]){fd.curNav=gistNavCache[key].nav;updated=true;}
+      });
+      if(updated){saveFD();}
+      return j.updated_at;
+    }catch(e){console.log('nav fetch error:',e);}
   }
+  return null;
+}
+
+// ── 投資資料同步到 Gist ──
+async function syncToGist(){
+  const data={
+    savedAt:new Date().toISOString(),
+    fcnv3:JSON.parse(localStorage.getItem('fcnv3')||'[]'),
+    fcnfxl:JSON.parse(localStorage.getItem('fcnfxl')||'[]'),
+    fcnQT:JSON.parse(localStorage.getItem('fcnQT')||'[]'),
+    fcnFD:JSON.parse(localStorage.getItem('fcnFD')||'[]'),
+    fcnFDDist:JSON.parse(localStorage.getItem('fcnFDDist')||'{}'),
+  };
+  const content=JSON.stringify(data,null,2);
+  const headers={
+    'Authorization':'token '+getToken(),
+    'Accept':'application/vnd.github.v3+json',
+    'Content-Type':'application/json',
+  };
+  const payload={
+    description:'FCN投資系統 - 投資資料',
+    public:false,
+    files:{'fcn_data.json':{content}},
+  };
+  try{
+    let resp,result;
+    if(_gistDataId){
+      resp=await fetch('https://api.github.com/gists/'+_gistDataId,{method:'PATCH',headers,body:JSON.stringify(payload)});
+    } else {
+      resp=await fetch('https://api.github.com/gists',{method:'POST',headers,body:JSON.stringify(payload)});
+    }
+    result=await resp.json();
+    if(result.id){
+      _gistDataId=result.id;
+      localStorage.setItem('fcnGistDataId',_gistDataId);
+      return true;
+    }
+  }catch(e){console.log('sync error:',e);}
+  return false;
+}
+
+// ── 從 Gist 讀取投資資料 ──
+async function loadFromGist(){
+  if(!_gistDataId)return false;
+  try{
+    const resp=await fetch('https://api.github.com/gists/'+_gistDataId,{
+      headers:{'Authorization':'token '+getToken(),'Accept':'application/vnd.github.v3+json'},
+    });
+    const j=await resp.json();
+    const content=j?.files?.['fcn_data.json']?.content;
+    if(!content)return false;
+    const data=JSON.parse(content);
+    if(data.fcnv3) localStorage.setItem('fcnv3',JSON.stringify(data.fcnv3));
+    if(data.fcnfxl) localStorage.setItem('fcnfxl',JSON.stringify(data.fcnfxl));
+    if(data.fcnQT) localStorage.setItem('fcnQT',JSON.stringify(data.fcnQT));
+    if(data.fcnFD) localStorage.setItem('fcnFD',JSON.stringify(data.fcnFD));
+    if(data.fcnFDDist) localStorage.setItem('fcnFDDist',JSON.stringify(data.fcnFDDist));
+    return data.savedAt;
+  }catch(e){console.log('load error:',e);}
+  return false;
 }
 
 function initFund(){
@@ -3036,7 +3115,7 @@ function fundDistRender(targetId) {
   }
 
   // 資訊列
-  const INFO_LABELS=['狀態','買進日','賣出日','幣別','目前淨值','買淨值','單位數','投資金額','實際領息利率','已領利息','─────'];
+  const INFO_LABELS=['狀態','買進日','賣出日','幣別','目前淨值','買淨值','單位數','投資金額','實際領息利率','已領利息'];
   function infoVal(r,li){
     const isExit=!!r.exitDate;
     const sym=SY(r.ccy);
@@ -3052,8 +3131,7 @@ function fundDistRender(targetId) {
       `<span class="mono" style="font-size:10px">${r.units?F(r.units,2):'—'}</span>`,
       `<span class="mono" style="font-size:10px">${r.face?sym+F(r.face,0):'—'}</span>`,
       `<span class="mono" style="font-size:10px;color:var(--bl)">${avgRate?avgRate+'%':'—'}</span>`,
-      `<span class="mono" style="font-size:10px">${totalPaid?sym+F(totalPaid,2):'—'}</span>`,
-      `<span style="display:block;border-top:2px solid var(--ac2);margin:2px 0;opacity:.5"></span>`,
+      `<span class="mono" style="font-size:10px;color:var(--gn)">${totalPaid?sym+F(totalPaid,2):'—'}</span>`,
     ][li];
   }
 
@@ -3092,7 +3170,7 @@ function fundDistRender(targetId) {
       <th style="position:sticky;left:0;top:${HEADER_H+li*INFO_ROW_H}px;z-index:5;background:var(--gdl);
           font-size:9px;font-weight:600;color:var(--tx3);padding:3px 6px;white-space:nowrap;
           width:${MW}px;min-width:${MW}px;text-align:right;border-right:3px solid var(--ac2);
-          ${li===INFO_LABELS.length-1?'border-bottom:2px solid var(--ac2);':''}">${lbl}</th>
+          ${li===INFO_LABELS.length-1?'border-bottom:3px solid var(--ac2);':''}">${lbl}</th>
       ${distFunds.map(r=>{
         const exp=window._fdExp.has(r.id);
         const w=exp?CW:CW_COL;
@@ -3100,12 +3178,12 @@ function fundDistRender(targetId) {
             text-align:center;padding:3px 4px;border-right:1px solid var(--bdr);font-weight:400;
             min-width:${w}px;width:${w}px;
             background:${exp?'var(--gdl)':'var(--sur2)'};vertical-align:middle;
-            ${li===INFO_LABELS.length-1?'border-bottom:2px solid var(--ac2);':''}">
+            ${li===INFO_LABELS.length-1?'border-bottom:3px solid var(--ac2);':''}">
           ${exp?infoVal(r,li):''}
         </th>`;}).join('')}
       <th style="position:sticky;top:${HEADER_H+li*INFO_ROW_H}px;z-index:3;
           border-left:3px solid var(--ac2);background:var(--sur2);
-          ${li===INFO_LABELS.length-1?'border-bottom:2px solid var(--ac2);':''}"></th>
+          ${li===INFO_LABELS.length-1?'border-bottom:3px solid var(--ac2);':''}"></th>
     </tr>`).join('')}
   </thead>
   <tbody>`;
@@ -3499,6 +3577,20 @@ async function gistPull(){
 if(localStorage.getItem('gistToken')&&localStorage.getItem('gistId')){
   gistSetStatus('☁ 雲端同步已設定');
 }
+
+function setupToken(){
+  const cur=getToken();
+  const t=prompt('請輸入 GitHub Personal Access Token\n（需要 gist 權限，存在本機不會外洩）',cur?'已設定（清空可刪除）':'');
+  if(t===null)return;
+  if(t.trim()){setToken(t.trim());alert('✓ Token 已儲存');}
+  else{localStorage.removeItem('fcnGithubToken');alert('Token 已清除');}
+}
+
+// Token 存在 localStorage，不放在程式碼裡
+// 第一次使用請點左下角「🔑 設定 GitHub Token」
+(function initToken(){
+  if(!getToken()) console.log('尚未設定 GitHub Token，請點左下角設定');
+})();
 
 document.getElementById('last-update').textContent=localStorage.getItem('fcnlast')||'首次載入';
 </script>

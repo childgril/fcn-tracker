@@ -701,7 +701,7 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
     <div><div class="pt">基金管理</div><div class="ps">記錄每筆基金投資，追蹤配息紀錄</div></div>
     <div style="display:flex;gap:8px;align-items:center;">
       <span id="fund-nav-updated" style="font-size:10px;color:var(--tx3)"></span>
-      <button class="btn btnsm" onclick="fetchGistNav().then(()=>fundRender())">↻ 更新淨值</button>
+      <button class="btn btnsm" onclick="(async()=>{const btn=this;btn.textContent='抓取中…';btn.disabled=true;const ts=await fetchGistNav();if(ts){const d=new Date(ts);document.getElementById('fund-nav-updated').textContent='淨值更新：'+d.toLocaleDateString('zh-TW')+' '+d.toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});fundRender();btn.textContent='↻ 更新淨值';}else{btn.textContent='失敗，請設定Token';}btn.disabled=false;})()" id="fund-nav-btn">↻ 更新淨值</button>
       <button class="btn btnsm" onclick="fundOpenForm()">＋ 新增基金</button>
     </div>
   </div>
@@ -2674,28 +2674,26 @@ let _gistDataId=localStorage.getItem('fcnGistDataId')||'';
 function getToken(){return localStorage.getItem('fcnGithubToken')||'';}
 function setToken(t){localStorage.setItem('fcnGithubToken',t);}
 
-// ── 讀淨值：用 jsDelivr CDN 繞過 CORS ──
 async function fetchGistNav(){
-  const ts=Date.now();
-  const urls=[
-    `https://cdn.jsdelivr.net/gh/${GITHUB_USER}/${GIST_NAV_ID}/fund_nav.json`,
-    `https://api.allorigins.win/raw?url=${encodeURIComponent('https://gist.githubusercontent.com/'+GITHUB_USER+'/'+GIST_NAV_ID+'/raw/fund_nav.json')}`,
-  ];
-  for(const url of urls){
-    try{
-      const r=await fetch(url+'?t='+ts,{cache:'no-store',signal:AbortSignal.timeout(8000)});
-      if(!r.ok)continue;
-      const j=await r.json();
-      gistNavCache=j.funds||{};
-      let updated=false;
-      FD.forEach(fd=>{
-        const key=fd.isin||fd.acct;
-        if(key&&gistNavCache[key]){fd.curNav=gistNavCache[key].nav;updated=true;}
-      });
-      if(updated){saveFD();}
-      return j.updated_at;
-    }catch(e){console.log('nav fetch error:',e);}
-  }
+  try{
+    const token=getToken();
+    const headers={'Accept':'application/vnd.github.v3+json'};
+    if(token) headers['Authorization']='token '+token;
+    const resp=await fetch('https://api.github.com/gists/'+GIST_NAV_ID,{headers,signal:AbortSignal.timeout(10000)});
+    if(!resp.ok)return null;
+    const j=await resp.json();
+    const content=j?.files?.['fund_nav.json']?.content;
+    if(!content)return null;
+    const data=JSON.parse(content);
+    gistNavCache=data.funds||{};
+    let updated=false;
+    FD.forEach(fd=>{
+      const key=fd.isin||fd.acct;
+      if(key&&gistNavCache[key]){fd.curNav=gistNavCache[key].nav;updated=true;}
+    });
+    if(updated) saveFD();
+    return data.updated_at;
+  }catch(e){console.log('nav fetch error:',e);}
   return null;
 }
 

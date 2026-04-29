@@ -8,41 +8,42 @@
 <style>
 :root{--bg:#f5f4f0;--sur:#fff;--sur2:#f0ede8;--bdr:#e0dbd3;--tx:#1a1816;--tx2:#6b6560;--tx3:#a09a94;--ac:#2a4a3e;--ac2:#4a7c6a;--gd:#c8963e;--gdl:#fdf3e3;--gn:#2d6a4f;--gnl:#eaf4ee;--rd:#8b2635;--rdl:#faeaec;--bl:#1e3a5f;--bll:#e8f0f8;--pu:#4a2d6a;--pul:#f0eaf8;--mono:'DM Mono',monospace;--sans:'Noto Sans TC',sans-serif;--r:8px;--rl:14px;}
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:var(--sans);background:var(--bg);color:var(--tx);height:100vh;overflow:hidden;font-size:14px;line-height:1.6;}
+body{font-family:var(--sans);background:var(--bg);color:var(--tx);height:100vh;overflow:hidden;font-size:15px;line-height:1.6;}
+html{font-size:16px;}
 .shell{display:flex;height:100vh;overflow:hidden;}
 .sb{width:200px;background:var(--ac);display:flex;flex-direction:column;flex-shrink:0;height:100vh;}
 .sbl{padding:20px 18px 14px;border-bottom:1px solid rgba(255,255,255,.1);}
-.sbl h1{font-size:14px;font-weight:700;color:#fff;letter-spacing:.05em;}
-.sbl p{font-size:11px;color:rgba(255,255,255,.4);margin-top:2px;}
+.sbl h1{font-size:16px;font-weight:700;color:#fff;letter-spacing:.05em;}
+.sbl p{font-size:15px;color:rgba(255,255,255,.4);margin-top:2px;}
 .sbn{padding:10px 0;flex:1;overflow-y:auto;}
-.ni{display:flex;align-items:center;gap:10px;padding:9px 18px;cursor:pointer;color:rgba(255,255,255,.6);font-size:13px;transition:all .15s;border-left:3px solid transparent;}
+.ni{display:flex;align-items:center;gap:10px;padding:9px 18px;cursor:pointer;color:rgba(255,255,255,.6);font-size:15px;transition:all .15s;border-left:3px solid transparent;}
 .ni:hover{background:rgba(255,255,255,.08);color:#fff;}
 .ni.active{background:rgba(255,255,255,.12);color:#fff;border-left-color:var(--gd);font-weight:500;}
 .ni svg{width:15px;height:15px;flex-shrink:0;}
-.sbf{padding:10px 18px;border-top:1px solid rgba(255,255,255,.1);font-size:11px;color:rgba(255,255,255,.3);}
+.sbf{padding:10px 18px;border-top:1px solid rgba(255,255,255,.1);font-size:15px;color:rgba(255,255,255,.3);}
 .main{flex:1;min-width:0;height:100vh;overflow-y:auto;padding:14px 18px;}
 .ph{margin-bottom:8px;display:flex;align-items:flex-end;justify-content:space-between;}
 .pt{font-size:17px;font-weight:700;}
-.ps{font-size:12px;color:var(--tx2);margin-top:2px;}
-.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:var(--r);border:1px solid var(--bdr);background:var(--sur);color:var(--tx);cursor:pointer;font-size:12px;font-family:var(--sans);font-weight:500;transition:all .15s;}
+.ps{font-size:16px;color:var(--tx2);margin-top:2px;}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:var(--r);border:1px solid var(--bdr);background:var(--sur);color:var(--tx);cursor:pointer;font-size:16px;font-family:var(--sans);font-weight:500;transition:all .15s;}
 .btn:hover{background:var(--sur2);}
 .btnp{background:var(--ac);color:#fff;border-color:var(--ac);}
 .btnp:hover{background:var(--ac2);border-color:var(--ac2);}
-.btnsm{padding:3px 8px;font-size:10px;}
+.btnsm{padding:3px 8px;font-size:16px;}
 .mr{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:8px;}
 .mc{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);padding:10px 14px;}
-.ml{font-size:10px;font-weight:600;color:var(--tx3);letter-spacing:.07em;text-transform:uppercase;margin-bottom:3px;}
+.ml{font-size:16px;font-weight:600;color:var(--tx3);letter-spacing:.07em;text-transform:uppercase;margin-bottom:3px;}
 .mv{font-size:16px;font-weight:700;font-family:var(--mono);}
-.ms{font-size:10px;color:var(--tx3);margin-top:2px;}
+.ms{font-size:16px;color:var(--tx3);margin-top:2px;}
 .mv.gn{color:var(--gn);}.mv.gd{color:var(--gd);}.mv.bl{color:var(--bl);}
 .card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);overflow:hidden;margin-bottom:10px;}
 .ch{padding:8px 14px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
-.ct{font-size:12px;font-weight:600;}
+.ct{font-size:16px;font-weight:600;}
 .tw{overflow-x:auto;overflow-y:auto;max-height:calc(100vh - 220px);}
 table{width:100%;border-collapse:collapse;}
-th{padding:5px 8px;text-align:left;font-size:9px;font-weight:600;color:var(--tx3);letter-spacing:.05em;text-transform:uppercase;background:var(--sur2);border-bottom:1px solid var(--bdr);white-space:nowrap;line-height:1.3;position:sticky;top:0;z-index:3;}
+th{padding:5px 8px;text-align:left;font-size:11px;font-weight:600;color:var(--tx3);letter-spacing:.05em;text-transform:uppercase;background:var(--sur2);border-bottom:1px solid var(--bdr);white-space:nowrap;line-height:1.3;position:sticky;top:0;z-index:3;}
 th[rowspan]{border-right:1px solid var(--bdr);}
-td{padding:5px 8px;border-bottom:1px solid var(--bdr);font-size:11px;color:var(--tx);vertical-align:middle;}
+td{padding:5px 8px;border-bottom:1px solid var(--bdr);font-size:15px;color:var(--tx);vertical-align:middle;}
 tr:last-child td{border-bottom:none;}
 tr:hover td{background:#fafaf8;}
 /* second header row sticky offset */
@@ -51,59 +52,59 @@ thead tr:nth-child(2) th{top:29px;}
 .hold-panel{position:fixed;right:0;top:0;bottom:0;width:340px;background:var(--sur);border-left:1px solid var(--bdr);z-index:200;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .25s ease;box-shadow:-4px 0 20px rgba(0,0,0,.08);}
 .hold-panel.open{transform:translateX(0);}
 .hold-panel-hd{padding:14px 18px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;background:var(--gdl);}
-.hold-panel-hd h3{font-size:14px;font-weight:600;color:var(--gd);}
+.hold-panel-hd h3{font-size:16px;font-weight:600;color:var(--gd);}
 .hold-panel-body{flex:1;overflow-y:auto;padding:16px 18px;}
 .hold-panel-close{background:none;border:none;font-size:18px;cursor:pointer;color:var(--tx2);padding:2px 6px;}
 .hold-section{margin-bottom:16px;}
-.hold-section-title{font-size:10px;font-weight:700;color:var(--tx3);letter-spacing:.07em;text-transform:uppercase;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--bdr);}
+.hold-section-title{font-size:16px;font-weight:700;color:var(--tx3);letter-spacing:.07em;text-transform:uppercase;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--bdr);}
 .hold-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;}
-.hold-row label{font-size:11px;color:var(--tx2);flex-shrink:0;min-width:100px;}
-.hold-row input{flex:1;padding:5px 8px;border:1px solid var(--bdr);border-radius:var(--r);font-family:var(--mono);font-size:12px;text-align:right;background:var(--bg);}
+.hold-row label{font-size:15px;color:var(--tx2);flex-shrink:0;min-width:100px;}
+.hold-row input{flex:1;padding:5px 8px;border:1px solid var(--bdr);border-radius:var(--r);font-family:var(--mono);font-size:16px;text-align:right;background:var(--bg);}
 .hold-row input:focus{border-color:var(--ac2);outline:none;background:var(--sur);}
-.hold-row .val{font-family:var(--mono);font-size:12px;font-weight:500;text-align:right;}
+.hold-row .val{font-family:var(--mono);font-size:16px;font-weight:500;text-align:right;}
 .hold-result{background:var(--sur2);border-radius:var(--r);padding:12px 14px;margin-top:4px;}
-.hold-result-row{display:flex;justify-content:space-between;margin-bottom:6px;font-size:12px;}
+.hold-result-row{display:flex;justify-content:space-between;margin-bottom:6px;font-size:16px;}
 .hold-result-row:last-child{margin-bottom:0;}
 .hold-result-row .rl{color:var(--tx2);}
 .hold-result-row .rv{font-family:var(--mono);font-weight:600;}
 .breakeven-highlight{background:var(--gnl);border:1px solid #b7dfc9;border-radius:var(--r);padding:10px 14px;margin-top:10px;text-align:center;}
 .breakeven-price{font-size:20px;font-weight:700;color:var(--gn);font-family:var(--mono);}
-.breakeven-label{font-size:10px;color:var(--gn);margin-top:2px;}
+.breakeven-label{font-size:16px;color:var(--gn);margin-top:2px;}
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.2);z-index:199;}
 .overlay.open{display:block;}
 .mono{font-family:var(--mono);}
 .right{text-align:right;}
-.badge{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:100px;letter-spacing:.04em;white-space:nowrap;}
+.badge{display:inline-block;font-size:16px;font-weight:600;padding:2px 8px;border-radius:100px;letter-spacing:.04em;white-space:nowrap;}
 .ba{background:var(--gnl);color:var(--gn);}
 .bc{background:var(--sur2);color:var(--tx3);}
 .bh{background:var(--gdl);color:var(--gd);}
 .bj{background:var(--pul);color:var(--pu);}
 .bu{background:var(--rdl);color:var(--rd);}
-.tag{display:inline-block;font-size:10px;padding:1px 6px;background:var(--sur2);border:1px solid var(--bdr);border-radius:4px;color:var(--tx2);margin:1px;white-space:nowrap;}
+.tag{display:inline-block;font-size:16px;padding:1px 6px;background:var(--sur2);border:1px solid var(--bdr);border-radius:4px;color:var(--tx2);margin:1px;white-space:nowrap;}
 .sec{display:none;}
 .sec.active{display:block;}
 .fr{display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap;}
-.fb{padding:5px 13px;border-radius:100px;border:1px solid var(--bdr);background:var(--sur);font-size:12px;font-weight:500;color:var(--tx2);cursor:pointer;transition:all .15s;font-family:var(--sans);}
+.fb{padding:5px 13px;border-radius:100px;border:1px solid var(--bdr);background:var(--sur);font-size:16px;font-weight:500;color:var(--tx2);cursor:pointer;transition:all .15s;font-family:var(--sans);}
 .fb.active,.fb:hover{background:var(--ac);color:#fff;border-color:var(--ac);}
 .ib{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);margin-bottom:12px;overflow:hidden;}
 .ibh{padding:11px 16px;background:var(--sur2);border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;}
-.ibt{font-size:13px;font-weight:600;}
-.ibm{font-size:11px;color:var(--tx2);}
+.ibt{font-size:15px;font-weight:600;}
+.ibm{font-size:15px;color:var(--tx2);}
 .ig{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;padding:12px 16px;}
 .ic{border:1px solid var(--bdr);border-radius:var(--r);padding:8px 6px;text-align:center;cursor:pointer;transition:all .15s;}
 .ic.paid{background:var(--gnl);border-color:#b7dfc9;}
 .ic.pend{background:var(--gdl);border-color:#e8cc9a;}
-.ic .im{font-size:10px;color:var(--tx3);margin-bottom:3px;}
+.ic .im{font-size:16px;color:var(--tx3);margin-bottom:3px;}
 .ic.paid .im{color:var(--gn);}
-.ic .ia{font-size:11px;font-weight:600;font-family:var(--mono);}
+.ic .ia{font-size:15px;font-weight:600;font-family:var(--mono);}
 .ic.paid .ia{color:var(--gn);}
 .ic.pend .ia{color:var(--gd);}
-.ic .is{font-size:10px;margin-top:2px;}
+.ic .is{font-size:16px;margin-top:2px;}
 .ic.paid .is{color:var(--gn);}
 .ic.pend .is{color:var(--gd);}
 .fp{max-width:820px;}
 .fs{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);padding:16px 20px;margin-bottom:12px;}
-.fst{font-size:10px;font-weight:700;color:var(--tx3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;}
+.fst{font-size:16px;font-weight:700;color:var(--tx3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;}
 .fg{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
 .fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px;}
 .fg4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:11px;}
@@ -111,55 +112,55 @@ thead tr:nth-child(2) th{top:29px;}
 .fgrp.s2{grid-column:span 2;}
 .fgrp.s3{grid-column:span 3;}
 .fgrp.s4{grid-column:span 4;}
-.fgrp label{font-size:10px;font-weight:700;color:var(--tx2);letter-spacing:.03em;}
-.hint{font-size:10px;color:var(--tx3);margin-top:1px;}
-.twdpv{font-size:11px;color:var(--gn);font-weight:500;margin-top:2px;font-family:var(--mono);}
-input,select{width:100%;padding:7px 10px;border:1px solid var(--bdr);border-radius:var(--r);font-family:var(--sans);font-size:13px;color:var(--tx);background:var(--bg);transition:border .15s;outline:none;}
+.fgrp label{font-size:16px;font-weight:700;color:var(--tx2);letter-spacing:.03em;}
+.hint{font-size:16px;color:var(--tx3);margin-top:1px;}
+.twdpv{font-size:15px;color:var(--gn);font-weight:500;margin-top:2px;font-family:var(--mono);}
+input,select{width:100%;padding:7px 10px;border:1px solid var(--bdr);border-radius:var(--r);font-family:var(--sans);font-size:15px;color:var(--tx);background:var(--bg);transition:border .15s;outline:none;}
 input:focus,select:focus{border-color:var(--ac2);background:var(--sur);}
 input[readonly]{background:var(--sur2);color:var(--tx2);}
 .srh{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 28px;gap:8px;margin-bottom:4px;}
-.srh span{font-size:10px;font-weight:600;color:var(--tx3);letter-spacing:.04em;text-transform:uppercase;}
+.srh span{font-size:16px;font-weight:600;color:var(--tx3);letter-spacing:.04em;text-transform:uppercase;}
 .sr{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 28px;gap:8px;margin-bottom:8px;align-items:center;}
-.rmb{background:none;border:1px solid var(--bdr);color:var(--tx3);cursor:pointer;padding:5px 7px;border-radius:var(--r);font-size:11px;width:28px;}
+.rmb{background:none;border:1px solid var(--bdr);color:var(--tx3);cursor:pointer;padding:5px 7px;border-radius:var(--r);font-size:15px;width:28px;}
 .rmb:hover{background:var(--rdl);border-color:var(--rd);color:var(--rd);}
 .fa{display:flex;gap:10px;justify-content:flex-end;margin-top:6px;}
 .rg{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px;}
 /* Hold Track */
 .ht-card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);margin-bottom:16px;overflow:hidden;}
 .ht-hd{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;background:var(--gdl);border-bottom:1px solid #e8cc9a;flex-wrap:wrap;gap:8px;}
-.ht-hd-left h3{font-size:14px;font-weight:600;color:var(--gd);}
-.ht-hd-left p{font-size:11px;color:var(--tx2);margin-top:2px;}
+.ht-hd-left h3{font-size:16px;font-weight:600;color:var(--gd);}
+.ht-hd-left p{font-size:15px;color:var(--tx2);margin-top:2px;}
 .ht-hd-right{text-align:right;}
-.ht-hd-right .ht-face{font-size:13px;font-weight:600;font-family:var(--mono);}
-.ht-hd-right .ht-int{font-size:11px;color:var(--gn);margin-top:1px;}
+.ht-hd-right .ht-face{font-size:15px;font-weight:600;font-family:var(--mono);}
+.ht-hd-right .ht-int{font-size:15px;color:var(--gn);margin-top:1px;}
 .ht-body{padding:0;}
 .ht-info-row{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-bottom:1px solid var(--bdr);}
 .ht-info-cell{padding:10px 14px;border-right:1px solid var(--bdr);}
 .ht-info-cell:last-child{border-right:none;}
-.ht-info-cell .lbl{font-size:9px;font-weight:600;color:var(--tx3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px;}
-.ht-info-cell .val{font-family:var(--mono);font-size:13px;font-weight:600;}
+.ht-info-cell .lbl{font-size:11px;font-weight:600;color:var(--tx3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px;}
+.ht-info-cell .val{font-family:var(--mono);font-size:15px;font-weight:600;}
 .ht-info-cell .val.gn{color:var(--gn);}
 .ht-info-cell .val.rd{color:var(--rd);}
 .ht-info-cell .val.gd{color:var(--gd);}
 .ht-stock-row{display:grid;grid-template-columns:140px 1fr 1fr 1fr 1fr 1fr;border-bottom:1px solid var(--bdr);align-items:center;}
 .ht-stock-row:last-child{border-bottom:none;}
 .ht-stock-row.hdr{background:var(--sur2);}
-.ht-stock-row.hdr span{font-size:9px;font-weight:600;color:var(--tx3);letter-spacing:.05em;text-transform:uppercase;padding:6px 12px;}
-.ht-stock-row .sc{padding:10px 12px;font-size:12px;}
-.ht-stock-name{font-weight:600;font-size:12px;}
+.ht-stock-row.hdr span{font-size:11px;font-weight:600;color:var(--tx3);letter-spacing:.05em;text-transform:uppercase;padding:6px 12px;}
+.ht-stock-row .sc{padding:10px 12px;font-size:16px;}
+.ht-stock-name{font-weight:600;font-size:16px;}
 .ht-price-bar{height:6px;border-radius:100px;background:var(--sur2);margin-top:4px;overflow:hidden;position:relative;}
 .ht-price-fill{height:100%;border-radius:100px;background:var(--gn);}
 .progress-danger .ht-price-fill{background:var(--rd);}
 .progress-warn .ht-price-fill{background:var(--gd);}
 .ht-breakeven-box{padding:12px 18px;background:var(--sur2);border-top:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
 .ht-be-item{text-align:center;}
-.ht-be-label{font-size:9px;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;}
+.ht-be-label{font-size:11px;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;}
 .ht-be-val{font-size:16px;font-weight:700;font-family:var(--mono);}
 .ht-be-val.gn{color:var(--gn);}
 .ht-be-val.rd{color:var(--rd);}
 .ht-be-val.gd{color:var(--gd);}
 .bg{margin-bottom:9px;}
-.bl2{display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;}
+.bl2{display:flex;justify-content:space-between;font-size:16px;margin-bottom:3px;}
 .bl2 span:last-child{font-family:var(--mono);font-weight:500;}
 .bt{height:6px;background:var(--sur2);border-radius:100px;overflow:hidden;}
 .bf{height:100%;border-radius:100px;background:var(--ac2);}
@@ -171,7 +172,7 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
 .cg{color:var(--gn);}.cr{color:var(--rd);}.cb{color:var(--bl);}.cgd{color:var(--gd);}.cmu{color:var(--tx3);}
 /* interest cross-table */
 .int-wrap{overflow-x:auto;overflow-y:auto;max-height:calc(100vh - 155px);border:1px solid var(--bdr);border-radius:var(--rl);background:var(--sur);margin-bottom:0;}
-.int-table{border-collapse:collapse;font-size:11px;white-space:nowrap;}
+.int-table{border-collapse:collapse;font-size:15px;white-space:nowrap;}
 .int-table th,.int-table td{border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);padding:0;}
 .int-table tr:last-child td,.int-table tr:last-child th{border-bottom:none;}
 .int-table th:last-child,.int-table td:last-child{border-right:none;}
@@ -181,11 +182,11 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
 /* all thead th: sticky vertically */
 .int-table thead th{position:sticky;z-index:3;background:var(--sur2);}
 .int-table thead th.fc,.int-table thead th.fc2{z-index:5;}
-.int-sidebar-cell{padding:5px 10px;font-size:11px;min-width:60px;}
-.int-info-hd{padding:5px 10px;font-size:9px;font-weight:700;color:var(--tx3);letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;background:var(--sur2);}
-.int-month-hd{padding:5px 10px;font-size:10px;font-weight:600;text-align:center;background:var(--sur2);min-width:64px;}
+.int-sidebar-cell{padding:5px 10px;font-size:15px;min-width:60px;}
+.int-info-hd{padding:5px 10px;font-size:11px;font-weight:700;color:var(--tx3);letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;background:var(--sur2);}
+.int-month-hd{padding:5px 10px;font-size:16px;font-weight:600;text-align:center;background:var(--sur2);min-width:64px;}
 .int-cell{padding:0;width:64px;min-width:64px;text-align:center;cursor:pointer;vertical-align:middle;}
-.int-cell-inner{padding:6px 4px;font-size:10px;line-height:1.3;height:100%;}
+.int-cell-inner{padding:6px 4px;font-size:16px;line-height:1.3;height:100%;}
 .int-cell.paid .int-cell-inner{background:var(--gnl);}
 .int-cell.pend .int-cell-inner{background:var(--gdl);}
 .int-cell.skip .int-cell-inner{background:var(--sur2);}
@@ -217,23 +218,23 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
     <div class="ni" data-sec="funddist" onclick="showSec('funddist')"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="1.5"/><path d="M5 6h6M5 8.5h4M5 11h3" stroke-linecap="round"/><circle cx="12" cy="11" r="2.5" fill="var(--gn)" stroke="none" opacity=".8"/><path d="M11 11h2M12 10v2" stroke="white" stroke-width="1.2" stroke-linecap="round"/></svg>基金配息紀錄</div>
   </div>
   <div class="sbf">資料存於本機瀏覽器<br>最後更新：<span id="last-update">—</span>
-    <span id="sync-status" style="font-size:10px;color:var(--gn);margin-left:6px;"></span>
+    <span id="sync-status" style="font-size:16px;color:var(--gn);margin-left:6px;"></span>
     <div style="display:flex;gap:6px;margin-top:8px;">
-      <button class="btn btnsm" onclick="exportData()" style="flex:1;font-size:10px;">📤 匯出</button>
-      <button class="btn btnsm" onclick="document.getElementById('import-file').click()" style="flex:1;font-size:10px;">📥 匯入</button>
+      <button class="btn btnsm" onclick="exportData()" style="flex:1;font-size:16px;">📤 匯出</button>
+      <button class="btn btnsm" onclick="document.getElementById('import-file').click()" style="flex:1;font-size:16px;">📥 匯入</button>
       <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(this)">
     </div>
     <div style="display:flex;gap:6px;margin-top:6px;">
-      <button class="btn btnsm" onclick="syncToGist().then(ok=>alert(ok?'✓ 已同步到雲端':'✗ 同步失敗，請檢查Token'))" style="flex:1;font-size:10px;background:var(--gnl);border-color:var(--gn);color:var(--gn);">☁ 同步雲端</button>
-      <button class="btn btnsm" onclick="loadFromGist().then(ts=>ts?(alert('✓ 已從雲端載入\n時間：'+ts),location.reload()):alert('✗ 載入失敗'))" style="flex:1;font-size:10px;">⬇ 從雲端載入</button>
+      <button class="btn btnsm" onclick="syncToGist().then(ok=>alert(ok?'✓ 已同步到雲端':'✗ 同步失敗，請檢查Token'))" style="flex:1;font-size:16px;background:var(--gnl);border-color:var(--gn);color:var(--gn);">☁ 同步雲端</button>
+      <button class="btn btnsm" onclick="loadFromGist().then(ts=>ts?(alert('✓ 已從雲端載入\n時間：'+ts),location.reload()):alert('✗ 載入失敗'))" style="flex:1;font-size:16px;">⬇ 從雲端載入</button>
     </div>
     <div style="margin-top:6px;">
-      <button class="btn btnsm" onclick="setupToken()" style="width:100%;font-size:10px;color:var(--tx3);">🔑 設定 GitHub Token</button>
+      <button class="btn btnsm" onclick="setupToken()" style="width:100%;font-size:16px;color:var(--tx3);">🔑 設定 GitHub Token</button>
     </div>
     <div style="margin-top:5px;">
-      <button class="btn btnsm" onclick="gistSetup()" style="width:100%;font-size:10px;color:var(--tx3);">⚙ GitHub Gist 設定</button>
+      <button class="btn btnsm" onclick="gistSetup()" style="width:100%;font-size:16px;color:var(--tx3);">⚙ GitHub Gist 設定</button>
     </div>
-    <div id="gist-status" style="font-size:10px;color:var(--tx3);margin-top:4px;text-align:center;"></div>
+    <div id="gist-status" style="font-size:16px;color:var(--tx3);margin-top:4px;text-align:center;"></div>
   </div>
 </nav>
 <main class="main">
@@ -243,9 +244,9 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
   <div class="ph" style="margin-bottom:8px;">
     <div><div class="pt">投資總覽</div><div class="ps" id="dash-date"></div></div>
     <div style="display:flex;align-items:center;gap:8px;">
-      <span id="fx-time" style="font-size:10px;color:var(--tx3)">匯率載入中…</span>
-      <span style="font-size:11px;color:var(--tx2)">手動調整</span>
-      <input type="number" id="fx-rate" value="32.5" step="0.01" style="width:68px;padding:3px 7px;font-size:12px;font-family:var(--mono);" oninput="rdash()">
+      <span id="fx-time" style="font-size:16px;color:var(--tx3)">匯率載入中…</span>
+      <span style="font-size:15px;color:var(--tx2)">手動調整</span>
+      <input type="number" id="fx-rate" value="32.5" step="0.01" style="width:68px;padding:3px 7px;font-size:16px;font-family:var(--mono);" oninput="rdash()">
       <button class="btn btnsm" id="refresh-btn" onclick="refreshAll()">↻ 更新股價+匯率</button>
       <button class="btn btnp" onclick="showSec('add')">＋ 新增</button>
     </div>
@@ -258,11 +259,11 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
     <button class="fb" onclick="dashFilt('hold',this)">承接股票</button>
     <button class="fb" onclick="dashFilt('yin',this)">音－帳戶</button>
     <button class="fb" onclick="dashFilt('lin',this)">林－帳戶</button>
-    <span style="font-size:11px;color:var(--tx3);margin-left:4px" id="dash-cnt"></span>
+    <span style="font-size:15px;color:var(--tx3);margin-left:4px" id="dash-cnt"></span>
   </div>
   <div class="card" style="margin-bottom:0;">
     <div class="tw">
-      <table id="dash-table" style="font-size:11px;">
+      <table id="dash-table" style="font-size:15px;">
         <thead>
           <tr>
             <th rowspan="2" style="vertical-align:middle">狀態</th>
@@ -543,7 +544,7 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
       </div>
       <div class="fgrp"><label id="fxf-from-label">支出金額 *</label>
         <div style="display:flex;align-items:center;gap:6px;">
-          <span id="fxf-from-sym" style="font-family:var(--mono);font-size:13px;color:var(--tx2);white-space:nowrap">NT$</span>
+          <span id="fxf-from-sym" style="font-family:var(--mono);font-size:15px;color:var(--tx2);white-space:nowrap">NT$</span>
           <input type="number" id="fxf-twd" placeholder="例：1,000,000" step="0.01" oninput="fxfFromChange()" style="flex:1;">
         </div>
       </div>
@@ -553,7 +554,7 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
       </div>
       <div class="fgrp"><label id="fxf-to-label">取得金額（可直接輸入）</label>
         <div style="display:flex;align-items:center;gap:6px;">
-          <span id="fxf-to-sym" style="font-family:var(--mono);font-size:13px;color:var(--gn);white-space:nowrap">$</span>
+          <span id="fxf-to-sym" style="font-family:var(--mono);font-size:15px;color:var(--gn);white-space:nowrap">$</span>
           <input type="number" id="fxf-foreign" step="0.01" oninput="fxfToChange()" style="flex:1;" placeholder="取得外幣金額">
         </div>
         <div class="hint" id="fxf-foreign-hint" style="color:var(--gn)"></div>
@@ -590,26 +591,26 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
 <div class="mo" id="fxpicker-modal" onclick="if(event.target===this)closeFxPicker()">
   <div class="mb2" style="width:540px;max-height:80vh;display:flex;flex-direction:column;">
     <h3 style="margin-bottom:4px;">選取換匯紀錄</h3>
-    <p style="font-size:12px;color:var(--tx2);margin-bottom:12px;">勾選要使用的換匯紀錄，輸入本次使用金額，系統自動計算加權平均匯率</p>
+    <p style="font-size:16px;color:var(--tx2);margin-bottom:12px;">勾選要使用的換匯紀錄，輸入本次使用金額，系統自動計算加權平均匯率</p>
     <div style="flex:1;overflow-y:auto;border:1px solid var(--bdr);border-radius:var(--r);">
-      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+      <table style="width:100%;border-collapse:collapse;font-size:16px;">
         <thead><tr style="background:var(--sur2);">
-          <th style="padding:6px 10px;font-size:10px;color:var(--tx3);font-weight:600;text-align:left;">選</th>
-          <th style="padding:6px 10px;font-size:10px;color:var(--tx3);font-weight:600;text-align:left;">日期</th>
-          <th style="padding:6px 10px;font-size:10px;color:var(--tx3);font-weight:600;text-align:right;">匯率</th>
-          <th style="padding:6px 10px;font-size:10px;color:var(--tx3);font-weight:600;text-align:right;">可用外幣</th>
-          <th style="padding:6px 10px;font-size:10px;color:var(--tx3);font-weight:600;text-align:left;">備註</th>
-          <th style="padding:6px 10px;font-size:10px;color:var(--tx3);font-weight:600;text-align:right;">本次使用金額</th>
+          <th style="padding:6px 10px;font-size:16px;color:var(--tx3);font-weight:600;text-align:left;">選</th>
+          <th style="padding:6px 10px;font-size:16px;color:var(--tx3);font-weight:600;text-align:left;">日期</th>
+          <th style="padding:6px 10px;font-size:16px;color:var(--tx3);font-weight:600;text-align:right;">匯率</th>
+          <th style="padding:6px 10px;font-size:16px;color:var(--tx3);font-weight:600;text-align:right;">可用外幣</th>
+          <th style="padding:6px 10px;font-size:16px;color:var(--tx3);font-weight:600;text-align:left;">備註</th>
+          <th style="padding:6px 10px;font-size:16px;color:var(--tx3);font-weight:600;text-align:right;">本次使用金額</th>
         </tr></thead>
         <tbody id="fxpicker-rows"></tbody>
       </table>
     </div>
-    <div style="margin-top:12px;padding:10px 14px;background:var(--sur2);border-radius:var(--r);font-size:13px;display:flex;justify-content:space-between;align-items:center;">
+    <div style="margin-top:12px;padding:10px 14px;background:var(--sur2);border-radius:var(--r);font-size:15px;display:flex;justify-content:space-between;align-items:center;">
       <div>
         <span style="color:var(--tx2)">加權平均匯率：</span>
         <span id="fxpicker-avg" style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--ac)">—</span>
       </div>
-      <div style="font-size:11px;color:var(--tx3)" id="fxpicker-detail"></div>
+      <div style="font-size:15px;color:var(--tx3)" id="fxpicker-detail"></div>
     </div>
     <div class="mba">
       <button class="btn" onclick="closeFxPicker()">取消</button>
@@ -622,12 +623,12 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
 <div class="mo" id="pd-modal" onclick="if(event.target===this)closePdModal()">
   <div class="mb2" style="width:480px;">
     <h3 id="pd-modal-title">編輯配息日</h3>
-    <p style="font-size:12px;color:var(--tx2);margin-bottom:12px;">格式：M/D，逗號分隔。年份會依買進日自動推算，月份超過上月就跨年。</p>
+    <p style="font-size:16px;color:var(--tx2);margin-bottom:12px;">格式：M/D，逗號分隔。年份會依買進日自動推算，月份超過上月就跨年。</p>
     <div class="fgrp" style="margin-bottom:12px;">
       <label>配息日（逗號分隔）</label>
-      <textarea id="pd-input" rows="3" style="width:100%;padding:8px 10px;border:1px solid var(--bdr);border-radius:var(--r);font-size:13px;font-family:var(--mono);resize:vertical;" placeholder="例：6/18, 7/16, 8/18, 9/17"></textarea>
+      <textarea id="pd-input" rows="3" style="width:100%;padding:8px 10px;border:1px solid var(--bdr);border-radius:var(--r);font-size:15px;font-family:var(--mono);resize:vertical;" placeholder="例：6/18, 7/16, 8/18, 9/17"></textarea>
     </div>
-    <div style="font-size:11px;color:var(--tx3);margin-bottom:12px;" id="pd-preview"></div>
+    <div style="font-size:15px;color:var(--tx3);margin-bottom:12px;" id="pd-preview"></div>
     <div class="mba">
       <button class="btn" onclick="closePdModal()">取消</button>
       <button class="btn btnp" onclick="savePdModal()">儲存配息日</button>
@@ -655,7 +656,7 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
       <div class="hold-section-title">承接股票輸入</div>
       <div class="hold-row">
         <label>承接哪一檔</label>
-        <select id="hp-stock-sel" onchange="hpCalc()" style="flex:1;padding:5px 8px;border:1px solid var(--bdr);border-radius:var(--r);font-size:12px;background:var(--bg);">
+        <select id="hp-stock-sel" onchange="hpCalc()" style="flex:1;padding:5px 8px;border:1px solid var(--bdr);border-radius:var(--r);font-size:16px;background:var(--bg);">
           <option value="">選擇股票</option>
         </select>
       </div>
@@ -674,23 +675,23 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
       <div class="breakeven-highlight">
         <div class="breakeven-price" id="hp-breakeven">—</div>
         <div class="breakeven-label">每股需漲到此價格才回本</div>
-        <div style="font-size:10px;color:var(--tx3);margin-top:4px" id="hp-breakeven-sub"></div>
+        <div style="font-size:16px;color:var(--tx3);margin-top:4px" id="hp-breakeven-sub"></div>
       </div>
     </div>
     <div class="hold-section">
       <div class="hold-section-title">賣出紀錄</div>
       <div id="hp-sells-list" style="margin-bottom:8px;"></div>
       <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
-        <input type="date" id="hp-sell-date" style="flex:1;min-width:100px;padding:5px 8px;border:1px solid var(--bdr);border-radius:var(--r);font-size:12px;">
-        <input type="number" id="hp-sell-qty" placeholder="股數" step="1" style="width:80px;padding:5px 8px;border:1px solid var(--bdr);border-radius:var(--r);font-size:12px;font-family:var(--mono);">
-        <input type="number" id="hp-sell-price" placeholder="賣出股價 $" step="0.01" style="width:110px;padding:5px 8px;border:1px solid var(--bdr);border-radius:var(--r);font-size:12px;font-family:var(--mono);">
+        <input type="date" id="hp-sell-date" style="flex:1;min-width:100px;padding:5px 8px;border:1px solid var(--bdr);border-radius:var(--r);font-size:16px;">
+        <input type="number" id="hp-sell-qty" placeholder="股數" step="1" style="width:80px;padding:5px 8px;border:1px solid var(--bdr);border-radius:var(--r);font-size:16px;font-family:var(--mono);">
+        <input type="number" id="hp-sell-price" placeholder="賣出股價 $" step="0.01" style="width:110px;padding:5px 8px;border:1px solid var(--bdr);border-radius:var(--r);font-size:16px;font-family:var(--mono);">
         <button class="btn btnsm" onclick="addSell()" style="background:var(--bll);border-color:var(--bl);color:var(--bl)">＋ 新增</button>
       </div>
-      <div id="hp-sell-total" style="font-size:11px;color:var(--tx2);margin-top:6px;"></div>
+      <div id="hp-sell-total" style="font-size:15px;color:var(--tx2);margin-top:6px;"></div>
     </div>
     <div class="hold-section">
       <div class="hold-section-title">備註</div>
-      <textarea id="hp-note" rows="3" style="width:100%;padding:7px 10px;border:1px solid var(--bdr);border-radius:var(--r);font-size:12px;font-family:var(--sans);resize:vertical;background:var(--bg);" placeholder="記錄其他細節…"></textarea>
+      <textarea id="hp-note" rows="3" style="width:100%;padding:7px 10px;border:1px solid var(--bdr);border-radius:var(--r);font-size:16px;font-family:var(--sans);resize:vertical;background:var(--bg);" placeholder="記錄其他細節…"></textarea>
       <button class="btn btnp" style="width:100%;margin-top:8px;justify-content:center;" onclick="saveHoldDetail()">儲存承接明細</button>
     </div>
   </div>
@@ -700,7 +701,7 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
   <div class="ph">
     <div><div class="pt">基金管理</div><div class="ps">記錄每筆基金投資，追蹤配息紀錄</div></div>
     <div style="display:flex;gap:8px;align-items:center;">
-      <span id="fund-nav-updated" style="font-size:10px;color:var(--tx3)"></span>
+      <span id="fund-nav-updated" style="font-size:16px;color:var(--tx3)"></span>
       <button class="btn btnsm" onclick="(async()=>{const btn=this;btn.textContent='抓取中…';btn.disabled=true;const ts=await fetchGistNav();if(ts){const d=new Date(ts);document.getElementById('fund-nav-updated').textContent='淨值更新：'+d.toLocaleDateString('zh-TW')+' '+d.toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});fundRender();btn.textContent='↻ 更新淨值';}else{btn.textContent='失敗，請設定Token';}btn.disabled=false;})()" id="fund-nav-btn">↻ 更新淨值</button>
       <button class="btn btnsm" onclick="fundOpenForm()">＋ 新增基金</button>
     </div>
@@ -708,9 +709,9 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
   <!-- 分頁切換 -->
   <div style="display:flex;gap:2px;margin-bottom:12px;border-bottom:2px solid var(--bdr);">
     <button id="ftab-list" class="btn" onclick="fundTab('list')"
-      style="border-radius:var(--r) var(--r) 0 0;border-bottom:none;padding:6px 18px;font-size:12px;background:var(--ac);color:#fff;">基金清單</button>
+      style="border-radius:var(--r) var(--r) 0 0;border-bottom:none;padding:6px 18px;font-size:16px;background:var(--ac);color:#fff;">基金清單</button>
     <button id="ftab-dist" class="btn" onclick="fundTab('dist')"
-      style="border-radius:var(--r) var(--r) 0 0;border-bottom:none;padding:6px 18px;font-size:12px;">配息紀錄</button>
+      style="border-radius:var(--r) var(--r) 0 0;border-bottom:none;padding:6px 18px;font-size:16px;">配息紀錄</button>
   </div>
   <!-- 基金清單 tab -->
   <div id="ftab-list-body">
@@ -822,7 +823,7 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
 <div class="mo" id="modal" onclick="closeMo(event)">
   <div class="mb2">
     <h3>確認刪除</h3>
-    <p style="font-size:13px;color:var(--tx2)">確定刪除這筆投資紀錄？此操作無法復原。</p>
+    <p style="font-size:15px;color:var(--tx2)">確定刪除這筆投資紀錄？此操作無法復原。</p>
     <div class="mba">
       <button class="btn" onclick="closeMo()">取消</button>
       <button class="btn" style="background:var(--rd);color:#fff;border-color:var(--rd)" id="mo-ok">確認刪除</button>
@@ -968,7 +969,7 @@ function amtWithTWD(amt,ccy,fx){
   const s=SY(ccy)+F(amt,0);
   if(ccy==='USD'&&fx){
     const twd=Math.round(amt*fx);
-    return `${s}<br><span style="font-size:9px;color:var(--tx3)">≈ NT$${F(twd)}</span>`;
+    return `${s}<br><span style="font-size:11px;color:var(--tx3)">≈ NT$${F(twd)}</span>`;
   }
   return s;
 }
@@ -1009,14 +1010,14 @@ async function rdash(){
       <div style="margin-top:4px;">
         <div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;">
           <span class="mv mono">$${F(uF)}</span>
-          <span style="font-size:10px;color:var(--tx3)">USD</span>
+          <span style="font-size:16px;color:var(--tx3)">USD</span>
         </div>
-        <div style="font-size:10px;color:var(--tx3);margin-top:1px">≈ NT$${F(Math.round(uF*fx))}</div>
+        <div style="font-size:16px;color:var(--tx3);margin-top:1px">≈ NT$${F(Math.round(uF*fx))}</div>
         ${jF?`<div style="display:flex;align-items:baseline;gap:6px;margin-top:6px;flex-wrap:wrap;">
           <span class="mv mono" style="font-size:16px">¥${F(jF)}</span>
-          <span style="font-size:10px;color:var(--tx3)">JPY</span>
+          <span style="font-size:16px;color:var(--tx3)">JPY</span>
         </div>
-        <div style="font-size:10px;color:var(--tx3);margin-top:1px">≈ NT$${F(Math.round(jF*jpyFx))}</div>`:''}
+        <div style="font-size:16px;color:var(--tx3);margin-top:1px">≈ NT$${F(Math.round(jF*jpyFx))}</div>`:''}
       </div>
     </div>
     <div class="mc"><div class="ml">台幣成本合計</div><div class="mv mono">NT$${F(tTWD)}</div><div class="ms">${D.length} 筆投資</div></div>
@@ -1025,14 +1026,14 @@ async function rdash(){
       <div style="margin-top:4px;">
         <div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;">
           <span class="mv mono gn">$${F(tIntUSD)}</span>
-          <span style="font-size:10px;color:var(--tx3)">USD</span>
+          <span style="font-size:16px;color:var(--tx3)">USD</span>
         </div>
-        <div style="font-size:10px;color:var(--gn);margin-top:1px">≈ NT$${F(Math.round(tIntUSD*fx))}</div>
+        <div style="font-size:16px;color:var(--gn);margin-top:1px">≈ NT$${F(Math.round(tIntUSD*fx))}</div>
         ${tIntJPY?`<div style="display:flex;align-items:baseline;gap:6px;margin-top:6px;flex-wrap:wrap;">
           <span class="mv mono gn" style="font-size:16px">¥${F(tIntJPY)}</span>
-          <span style="font-size:10px;color:var(--tx3)">JPY</span>
+          <span style="font-size:16px;color:var(--tx3)">JPY</span>
         </div>
-        <div style="font-size:10px;color:var(--gn);margin-top:1px">≈ NT$${F(Math.round(tIntJPY*jpyFx))}</div>`:''}
+        <div style="font-size:16px;color:var(--gn);margin-top:1px">≈ NT$${F(Math.round(tIntJPY*jpyFx))}</div>`:''}
       </div>
     </div>
     <div class="mc"><div class="ml">進行中筆數</div><div class="mv mono bl">${act}</div><div class="ms">已出場 ${D.filter(d=>d.status==='closed').length} 筆</div></div>
@@ -1041,15 +1042,15 @@ async function rdash(){
       ${hasRem?`<div style="margin-top:4px;">
         ${fxlUSD>0?`<div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;">
           <span class="mv mono ${remUSD<0?'cr':remUSD===0?'':'gn'}" style="font-size:16px">$${F(Math.abs(remUSD),0)}</span>
-          <span style="font-size:10px;color:var(--tx3)">USD ${remUSD<0?'⚠ 不足':remUSD===0?'剛好用完':''}</span>
+          <span style="font-size:16px;color:var(--tx3)">USD ${remUSD<0?'⚠ 不足':remUSD===0?'剛好用完':''}</span>
         </div>
-        <div style="font-size:10px;color:var(--tx3);margin-top:1px">換匯 $${F(fxlUSD,0)} － 使用中 $${F(activeUSD,0)}</div>`:''}
+        <div style="font-size:16px;color:var(--tx3);margin-top:1px">換匯 $${F(fxlUSD,0)} － 使用中 $${F(activeUSD,0)}</div>`:''}
         ${fxlJPY>0?`<div style="display:flex;align-items:baseline;gap:6px;margin-top:6px;flex-wrap:wrap;">
           <span class="mv mono ${remJPY<0?'cr':remJPY===0?'':'gn'}" style="font-size:16px">¥${F(Math.abs(remJPY),0)}</span>
-          <span style="font-size:10px;color:var(--tx3)">JPY ${remJPY<0?'⚠ 不足':remJPY===0?'剛好用完':''}</span>
+          <span style="font-size:16px;color:var(--tx3)">JPY ${remJPY<0?'⚠ 不足':remJPY===0?'剛好用完':''}</span>
         </div>
-        <div style="font-size:10px;color:var(--tx3);margin-top:1px">換匯 ¥${F(fxlJPY,0)} － 使用中 ¥${F(activeJPY,0)}</div>`:''}
-      </div>`:`<div class="ms" style="margin-top:6px;">尚無換匯紀錄<br><a href="#" onclick="showSec('fxlog');return false;" style="font-size:10px;color:var(--ac2)">前往新增 →</a></div>`}
+        <div style="font-size:16px;color:var(--tx3);margin-top:1px">換匯 ¥${F(fxlJPY,0)} － 使用中 ¥${F(activeJPY,0)}</div>`:''}
+      </div>`:`<div class="ms" style="margin-top:6px;">尚無換匯紀錄<br><a href="#" onclick="showSec('fxlog');return false;" style="font-size:16px;color:var(--ac2)">前往新增 →</a></div>`}
     </div>`;
 
   let rows=dashCF==='all'?D:dashCF==='yin'?D.filter(d=>d.bank.includes('音')):dashCF==='lin'?D.filter(d=>d.bank.includes('林')):D.filter(d=>d.status===dashCF);
@@ -1076,12 +1077,12 @@ async function rdash(){
       <td class="mono right">${d.ko||'—'}%</td>
       <td class="cb mono right">${d.coupon}%</td>
       <td style="white-space:nowrap">${d.term}</td>
-      <td style="font-size:10px;line-height:1.6">${fmtPayDates(d.payDates)}</td>
+      <td style="font-size:16px;line-height:1.6">${fmtPayDates(d.payDates)}</td>
       <td class="mono right">${amtWithTWD(d.monthly,d.ccy,fx)}</td>
       <td class="mono right cg">${amtWithTWD(totalAmt,d.ccy,fx)}</td>
       <td class="mono right">
         <span class="${paidAmt>=totalAmt&&totalAmt>0?'cg':paidAmt>0?'cgd':'cmu'}">${amtWithTWD(paidAmt,d.ccy,fx)}</span>
-        <span style="font-size:9px;color:var(--tx3);display:block">${(d.paidDates||[]).length}/${d.payDates.length} 期</span>
+        <span style="font-size:11px;color:var(--tx3);display:block">${(d.paidDates||[]).length}/${d.payDates.length} 期</span>
       </td>
       <td class="${d.rate>0?'cg':'cmu'} mono" style="white-space:nowrap">${d.rate>0?d.rate+'%':'—'}</td>
       <td style="white-space:nowrap"><button class="btn btnsm" onclick="editRec(${d.id})">編輯</button></td>
@@ -1136,12 +1137,12 @@ function renderListTable(rows){
 
       html+=`<tr style="${bg}${rowAlert}">
         <td style="white-space:nowrap">${i===0?bdg(d.status):''}</td>
-        <td style="white-space:nowrap;font-size:11px">${i===0?d.bank:''}</td>
-        <td class="mono" style="white-space:nowrap;font-size:11px">${i===0?d.date:''}</td>
-        <td class="mono" style="white-space:nowrap;font-size:11px;color:var(--tx2)">${i===0?(d.maturity||'—'):''}</td>
-        <td class="mono right" style="white-space:nowrap;width:88px;font-size:11px">${i===0?(SY(d.ccy)+F(d.face)):''}</td>
+        <td style="white-space:nowrap;font-size:15px">${i===0?d.bank:''}</td>
+        <td class="mono" style="white-space:nowrap;font-size:15px">${i===0?d.date:''}</td>
+        <td class="mono" style="white-space:nowrap;font-size:15px;color:var(--tx2)">${i===0?(d.maturity||'—'):''}</td>
+        <td class="mono right" style="white-space:nowrap;width:88px;font-size:15px">${i===0?(SY(d.ccy)+F(d.face)):''}</td>
         <td style="font-weight:600;text-align:center;width:110px;${belowAki?'color:var(--rd)':''}">${s.name}
-          ${belowAki?'<div style="font-size:9px;background:#faeaec;color:var(--rd);padding:1px 5px;border-radius:4px;font-weight:700">⚠ 破保護價</div>':''}
+          ${belowAki?'<div style="font-size:11px;background:#faeaec;color:var(--rd);padding:1px 5px;border-radius:4px;font-weight:700">⚠ 破保護價</div>':''}
         </td>
         <td class="mono right" style="${priceColor}white-space:nowrap">
           <input type="number"
@@ -1149,9 +1150,9 @@ function renderListTable(rows){
             value="${cur?cur.toFixed(isJPY?0:2):''}"
             placeholder="手動輸入"
             onchange="setPriceManual('${s.name}',this.value)"
-            style="width:80px;text-align:right;font-family:var(--mono);font-size:11px;${priceColor}padding:2px 4px;border:1px solid ${belowAki?'var(--rd)':belowStrike?'#e8cc9a':'var(--bdr)'};border-radius:4px;background:${belowAki?'#faeaec':belowStrike?'#fdf3e3':'var(--bg)'}"
+            style="width:80px;text-align:right;font-family:var(--mono);font-size:15px;${priceColor}padding:2px 4px;border:1px solid ${belowAki?'var(--rd)':belowStrike?'#e8cc9a':'var(--bdr)'};border-radius:4px;background:${belowAki?'#faeaec':belowStrike?'#fdf3e3':'var(--bg)'}"
           >
-          ${pctChg!==null?`<span style="font-size:9px;display:block;color:${pctChg>=0?'var(--gn)':'var(--rd)'};margin-top:1px">${pctChg>=0?'+':''}${pctChg.toFixed(1)}%</span>`:''}
+          ${pctChg!==null?`<span style="font-size:11px;display:block;color:${pctChg>=0?'var(--gn)':'var(--rd)'};margin-top:1px">${pctChg>=0?'+':''}${pctChg.toFixed(1)}%</span>`:''}
         </td>
         <td class="mono right">${s.buy?F(s.buy,isJPY?0:2):'—'}</td>
         <td class="mono right" style="color:var(--rd)">${s.aki?F(s.aki,isJPY?0:2):'—'}</td>
@@ -1275,13 +1276,13 @@ function rint(){
   const INFO_LABELS=['狀態','帳戶','買進日','出場日','幣別・面額','利率・期限','月配息','已領利息'];
   const infoVal=(d,li)=>[
     `<span style="white-space:nowrap;display:inline-block">${bdg(d.status)}</span>`,
-    `<span style="font-size:10px">${d.bank}</span>`,
-    `<span class="mono" style="font-size:10px">${d.date}</span>`,
-    `<span class="mono" style="font-size:10px;color:${d.exitDate?'var(--rd)':'var(--tx3)'}">${d.exitDate||'—'}</span>`,
-    `<span style="font-size:10px">${d.ccy==='JPY'?'<span class="badge bj" style="font-size:9px">JPY</span> ':'<span class="badge bu" style="font-size:9px">USD</span> '}${SY(d.ccy)}${F(d.face)}</span>`,
-    `<span style="font-size:10px;color:var(--bl)">${d.coupon}% · ${d.term}</span>`,
-    `<span class="mono" style="font-size:10px;color:var(--gn)">${SY(d.ccy)}${F(d.monthly,0)}</span>`,
-    `<span class="mono" style="font-size:10px;color:var(--gn)">${SY(d.ccy)}${F((()=>{const ov=d.monthlyOverride||{};return(d.paidDates||[]).reduce((a,dt)=>a+(ov[dt]!==undefined?ov[dt]:d.monthly),0);})(),2)}</span>`,
+    `<span style="font-size:16px">${d.bank}</span>`,
+    `<span class="mono" style="font-size:16px">${d.date}</span>`,
+    `<span class="mono" style="font-size:16px;color:${d.exitDate?'var(--rd)':'var(--tx3)'}">${d.exitDate||'—'}</span>`,
+    `<span style="font-size:16px">${d.ccy==='JPY'?'<span class="badge bj" style="font-size:11px">JPY</span> ':'<span class="badge bu" style="font-size:11px">USD</span> '}${SY(d.ccy)}${F(d.face)}</span>`,
+    `<span style="font-size:16px;color:var(--bl)">${d.coupon}% · ${d.term}</span>`,
+    `<span class="mono" style="font-size:16px;color:var(--gn)">${SY(d.ccy)}${F(d.monthly,0)}</span>`,
+    `<span class="mono" style="font-size:16px;color:var(--gn)">${SY(d.ccy)}${F((()=>{const ov=d.monthlyOverride||{};return(d.paidDates||[]).reduce((a,dt)=>a+(ov[dt]!==undefined?ov[dt]:d.monthly),0);})(),2)}</span>`,
   ][li];
 
   const MW=62,CW=74,TOTAL_CW=82;
@@ -1298,7 +1299,7 @@ function rint(){
   <thead>
     <!-- Main column header row — always sticky at top:0 -->
     <tr>
-      <th style="position:sticky;top:0;left:0;z-index:5;background:var(--sur2);width:${MW}px;min-width:${MW}px;padding:5px 6px;font-size:10px;text-align:center;border-right:3px solid var(--ac2);">月份</th>
+      <th style="position:sticky;top:0;left:0;z-index:5;background:var(--sur2);width:${MW}px;min-width:${MW}px;padding:5px 6px;font-size:16px;text-align:center;border-right:3px solid var(--ac2);">月份</th>
       ${rows.map(d=>{
         const pc=(d.paidDates||[]).length,tc=d.payDates.length;
         const exp=window._intExp.has(d.id);
@@ -1311,23 +1312,23 @@ function rint(){
         return`<th style="position:sticky;top:0;z-index:3;background:var(--sur2);padding:0;width:${exp?CW:28}px;min-width:${exp?CW:28}px;cursor:pointer;border-right:1px solid var(--bdr);transition:width .2s;" onclick="intTog(${d.id})">
           <div style="padding:4px 4px 3px;text-align:center;overflow:hidden;">
             ${exp?`
-            <div style="font-size:9px;font-weight:600;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:${CW-6}px;">${bankShort}</div>
-            <div style="font-size:9px;color:var(--tx3)">${d.date.slice(5)}</div>
-            <div style="font-family:var(--mono);font-size:9px;color:${pc===tc&&tc>0?'var(--gn)':'var(--gd)'};margin-top:1px">${pc}/${tc}</div>
+            <div style="font-size:11px;font-weight:600;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:${CW-6}px;">${bankShort}</div>
+            <div style="font-size:11px;color:var(--tx3)">${d.date.slice(5)}</div>
+            <div style="font-family:var(--mono);font-size:11px;color:${pc===tc&&tc>0?'var(--gn)':'var(--gd)'};margin-top:1px">${pc}/${tc}</div>
             <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:2px;">
-              <span style="font-size:9px;color:var(--ac2)">◀</span>
-              <span style="font-size:9px;color:var(--tx3);cursor:pointer;" onclick="event.stopPropagation();editPayDates(${d.id})" title="編輯配息日">✎</span>
+              <span style="font-size:11px;color:var(--ac2)">◀</span>
+              <span style="font-size:11px;color:var(--tx3);cursor:pointer;" onclick="event.stopPropagation();editPayDates(${d.id})" title="編輯配息日">✎</span>
             </div>
             ${isClosed?'<div style="font-size:8px;color:var(--tx3);margin-top:1px">🔒已出場</div>':''}
-            `:`<div style="font-size:10px;color:var(--ac2);writing-mode:vertical-rl;text-orientation:mixed;margin:4px auto;white-space:nowrap;overflow:hidden;max-height:60px;">▶ ${bankShort}</div>`}
+            `:`<div style="font-size:16px;color:var(--ac2);writing-mode:vertical-rl;text-orientation:mixed;margin:4px auto;white-space:nowrap;overflow:hidden;max-height:60px;">▶ ${bankShort}</div>`}
           </div>
         </th>`;
       }).join('')}
-      <th style="position:sticky;top:0;z-index:3;background:var(--sur2);min-width:${TOTAL_CW}px;width:${TOTAL_CW}px;font-size:9px;font-weight:600;color:var(--tx3);text-align:center;border-left:3px solid var(--ac2);">當月合計</th>
+      <th style="position:sticky;top:0;z-index:3;background:var(--sur2);min-width:${TOTAL_CW}px;width:${TOTAL_CW}px;font-size:11px;font-weight:600;color:var(--tx3);text-align:center;border-left:3px solid var(--ac2);">當月合計</th>
     </tr>
     <!-- Info rows — sticky below main header when expanded -->
     ${INFO_LABELS.map((lbl,li)=>`<tr class="int-info-row" style="${anyExp?'':'display:none'}">
-      <th style="position:sticky;left:0;top:${HEADER_H+li*INFO_ROW_H}px;z-index:5;background:var(--gdl);font-size:9px;font-weight:600;color:var(--tx3);padding:3px 6px;white-space:nowrap;width:${MW}px;min-width:${MW}px;text-align:right;border-right:3px solid var(--ac2);${li===INFO_LABELS.length-1?'border-bottom:2px solid var(--ac2);':''}">${lbl}</th>
+      <th style="position:sticky;left:0;top:${HEADER_H+li*INFO_ROW_H}px;z-index:5;background:var(--gdl);font-size:11px;font-weight:600;color:var(--tx3);padding:3px 6px;white-space:nowrap;width:${MW}px;min-width:${MW}px;text-align:right;border-right:3px solid var(--ac2);${li===INFO_LABELS.length-1?'border-bottom:2px solid var(--ac2);':''}">${lbl}</th>
       ${rows.map(d=>`<th style="position:sticky;top:${HEADER_H+li*INFO_ROW_H}px;z-index:3;text-align:center;padding:3px 4px;border-right:1px solid var(--bdr);background:${window._intExp.has(d.id)?'var(--gdl)':'var(--sur2)'};vertical-align:middle;font-weight:400;${li===INFO_LABELS.length-1?'border-bottom:2px solid var(--ac2);':''}">
         ${window._intExp.has(d.id)?infoVal(d,li):''}
       </th>`).join('')}
@@ -1340,16 +1341,16 @@ function rint(){
   INT_MONTHS.forEach(ym=>{
     if(ym.y!==prevY){
       prevY=ym.y;
-      h+=`<tr style="background:var(--ac);"><td colspan="${rows.length+2}" style="padding:3px 10px;font-size:10px;font-weight:700;color:rgba(255,255,255,.8);letter-spacing:.08em;">${ym.y} 年</td></tr>`;
+      h+=`<tr style="background:var(--ac);"><td colspan="${rows.length+2}" style="padding:3px 10px;font-size:16px;font-weight:700;color:rgba(255,255,255,.8);letter-spacing:.08em;">${ym.y} 年</td></tr>`;
     }
     const tot=monthTotal(ym);
     h+=`<tr>
-      <td style="position:sticky;left:0;z-index:2;background:var(--sur2);font-weight:700;font-size:12px;text-align:center;padding:5px 4px;white-space:nowrap;width:${MW}px;min-width:${MW}px;border-right:3px solid var(--ac2);border-bottom:1px solid var(--bdr);">${ym.m}月</td>
+      <td style="position:sticky;left:0;z-index:2;background:var(--sur2);font-weight:700;font-size:16px;text-align:center;padding:5px 4px;white-space:nowrap;width:${MW}px;min-width:${MW}px;border-right:3px solid var(--ac2);border-bottom:1px solid var(--bdr);">${ym.m}月</td>
       ${rows.map(d=>{
         const dt=dtForYM(d,ym);
         const exp=window._intExp.has(d.id);
         const isClosed=!!(d.exitDate);
-        if(!dt)return`<td style="border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);background:var(--bg);text-align:center;color:var(--tx3);font-size:11px;min-width:${exp?CW:28}px;width:${exp?CW:28}px;">—</td>`;
+        if(!dt)return`<td style="border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);background:var(--bg);text-align:center;color:var(--tx3);font-size:15px;min-width:${exp?CW:28}px;width:${exp?CW:28}px;">—</td>`;
         const paid=(d.paidDates||[]).includes(dt);
         // 取得這個月的實際金額（可能有覆寫）
         const overrides=d.monthlyOverride||{};
@@ -1359,27 +1360,27 @@ function rint(){
           return`<td class="int-cell ${paid?'paid':'pend'}" onclick="togPaidForce(${d.id},'${dt}')" oncontextmenu="editMonthAmt(event,${d.id},'${dt}',${monthAmt})" title="左鍵切換已收；右鍵修改金額（已出場仍可修改）" style="border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);min-width:${exp?CW:28}px;width:${exp?CW:28}px;vertical-align:middle;opacity:.75;">
             <div class="int-cell-inner">
               ${exp?`
-              <div style="font-size:9px;color:${paid?'var(--gn)':'var(--tx3)'};margin-bottom:1px">${dt}</div>
-              <div class="ia" style="font-family:var(--mono);font-size:11px">${SY(d.ccy)}${F(monthAmt,2)}</div>
-              <div style="font-size:9px;margin-top:1px;color:${paid?'var(--gn)':'var(--tx3)'}">🔒${paid?'已收':'—'}</div>
-              `:`<div style="font-size:10px;color:${paid?'var(--gn)':'var(--tx3)'}">${paid?'✓':'—'}</div>`}
+              <div style="font-size:11px;color:${paid?'var(--gn)':'var(--tx3)'};margin-bottom:1px">${dt}</div>
+              <div class="ia" style="font-family:var(--mono);font-size:15px">${SY(d.ccy)}${F(monthAmt,2)}</div>
+              <div style="font-size:11px;margin-top:1px;color:${paid?'var(--gn)':'var(--tx3)'}">🔒${paid?'已收':'—'}</div>
+              `:`<div style="font-size:16px;color:${paid?'var(--gn)':'var(--tx3)'}">${paid?'✓':'—'}</div>`}
             </div>
           </td>`;
         }
         return`<td class="int-cell ${paid?'paid':'pend'}" onclick="togPaid(${d.id},'${dt}')" oncontextmenu="editMonthAmt(event,${d.id},'${dt}',${monthAmt})" title="左鍵切換已收；右鍵修改金額" style="border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);min-width:${exp?CW:28}px;width:${exp?CW:28}px;vertical-align:middle;">
           <div class="int-cell-inner">
             ${exp?`
-            <div style="font-size:9px;color:${paid?'var(--gn)':'var(--tx3)'};margin-bottom:1px">${dt}</div>
-            <div class="ia" style="font-family:var(--mono);font-size:11px">${SY(d.ccy)}${F(monthAmt,2)}</div>
-            <div style="font-size:9px;margin-top:1px;color:${paid?'var(--gn)':'var(--gd)'}">${paid?'✓ 已收':'待收'}${overrides[dt]!==undefined?' ✎':''}</div>
-            `:`<div style="font-size:10px;color:${paid?'var(--gn)':'var(--gd)'}">${paid?'✓':'●'}</div>`}
+            <div style="font-size:11px;color:${paid?'var(--gn)':'var(--tx3)'};margin-bottom:1px">${dt}</div>
+            <div class="ia" style="font-family:var(--mono);font-size:15px">${SY(d.ccy)}${F(monthAmt,2)}</div>
+            <div style="font-size:11px;margin-top:1px;color:${paid?'var(--gn)':'var(--gd)'}">${paid?'✓ 已收':'待收'}${overrides[dt]!==undefined?' ✎':''}</div>
+            `:`<div style="font-size:16px;color:${paid?'var(--gn)':'var(--gd)'}">${paid?'✓':'●'}</div>`}
           </div>
         </td>`;
       }).join('')}
       <td style="border-left:3px solid var(--ac2);border-bottom:1px solid var(--bdr);text-align:center;padding:4px;min-width:${TOTAL_CW}px;vertical-align:middle;background:${(tot.usd||tot.jpy)?'var(--gnl)':'var(--bg)'};">
-        ${tot.usd?`<div class="mono" style="font-size:11px;font-weight:600;color:var(--gn)">$${F(tot.usd,0)}</div>`:''}
-        ${tot.jpy?`<div class="mono" style="font-size:10px;color:var(--gn)">¥${F(tot.jpy,0)}</div>`:''}
-        ${!tot.usd&&!tot.jpy?'<span style="color:var(--tx3);font-size:11px">—</span>':''}
+        ${tot.usd?`<div class="mono" style="font-size:15px;font-weight:600;color:var(--gn)">$${F(tot.usd,0)}</div>`:''}
+        ${tot.jpy?`<div class="mono" style="font-size:16px;color:var(--gn)">¥${F(tot.jpy,0)}</div>`:''}
+        ${!tot.usd&&!tot.jpy?'<span style="color:var(--tx3);font-size:15px">—</span>':''}
       </td>
     </tr>`;
   });
@@ -1512,13 +1513,13 @@ function rrep(){
   document.getElementById('rep-stk').innerHTML=ss.map(([n,c])=>`<div class="bg"><div class="bl2"><span>${n}</span><span>${c} 次</span></div><div class="bt"><div class="bf" style="width:${(c/mc)*100}%;background:var(--gd)"></div></div></div>`).join('');
   const sr=[...D].sort((a,b)=>b.date.localeCompare(a.date));
   document.getElementById('rep-tb').innerHTML=sr.map(d=>`<tr>
-    <td class="mono" style="font-size:11px">${d.date}</td><td style="font-size:11px">${d.bank}</td>
+    <td class="mono" style="font-size:15px">${d.date}</td><td style="font-size:15px">${d.bank}</td>
     <td class="mono right">${SY(d.ccy)}${F(d.face)}</td>
     <td>${d.ccy==='JPY'?'<span class="badge bj">JPY</span>':d.ccy}</td>
     <td class="mono right">${twd(d)?'$'+F(twd(d)):'—'}</td>
     <td class="cb">${d.coupon}%</td><td>${d.term}</td>
-    <td style="font-size:11px">${d.maturity||'—'}</td>
-    <td style="font-size:11px">${d.exitDate||'—'}</td>
+    <td style="font-size:15px">${d.maturity||'—'}</td>
+    <td style="font-size:15px">${d.exitDate||'—'}</td>
     <td class="mono right cg">${d.ccy!=='JPY'&&d.totalUSD?'$'+F(d.totalUSD):'—'}</td>
     <td class="${d.rate>0?'cg':'cmu'}">${d.rate>0?d.rate+'%':'—'}</td>
     <td>${bdg(d.status)}</td>
@@ -1542,7 +1543,7 @@ function rHoldTrack(){
   const el=document.getElementById('ht-list');
   const fx=getFX();
   if(!holdItems.length){
-    el.innerHTML='<div style="text-align:center;padding:48px;color:var(--tx3);font-size:13px">目前沒有承接股票的投資紀錄</div>';
+    el.innerHTML='<div style="text-align:center;padding:48px;color:var(--tx3);font-size:15px">目前沒有承接股票的投資紀錄</div>';
     return;
   }
   el.innerHTML=holdItems.map(d=>{
@@ -1573,7 +1574,7 @@ function rHoldTrack(){
     if(gap!==null){
       const col=reached?'var(--gn)':Math.abs(gapPct)<15?'var(--gd)':'var(--rd)';
       gapHtml=`<span style="color:${col};font-weight:600">${reached?'+':''}$${F(Math.abs(gap),2)}</span>`
-              +`<div style="font-size:9px;color:${col}">${reached?'✓ 已超回本':''} ${gapPct!==null?(reached?'+':'')+gapPct.toFixed(1)+'%':''}</div>`;
+              +`<div style="font-size:11px;color:${col}">${reached?'✓ 已超回本':''} ${gapPct!==null?(reached?'+':'')+gapPct.toFixed(1)+'%':''}</div>`;
     }
 
     // progress bar for gap column
@@ -1588,50 +1589,50 @@ function rHoldTrack(){
       <!-- Header row -->
       <div class="ht-hd" style="padding:10px 16px;gap:0;align-items:stretch;">
         <div class="ht-hd-left" style="min-width:150px;padding-right:16px;border-right:1px solid rgba(200,150,62,.3);">
-          <h3 style="font-size:13px">${d.bank}</h3>
-          <p style="font-size:10px;color:var(--tx2);margin-top:3px;">買進 ${d.date}<br>到期 ${d.maturity||'—'}　${d.term}<br>利率 Coupon ${d.coupon}%</p>
+          <h3 style="font-size:15px">${d.bank}</h3>
+          <p style="font-size:16px;color:var(--tx2);margin-top:3px;">買進 ${d.date}<br>到期 ${d.maturity||'—'}　${d.term}<br>利率 Coupon ${d.coupon}%</p>
         </div>
-        <div style="display:flex;align-items:center;flex:1;padding:0 16px;gap:6px;font-family:var(--mono);font-size:12px;font-weight:600;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;flex:1;padding:0 16px;gap:6px;font-family:var(--mono);font-size:16px;font-weight:600;flex-wrap:wrap;">
           <div style="text-align:center;padding:0 10px;">
-            <div style="font-size:9px;color:var(--tx3);font-weight:400;font-family:var(--sans);letter-spacing:.05em;margin-bottom:2px">面額</div>
+            <div style="font-size:11px;color:var(--tx3);font-weight:400;font-family:var(--sans);letter-spacing:.05em;margin-bottom:2px">面額</div>
             <div style="color:var(--gd)">$${F(d.face,0)}</div>
           </div>
-          <div style="color:var(--tx3);font-size:14px;font-weight:300">－</div>
+          <div style="color:var(--tx3);font-size:16px;font-weight:300">－</div>
           <div style="text-align:center;padding:0 10px;">
-            <div style="font-size:9px;color:var(--tx3);font-weight:400;font-family:var(--sans);letter-spacing:.05em;margin-bottom:2px">已領利息</div>
+            <div style="font-size:11px;color:var(--tx3);font-weight:400;font-family:var(--sans);letter-spacing:.05em;margin-bottom:2px">已領利息</div>
             <div style="color:var(--gn)">$${F(paidUSD,2)}</div>
           </div>
-          <div style="color:var(--tx3);font-size:14px;font-weight:300">－</div>
+          <div style="color:var(--tx3);font-size:16px;font-weight:300">－</div>
           <div style="text-align:center;padding:0 10px;">
-            <div style="font-size:9px;color:var(--tx3);font-weight:400;font-family:var(--sans);letter-spacing:.05em;margin-bottom:2px">已退款</div>
+            <div style="font-size:11px;color:var(--tx3);font-weight:400;font-family:var(--sans);letter-spacing:.05em;margin-bottom:2px">已退款</div>
             <div style="color:var(--gn)">$${F(refund,0)}</div>
           </div>
           ${soldAmt>0?`
-          <div style="color:var(--tx3);font-size:14px;font-weight:300">－</div>
+          <div style="color:var(--tx3);font-size:16px;font-weight:300">－</div>
           <div style="text-align:center;padding:0 10px;">
-            <div style="font-size:9px;color:var(--tx3);font-weight:400;font-family:var(--sans);letter-spacing:.05em;margin-bottom:2px">已賣出</div>
+            <div style="font-size:11px;color:var(--tx3);font-weight:400;font-family:var(--sans);letter-spacing:.05em;margin-bottom:2px">已賣出</div>
             <div style="color:var(--gn)">$${F(soldAmt,0)}</div>
-            <div style="font-size:9px;color:var(--tx3)">${F(soldQty)}股</div>
+            <div style="font-size:11px;color:var(--tx3)">${F(soldQty)}股</div>
           </div>`:''}
-          <div style="color:var(--tx3);font-size:14px;font-weight:300">=</div>
+          <div style="color:var(--tx3);font-size:16px;font-weight:300">=</div>
           <div style="text-align:center;background:rgba(139,38,53,.06);border-radius:6px;padding:4px 12px;">
-            <div style="font-size:9px;color:var(--rd);font-weight:400;font-family:var(--sans);letter-spacing:.05em;margin-bottom:2px">需回本</div>
-            <div style="color:var(--rd);font-size:14px">$${F(totalToRecover,0)}</div>
-            <div style="font-size:9px;color:var(--rd);font-weight:400">≈ NT$${F(Math.round(totalToRecover*fx))}</div>
+            <div style="font-size:11px;color:var(--rd);font-weight:400;font-family:var(--sans);letter-spacing:.05em;margin-bottom:2px">需回本</div>
+            <div style="color:var(--rd);font-size:16px">$${F(totalToRecover,0)}</div>
+            <div style="font-size:11px;color:var(--rd);font-weight:400">≈ NT$${F(Math.round(totalToRecover*fx))}</div>
           </div>
           ${curVal?`
-          <div style="color:var(--tx3);font-size:14px;font-weight:300">→</div>
+          <div style="color:var(--tx3);font-size:16px;font-weight:300">→</div>
           <div style="text-align:center;background:${totalToRecover>curVal?'rgba(139,38,53,.08)':'rgba(45,106,79,.08)'};border-radius:6px;padding:4px 12px;">
-            <div style="font-size:9px;color:${totalToRecover>curVal?'var(--rd)':'var(--gn)'};font-weight:400;font-family:var(--sans);letter-spacing:.05em;margin-bottom:2px">${totalToRecover>curVal?'目前虧損':'目前獲利'}</div>
-            <div style="color:${totalToRecover>curVal?'var(--rd)':'var(--gn)'};font-size:14px;font-weight:700">${totalToRecover>curVal?'-':'+'} $${F(Math.abs(totalToRecover-curVal),0)}</div>
-            <div style="font-size:9px;color:${totalToRecover>curVal?'var(--rd)':'var(--gn)'};font-weight:400">≈ ${totalToRecover>curVal?'-':'+'}NT$${F(Math.round(Math.abs(totalToRecover-curVal)*fx))}</div>
+            <div style="font-size:11px;color:${totalToRecover>curVal?'var(--rd)':'var(--gn)'};font-weight:400;font-family:var(--sans);letter-spacing:.05em;margin-bottom:2px">${totalToRecover>curVal?'目前虧損':'目前獲利'}</div>
+            <div style="color:${totalToRecover>curVal?'var(--rd)':'var(--gn)'};font-size:16px;font-weight:700">${totalToRecover>curVal?'-':'+'} $${F(Math.abs(totalToRecover-curVal),0)}</div>
+            <div style="font-size:11px;color:${totalToRecover>curVal?'var(--rd)':'var(--gn)'};font-weight:400">≈ ${totalToRecover>curVal?'-':'+'}NT$${F(Math.round(Math.abs(totalToRecover-curVal)*fx))}</div>
           </div>`:''}
         </div>
         <button class="btn btnsm" onclick="openHoldPanel(${d.id})" style="background:var(--gdl);border-color:var(--gd);color:var(--gd);white-space:nowrap;align-self:center">✎ 編輯</button>
       </div>
       <!-- Table -->
       <div class="tw">
-        <table style="font-size:11px;">
+        <table style="font-size:15px;">
           <thead><tr>
             <th>承接股票</th>
             <th class="right">承接股數</th>
@@ -1661,18 +1662,18 @@ function rHoldTrack(){
                 ${soldQty?'$'+F(soldAmt/soldQty,2):'—'}
               </td>
               <td class="mono right" style="color:var(--bl)">
-                ${soldAmt?'$'+F(soldAmt,0)+'<div style="font-size:9px;color:var(--tx3)">≈ NT$'+F(Math.round(soldAmt*fx))+'</div>':'—'}
+                ${soldAmt?'$'+F(soldAmt,0)+'<div style="font-size:11px;color:var(--tx3)">≈ NT$'+F(Math.round(soldAmt*fx))+'</div>':'—'}
               </td>
-              <td class="mono right">$${F(totalToRecover,0)}<div style="font-size:9px;color:var(--tx3)">≈ NT$${F(Math.round(totalToRecover*fx))}</div></td>
+              <td class="mono right">$${F(totalToRecover,0)}<div style="font-size:11px;color:var(--tx3)">≈ NT$${F(Math.round(totalToRecover*fx))}</div></td>
               <td class="mono right" style="color:${curVal?(reached?'var(--gn)':curVal>totalToRecover*0.85?'var(--gd)':'var(--rd)'):'var(--tx3)'}">
                 ${curVal?'$'+F(curVal,0):'—'}
-                ${curVal?`<div style="font-size:9px;color:var(--tx3)">≈ NT$${F(Math.round(curVal*fx))}</div>`:''}
+                ${curVal?`<div style="font-size:11px;color:var(--tx3)">≈ NT$${F(Math.round(curVal*fx))}</div>`:''}
               </td>
               <td class="mono right">${gapHtml}${barHtml}</td>
             </tr>
             ${sells.length?`<tr><td colspan="12" style="padding:6px 10px;background:var(--sur2);">
-              <div style="font-size:10px;font-weight:600;color:var(--tx3);margin-bottom:4px;">賣出紀錄</div>
-              ${sells.map((s,si)=>`<div style="display:flex;align-items:center;gap:8px;padding:3px 0;border-bottom:1px solid var(--bdr);font-size:11px;font-family:var(--mono);">
+              <div style="font-size:16px;font-weight:600;color:var(--tx3);margin-bottom:4px;">賣出紀錄</div>
+              ${sells.map((s,si)=>`<div style="display:flex;align-items:center;gap:8px;padding:3px 0;border-bottom:1px solid var(--bdr);font-size:15px;font-family:var(--mono);">
                 <span style="color:var(--tx3);min-width:70px">${s.date}</span>
                 <span>${F(s.qty)} 股</span>
                 <span style="color:var(--tx3)">×</span>
@@ -1681,7 +1682,7 @@ function rHoldTrack(){
                 <span style="color:var(--bl);font-weight:600">$${F(s.qty*s.price,0)}</span>
               </div>`).join('')}
             </td></tr>`:''}
-            ${hd.note?`<tr><td colspan="12" style="font-size:10px;color:var(--tx2);background:var(--sur2);padding:5px 10px">備註：${hd.note}</td></tr>`:''}
+            ${hd.note?`<tr><td colspan="12" style="font-size:16px;color:var(--tx2);background:var(--sur2);padding:5px 10px">備註：${hd.note}</td></tr>`:''}
             `:`<tr><td colspan="12" style="text-align:center;color:var(--tx3);padding:14px 0">
               尚未填入承接明細　<button class="btn btnsm" onclick="openHoldPanel(${d.id})" style="background:var(--gdl);border-color:var(--gd);color:var(--gd)">填入 →</button>
             </td></tr>`}
@@ -1728,20 +1729,20 @@ function renderSells(){
   const d=D.find(x=>x.id===hpId);if(!d)return;
   const sells=(d.holdDetail&&d.holdDetail.sells)||[];
   const el=document.getElementById('hp-sells-list');
-  if(!sells.length){el.innerHTML='<div style="font-size:11px;color:var(--tx3);padding:4px 0">尚無賣出紀錄</div>';
+  if(!sells.length){el.innerHTML='<div style="font-size:15px;color:var(--tx3);padding:4px 0">尚無賣出紀錄</div>';
     document.getElementById('hp-sell-total').textContent='';return;}
   const totalQty=sells.reduce((a,s)=>a+s.qty,0);
   const totalAmt=sells.reduce((a,s)=>a+s.qty*s.price,0);
   const avgPrice=totalQty?totalAmt/totalQty:0;
   el.innerHTML=sells.map((s,i)=>`
-    <div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--bdr);font-size:11px;">
+    <div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--bdr);font-size:15px;">
       <span class="mono" style="color:var(--tx2);min-width:60px">${s.date}</span>
       <span class="mono">${F(s.qty)}股</span>
       <span style="color:var(--tx3)">×</span>
       <span class="mono">$${F(s.price,2)}</span>
       <span style="color:var(--tx3)">=</span>
       <span class="mono" style="color:var(--bl);font-weight:600">$${F(s.qty*s.price,0)}</span>
-      <button onclick="removeSell(${i})" style="margin-left:auto;background:none;border:none;color:var(--tx3);cursor:pointer;font-size:11px;">✕</button>
+      <button onclick="removeSell(${i})" style="margin-left:auto;background:none;border:none;color:var(--tx3);cursor:pointer;font-size:15px;">✕</button>
     </div>`).join('');
   document.getElementById('hp-sell-total').innerHTML=
     `合計：<b>${F(totalQty)} 股</b>　平均賣出價 <b class="mono">$${F(avgPrice,2)}</b>　總賣出金額 <b class="mono" style="color:var(--bl)">$${F(totalAmt,0)}</b>`;
@@ -1976,34 +1977,34 @@ function rFxLog(){
     // TWD equiv of remaining
     const remTWD=ccy==='USD'?Math.round(remaining*fx):ccy==='JPY'?Math.round(remaining*jpyFx):remaining;
     return `<div style="background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);padding:14px 20px;flex:1;min-width:220px;">
-      <div style="font-size:11px;font-weight:700;color:var(--tx3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--bdr);">${ccy} 外幣庫存</div>
+      <div style="font-size:15px;font-weight:700;color:var(--tx3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--bdr);">${ccy} 外幣庫存</div>
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;">
-        <span style="font-size:12px;color:var(--tx2);">兌換金額</span>
-        <span style="font-family:var(--mono);font-size:13px;font-weight:600;">${sym}${F(totalIn,isJPY?0:2)}
-          ${avgRate?`<span style="font-size:10px;color:var(--tx3);margin-left:6px;">均匯 ${avgRate.toFixed(avgRate>10?3:5)}</span>`:''}
+        <span style="font-size:16px;color:var(--tx2);">兌換金額</span>
+        <span style="font-family:var(--mono);font-size:15px;font-weight:600;">${sym}${F(totalIn,isJPY?0:2)}
+          ${avgRate?`<span style="font-size:16px;color:var(--tx3);margin-left:6px;">均匯 ${avgRate.toFixed(avgRate>10?3:5)}</span>`:''}
         </span>
       </div>
       ${transferOut?`<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:7px;">
-        <span style="font-size:12px;color:var(--tx2);">已轉出</span>
+        <span style="font-size:16px;color:var(--tx2);">已轉出</span>
         <div style="text-align:right;">
-          <div style="font-family:var(--mono);font-size:13px;color:var(--rd);">－ ${sym}${F(transferOut,isJPY?0:2)}</div>
-          ${FXL.filter(r=>fromCcy(r)===ccy).map(r=>`<div style="font-size:10px;color:var(--tx3);margin-top:1px">${r.date}${r.note?'　'+r.note:''}</div>`).join('')}
+          <div style="font-family:var(--mono);font-size:15px;color:var(--rd);">－ ${sym}${F(transferOut,isJPY?0:2)}</div>
+          ${FXL.filter(r=>fromCcy(r)===ccy).map(r=>`<div style="font-size:16px;color:var(--tx3);margin-top:1px">${r.date}${r.note?'　'+r.note:''}</div>`).join('')}
         </div>
       </div>`:''}
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;">
-        <span style="font-size:12px;color:var(--tx2);">正在使用（投資中）</span>
-        <span style="font-family:var(--mono);font-size:13px;color:var(--bl);">－ ${sym}${F(inUse,isJPY?0:2)}</span>
+        <span style="font-size:16px;color:var(--tx2);">正在使用（投資中）</span>
+        <span style="font-family:var(--mono);font-size:15px;color:var(--bl);">－ ${sym}${F(inUse,isJPY?0:2)}</span>
       </div>
       <div style="border-top:1px solid var(--bdr);margin-top:8px;padding-top:10px;display:flex;justify-content:space-between;align-items:baseline;">
-        <span style="font-size:12px;font-weight:600;color:${remaining<0?'var(--rd)':'var(--tx)'};">剩餘可用</span>
+        <span style="font-size:16px;font-weight:600;color:${remaining<0?'var(--rd)':'var(--tx)'};">剩餘可用</span>
         <div style="text-align:right;">
           <div style="font-family:var(--mono);font-size:20px;font-weight:700;color:${remaining<0?'var(--rd)':remaining===0?'var(--tx3)':'var(--rd)'};">${remaining<0?'−':''} ${sym}${F(Math.abs(remaining),isJPY?0:2)}</div>
-          ${remTWD&&ccy!=='TWD'?`<div style="font-size:10px;color:var(--tx3);margin-top:1px;">≈ NT$${F(Math.abs(remTWD))}</div>`:''}
+          ${remTWD&&ccy!=='TWD'?`<div style="font-size:16px;color:var(--tx3);margin-top:1px;">≈ NT$${F(Math.abs(remTWD))}</div>`:''}
         </div>
       </div>
     </div>`;
   }).join('');
-  document.getElementById('fxlog-summary').innerHTML=`<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;">${summaryHtml||'<div style="color:var(--tx3);font-size:12px;padding:8px">尚無換匯紀錄</div>'}</div>`;
+  document.getElementById('fxlog-summary').innerHTML=`<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;">${summaryHtml||'<div style="color:var(--tx3);font-size:16px;padding:8px">尚無換匯紀錄</div>'}</div>`;
 
   // render one card+table per toCcy
   document.getElementById('fxlog-tables').innerHTML=orderedKeys.map(ccy=>{
@@ -2016,11 +2017,11 @@ function rFxLog(){
     return `<div class="card" style="margin-bottom:14px;">
       <div class="ch">
         <span class="ct">取得 ${ccy}　<span style="font-family:var(--mono);color:var(--gn);">${sym}${F(total,isJPY?0:2)}</span>
-        ${avg?`<span style="font-size:10px;color:var(--tx3);margin-left:8px;">加權均匯 ${avg.toFixed(4)}</span>`:''}
+        ${avg?`<span style="font-size:16px;color:var(--tx3);margin-left:8px;">加權均匯 ${avg.toFixed(4)}</span>`:''}
         </span>
-        <span style="font-size:11px;color:var(--tx3)">${rows.length} 筆</span>
+        <span style="font-size:15px;color:var(--tx3)">${rows.length} 筆</span>
       </div>
-      <div class="tw"><table style="font-size:11px;">
+      <div class="tw"><table style="font-size:15px;">
         <thead><tr>
           <th>日期</th><th>銀行</th><th>換匯方向</th>
           <th class="right">支出金額</th><th class="right">匯率</th><th class="right">取得金額</th>
@@ -2030,11 +2031,11 @@ function rFxLog(){
           ${rows.map(r=>`<tr>
             <td class="mono" style="white-space:nowrap">${r.date}</td>
             <td style="white-space:nowrap;color:var(--tx2)">${r.bank||r.note?.split('、')[0]||'—'}</td>
-            <td><span style="font-size:10px;background:var(--sur2);padding:2px 6px;border-radius:4px;white-space:nowrap">${pairLabel(r)}</span></td>
+            <td><span style="font-size:16px;background:var(--sur2);padding:2px 6px;border-radius:4px;white-space:nowrap">${pairLabel(r)}</span></td>
             <td class="mono right">${fromSym(r)}${F(r.twd,fromCcy(r)==='JPY'?0:2)}</td>
             <td class="mono right">${r.rate}</td>
             <td class="mono right" style="color:var(--gn);font-weight:600">${toSym(r)}${F(r.foreign,isJPY?0:2)}</td>
-            <td style="color:var(--tx2);font-size:11px">${r.note||'—'}</td>
+            <td style="color:var(--tx2);font-size:15px">${r.note||'—'}</td>
             <td style="white-space:nowrap">
               <button class="btn btnsm" onclick="editFxLog(${r.id})">編輯</button>
               <button class="btn btnsm" style="margin-left:3px" onclick="delFxLog(${r.id})">刪除</button>
@@ -2313,7 +2314,7 @@ function quoteRenderTables(){
 
 function quoteRenderOneTable(title, records, mkt){
   if(!records.length) return `<div style="background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);padding:14px 18px;margin-bottom:4px;">
-    <div style="font-size:12px;font-weight:600;color:var(--tx2)">${title} <span style="font-weight:400;font-size:11px;color:var(--tx3)">（尚無紀錄）</span></div>
+    <div style="font-size:16px;font-weight:600;color:var(--tx2)">${title} <span style="font-weight:400;font-size:15px;color:var(--tx3)">（尚無紀錄）</span></div>
   </div>`;
   const isJP=mkt==='JP';
   const sym2=isJP?'¥':'$';
@@ -2335,9 +2336,9 @@ function quoteRenderOneTable(title, records, mkt){
 
   return `<div class="card" style="margin-bottom:14px;">
     <div class="ch">
-      <span class="ct">${title} <span style="font-size:11px;color:var(--tx3);font-weight:400">${records.length} 筆</span></span>
+      <span class="ct">${title} <span style="font-size:15px;color:var(--tx3);font-weight:400">${records.length} 筆</span></span>
     </div>
-    <div class="tw"><table style="font-size:11px;border-collapse:collapse;">
+    <div class="tw"><table style="font-size:15px;border-collapse:collapse;">
       <thead><tr>
         ${th('申購日')}${th('銀行')}${th('發行機構')}${th('天期')}
         ${th('出場類型')}${th('保證領息')}${th('保護類型')}
@@ -2354,32 +2355,32 @@ function quoteRenderOneTable(title, records, mkt){
           ${isFirst?`
           <td rowspan="${span}" style="vertical-align:middle;white-space:nowrap">${r.date}</td>
           <td rowspan="${span}" style="vertical-align:middle;font-weight:600">${r.bank}</td>
-          <td rowspan="${span}" style="vertical-align:middle;font-size:10px;color:var(--tx2)">${r.issuer||'—'}</td>
+          <td rowspan="${span}" style="vertical-align:middle;font-size:16px;color:var(--tx2)">${r.issuer||'—'}</td>
           <td rowspan="${span}" style="vertical-align:middle;text-align:center">${r.term}</td>
-          <td rowspan="${span}" style="vertical-align:middle;font-size:10px">${r.koType||'—'}</td>
+          <td rowspan="${span}" style="vertical-align:middle;font-size:16px">${r.koType||'—'}</td>
           <td rowspan="${span}" style="vertical-align:middle;text-align:center">${r.guaranteed?r.guaranteed+'月':'—'}</td>
-          <td rowspan="${span}" style="vertical-align:middle;text-align:center"><span class="badge" style="background:var(--rdl);color:var(--rd);font-size:9px">${r.kiType||'EKI'}</span></td>
+          <td rowspan="${span}" style="vertical-align:middle;text-align:center"><span class="badge" style="background:var(--rdl);color:var(--rd);font-size:11px">${r.kiType||'EKI'}</span></td>
           <td rowspan="${span}" class="mono right" style="vertical-align:middle;color:var(--rd)">${r.aki||'—'}%</td>
           <td rowspan="${span}" class="mono right" style="vertical-align:middle;color:var(--bl)">${r.strike||'—'}%</td>
           <td rowspan="${span}" class="mono right" style="vertical-align:middle;color:var(--gn)">${r.ko||'—'}%</td>
           <td rowspan="${span}" class="mono right" style="vertical-align:middle;color:var(--bl);font-weight:600">${r.coupon||'—'}%</td>
           <td rowspan="${span}" class="mono right" style="vertical-align:middle">${r.face?sym2+F(r.face,0):'—'}</td>
           <td rowspan="${span}" class="mono right" style="vertical-align:middle;color:var(--gn)">${monthly?sym2+F(monthly,0):'—'}</td>
-          <td rowspan="${span}" class="mono right" style="vertical-align:middle;color:var(--gn)">${totalInt?sym2+F(totalInt,0)+'<div style="font-size:9px;color:var(--tx3)">'+termMo+'個月</div>':'—'}</td>
+          <td rowspan="${span}" class="mono right" style="vertical-align:middle;color:var(--gn)">${totalInt?sym2+F(totalInt,0)+'<div style="font-size:11px;color:var(--tx3)">'+termMo+'個月</div>':'—'}</td>
           `:''}
           <td style="font-weight:600;white-space:nowrap">${sym}</td>
-          <td class="mono right">${cur?sym2+F(cur,isJP?0:2):'<span style="color:var(--tx3);font-size:10px">待抓取</span>'}</td>
+          <td class="mono right">${cur?sym2+F(cur,isJP?0:2):'<span style="color:var(--tx3);font-size:16px">待抓取</span>'}</td>
           <td class="mono right" style="color:var(--rd)">${akiP?sym2+F(akiP,isJP?0:2):'—'}</td>
           <td class="mono right" style="color:var(--bl)">${strikeP?sym2+F(strikeP,isJP?0:2):'—'}</td>
           <td class="mono right" style="color:var(--gn)">${koP?sym2+F(koP,isJP?0:2):'—'}</td>
           ${isFirst?`
           <td rowspan="${span}" style="vertical-align:middle;min-width:150px;">
-            <div id="ai-${r.id}" style="font-size:10px;line-height:1.5;">
+            <div id="ai-${r.id}" style="font-size:16px;line-height:1.5;">
               ${r.aiAdvice?r.aiAdvice+'<div style="margin-top:4px"><button class="btn btnsm" onclick="quoteAI(\''+r.id+'\')">↻ 重問</button></div>'
                 :'<button class="btn btnsm" onclick="quoteAI(\''+r.id+'\')">🤖 詢問 AI</button>'}
             </div>
           </td>
-          <td rowspan="${span}" style="vertical-align:middle;font-size:10px;color:var(--tx2)">${r.note||'—'}</td>
+          <td rowspan="${span}" style="vertical-align:middle;font-size:16px;color:var(--tx2)">${r.note||'—'}</td>
           <td rowspan="${span}" style="vertical-align:middle;white-space:nowrap;">
             <button class="btn btnsm" style="background:var(--gnl);border-color:var(--gn);color:var(--gn);display:block;width:100%;margin-bottom:3px;" onclick="quoteToAdd('${r.id}')">→ 轉投資單</button>
             <button class="btn btnsm" style="display:block;width:100%;margin-bottom:3px;" onclick="quoteOpenForm('${r.id}')">編輯</button>
@@ -2395,7 +2396,7 @@ async function quoteAI(id){
   const r=QT.find(x=>x.id===id);if(!r)return;
   const el=document.getElementById('ai-'+id);
   if(!el)return;
-  el.innerHTML='<span style="color:var(--tx3);font-size:10px">🤖 AI 分析中…</span>';
+  el.innerHTML='<span style="color:var(--tx3);font-size:16px">🤖 AI 分析中…</span>';
   const symDetails=r.syms.map(sym=>{
     const cur=r.prices[sym]||0;
     const isJP=r.market==='JP';
@@ -2429,7 +2430,7 @@ ${symDetails}`;
       if(resp.status===401||msg.includes('x-api-key')){
         const key=prompt('請輸入您的 Anthropic API Key（僅本次使用，不會儲存）：');
         if(!key)return;
-        el.innerHTML='<span style="color:var(--tx3);font-size:10px">🤖 重新詢問中…</span>';
+        el.innerHTML='<span style="color:var(--tx3);font-size:16px">🤖 重新詢問中…</span>';
         const resp2=await fetch('https://api.anthropic.com/v1/messages',{
           method:'POST',
           headers:{
@@ -2443,7 +2444,7 @@ ${symDetails}`;
         if(!resp2.ok){const e2=await resp2.json().catch(()=>({}));throw new Error(e2.error?.message||resp2.status);}
         const data2=await resp2.json();
         const text2=data2.content?.[0]?.text||'無法取得建議';
-        r.aiAdvice=`<div style="color:var(--tx);white-space:pre-wrap;font-size:10px;line-height:1.5">${text2}</div>`;
+        r.aiAdvice=`<div style="color:var(--tx);white-space:pre-wrap;font-size:16px;line-height:1.5">${text2}</div>`;
         saveQT();
         el.innerHTML=r.aiAdvice+'<div style="margin-top:4px"><button class="btn btnsm" onclick="quoteAI(\''+id+'\')">↻ 重問</button></div>';
         return;
@@ -2452,11 +2453,11 @@ ${symDetails}`;
     }
     const data=await resp.json();
     const text=data.content?.[0]?.text||'無法取得建議';
-    r.aiAdvice=`<div style="color:var(--tx);white-space:pre-wrap;font-size:10px;line-height:1.5">${text}</div>`;
+    r.aiAdvice=`<div style="color:var(--tx);white-space:pre-wrap;font-size:16px;line-height:1.5">${text}</div>`;
     saveQT();
     el.innerHTML=r.aiAdvice+'<div style="margin-top:4px"><button class="btn btnsm" onclick="quoteAI(\''+id+'\')">↻ 重問</button></div>';
   }catch(e){
-    el.innerHTML=`<span style="color:var(--rd);font-size:10px">失敗：${e.message}</span> <button class="btn btnsm" onclick="quoteAI('${id}')" style="margin-left:4px">重試</button>`;
+    el.innerHTML=`<span style="color:var(--rd);font-size:16px">失敗：${e.message}</span> <button class="btn btnsm" onclick="quoteAI('${id}')" style="margin-left:4px">重試</button>`;
   }
 }
 
@@ -3014,17 +3015,17 @@ function fundRender(){
     if(!rows.length)return'';
     const sym=ccy==='JPY'?'¥':ccy==='TWD'?'NT$':'$';
     const isJPY=ccy==='JPY';
-    const th=t=>`<th style="white-space:nowrap;font-size:10px">${t}</th>`;
+    const th=t=>`<th style="white-space:nowrap;font-size:16px">${t}</th>`;
     return`<div class="card" style="margin-bottom:14px;">
       <div class="ch">
         <span class="ct">${ccy==='JPY'?'🇯🇵 日幣基金':ccy==='USD'?'🇺🇸 美元基金':'🇹🇼 台幣基金'}
-          <span style="font-size:11px;color:var(--tx3);font-weight:400">${rows.length} 筆</span></span>
+          <span style="font-size:15px;color:var(--tx3);font-weight:400">${rows.length} 筆</span></span>
       </div>
-      <div class="tw"><table style="font-size:11px;border-collapse:collapse;">
+      <div class="tw"><table style="font-size:15px;border-collapse:collapse;">
         <thead><tr>
           ${th('狀態')}${th('買進日')}${th('賣出日')}${th('銀行')}${th('基金名稱')}
           ${th('目前淨值')}${th('買淨值')}${th('單位數')}${th('投資金額')}${th('贖回金額')}${th('目前金額')}${th('已領利息')}
-          ${th('損益（不含息）')}${th('損益（含息）')}${th('報酬率（含息）')}
+          ${th('損益（含息）')}${th('報酬率（含息）')}${th('損益（不含息）')}
           ${th('配息類型')}${th('配息日')}${th('資料來源')}${th('備註')}${th('')}
         </tr></thead>
         <tbody>
@@ -3042,8 +3043,8 @@ function fundRender(){
           const isEstimate=!isExit&&curAmt>0; // 暫估標記
           const plNoColor=plNoInt>0?'var(--gn)':plNoInt<0?'var(--rd)':'var(--tx3)';
           const plColor=plWithInt>0?'var(--gn)':plWithInt<0?'var(--rd)':'var(--tx3)';
-          const badge=isExit?`<span class="badge" style="background:var(--sur2);color:var(--tx3);font-size:9px">已出場</span>`
-                           :`<span class="badge" style="background:var(--gnl);color:var(--gn);font-size:9px">持有中</span>`;
+          const badge=isExit?`<span class="badge" style="background:var(--sur2);color:var(--tx3);font-size:11px">已出場</span>`
+                           :`<span class="badge" style="background:var(--gnl);color:var(--gn);font-size:11px">持有中</span>`;
           return`<tr style="${isExit?'opacity:.8':''}">
             <td>${badge}</td>
             <td class="mono" style="white-space:nowrap">${r.date}</td>
@@ -3051,36 +3052,36 @@ function fundRender(){
             <td style="white-space:nowrap;font-weight:600">${r.bank}</td>
             <td style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${r.name}">${r.name}</td>
             <td class="mono right" style="color:${r.curNav?'var(--tx)':'var(--tx3)'};cursor:pointer;" onclick="fundEditNav('${r.id}')" title="點擊更新淨值">
-              ${r.curNav?F(r.curNav,3):'<span style="font-size:10px;color:var(--ac2)">點擊填入</span>'}
+              ${r.curNav?F(r.curNav,3):'<span style="font-size:16px;color:var(--ac2)">點擊填入</span>'}
             </td>
             <td class="mono right">${r.buyPrice||'—'}</td>
             <td class="mono right">${r.units?F(r.units,2):'—'}</td>
-            <td class="mono right">${r.face?sym+F(r.face,0):'—'}${r.twd?`<div style="font-size:9px;color:var(--tx3)">NT$${F(Math.round(r.twd),0)}</div>`:''}</td>
-            <td class="mono right">${r.redeem?sym+F(r.redeem,0):'—'}${r.redeem&&fx?`<div style="font-size:9px;color:var(--tx3)">NT$${F(Math.round(r.redeem*fx))}</div>`:''}</td>
+            <td class="mono right">${r.face?sym+F(r.face,0):'—'}${r.twd?`<div style="font-size:11px;color:var(--tx3)">NT$${F(Math.round(r.twd),0)}</div>`:''}</td>
+            <td class="mono right">${r.redeem?sym+F(r.redeem,0):'—'}${r.redeem&&fx?`<div style="font-size:11px;color:var(--tx3)">NT$${F(Math.round(r.redeem*fx))}</div>`:''}</td>
             <td class="mono right" style="color:${curAmt?'var(--bl)':'var(--tx3)'}">
               ${curAmt?sym+F(Math.round(curAmt),0):'—'}
-              ${curAmt&&fx?`<div style="font-size:9px;color:var(--tx3)">NT$${F(Math.round(curAmt*fx))}</div>`:''}
-              ${isEstimate?`<div style="font-size:9px;color:var(--gd)">暫估</div>`:''}
+              ${curAmt&&fx?`<div style="font-size:11px;color:var(--tx3)">NT$${F(Math.round(curAmt*fx))}</div>`:''}
+              ${isEstimate?`<div style="font-size:11px;color:var(--gd)">暫估</div>`:''}
             </td>
-            <td class="mono right cg">${r.interest?sym+F(r.interest,0):'—'}${r.interest&&fx?`<div style="font-size:9px;color:var(--gn)">NT$${F(Math.round(r.interest*fx))}</div>`:''}</td>
-            <td class="mono right" style="color:${plNoColor};font-weight:600">
-              ${plNoInt?(plNoInt>0?'+':'')+sym+F(Math.round(plNoInt),0):'—'}
-              ${plNoInt&&fx?`<div style="font-size:9px;color:var(--tx3)">NT$${F(Math.round(plNoInt*fx))}</div>`:''}
-              ${isEstimate&&plNoInt?`<div style="font-size:9px;color:var(--gd)">暫估</div>`:''}
-            </td>
+            <td class="mono right cg">${r.interest?sym+F(r.interest,0):'—'}${r.interest&&fx?`<div style="font-size:11px;color:var(--gn)">NT$${F(Math.round(r.interest*fx))}</div>`:''}</td>
             <td class="mono right" style="color:${plColor};font-weight:600">
               ${plWithInt?(plWithInt>0?'+':'')+sym+F(Math.round(plWithInt),0):'—'}
-              ${plWithInt&&fx?`<div style="font-size:9px;color:var(--tx3)">NT$${F(Math.round(plWithInt*fx))}</div>`:''}
-              ${isEstimate&&plWithInt?`<div style="font-size:9px;color:var(--gd)">暫估</div>`:''}
+              ${plWithInt&&fx?`<div style="font-size:11px;color:var(--tx3)">NT$${F(Math.round(plWithInt*fx))}</div>`:''}
+              ${isEstimate&&plWithInt?`<div style="font-size:11px;color:var(--gd)">暫估</div>`:''}
             </td>
             <td class="mono right" style="color:${plColor}">
               ${pct?(parseFloat(pct)>0?'+':'')+pct+'%':'—'}
-              ${isEstimate&&pct?`<div style="font-size:9px;color:var(--gd)">暫估</div>`:''}
+              ${isEstimate&&pct?`<div style="font-size:11px;color:var(--gd)">暫估</div>`:''}
+            </td>
+            <td class="mono right" style="color:${plNoColor}">
+              ${plNoInt?(plNoInt>0?'+':'')+sym+F(Math.round(plNoInt),0):'—'}
+              ${plNoInt&&fx?`<div style="font-size:11px;color:var(--tx3)">NT$${F(Math.round(plNoInt*fx))}</div>`:''}
+              ${isEstimate&&plNoInt?`<div style="font-size:11px;color:var(--gd)">暫估</div>`:''}
             </td>
             <td style="white-space:nowrap">${r.distType||'—'}</td>
-            <td style="font-size:10px;color:var(--tx2);white-space:nowrap">${r.distDate||'—'}</td>
-            <td style="text-align:center">${r.url?`<a href="${r.url}" target="_blank" style="font-size:10px;color:var(--ac2)">🔗 連結</a>`:'—'}</td>
-            <td style="font-size:10px;color:var(--tx2);max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${r.note||''}">${r.note||'—'}</td>
+            <td style="font-size:16px;color:var(--tx2);white-space:nowrap">${r.distDate||'—'}</td>
+            <td style="text-align:center">${r.url?`<a href="${r.url}" target="_blank" style="font-size:16px;color:var(--ac2)">🔗 連結</a>`:'—'}</td>
+            <td style="font-size:16px;color:var(--tx2);max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${r.note||''}">${r.note||'—'}</td>
             <td style="white-space:nowrap">
               <button class="btn btnsm" onclick="fundOpenForm('${r.id}')">編輯</button>
               <button class="btn btnsm" onclick="fundDelete('${r.id}')" style="margin-top:2px;color:var(--rd)">刪除</button>
@@ -3170,16 +3171,16 @@ function fundDistRender(targetId) {
     const totalPaid=fundTotalPaid(r);
     const avgRate=fundAvgRate(r);
     return [
-      `<span style="white-space:nowrap">${isExit?'<span class="badge" style="background:var(--sur2);color:var(--tx3);font-size:9px">已出場</span>':'<span class="badge" style="background:var(--gnl);color:var(--gn);font-size:9px">持有中</span>'}</span>`,
-      `<span class="mono" style="font-size:10px">${r.date||'—'}</span>`,
-      `<span class="mono" style="font-size:10px;color:var(--rd)">${r.exitDate||'—'}</span>`,
-      `<span style="font-size:10px">${r.ccy}</span>`,
-      `<span class="mono" style="font-size:10px">${r.curNav||'—'}</span>`,
-      `<span class="mono" style="font-size:10px">${r.buyPrice||'—'}</span>`,
-      `<span class="mono" style="font-size:10px">${r.units?F(r.units,2):'—'}</span>`,
-      `<span class="mono" style="font-size:10px">${r.face?sym+F(r.face,0):'—'}</span>`,
-      `<span class="mono" style="font-size:10px;color:var(--bl)">${avgRate?avgRate+'%':'—'}</span>`,
-      `<span class="mono" style="font-size:10px;color:var(--gn)">${totalPaid?sym+F(totalPaid,2):'—'}</span>`,
+      `<span style="white-space:nowrap">${isExit?'<span class="badge" style="background:var(--sur2);color:var(--tx3);font-size:11px">已出場</span>':'<span class="badge" style="background:var(--gnl);color:var(--gn);font-size:11px">持有中</span>'}</span>`,
+      `<span class="mono" style="font-size:16px">${r.date||'—'}</span>`,
+      `<span class="mono" style="font-size:16px;color:var(--rd)">${r.exitDate||'—'}</span>`,
+      `<span style="font-size:16px">${r.ccy}</span>`,
+      `<span class="mono" style="font-size:16px">${r.curNav||'—'}</span>`,
+      `<span class="mono" style="font-size:16px">${r.buyPrice||'—'}</span>`,
+      `<span class="mono" style="font-size:16px">${r.units?F(r.units,2):'—'}</span>`,
+      `<span class="mono" style="font-size:16px">${r.face?sym+F(r.face,0):'—'}</span>`,
+      `<span class="mono" style="font-size:16px;color:var(--bl)">${avgRate?avgRate+'%':'—'}</span>`,
+      `<span class="mono" style="font-size:16px;color:var(--gn)">${totalPaid?sym+F(totalPaid,2):'—'}</span>`,
     ][li];
   }
 
@@ -3190,7 +3191,7 @@ function fundDistRender(targetId) {
   <thead>
     <tr>
       <th style="position:sticky;top:0;left:0;z-index:5;background:var(--sur2);width:${MW}px;min-width:${MW}px;
-          padding:5px 6px;font-size:10px;text-align:center;border-right:3px solid var(--ac2);">月份</th>
+          padding:5px 6px;font-size:16px;text-align:center;border-right:3px solid var(--ac2);">月份</th>
       ${distFunds.map(r=>{
         const exp=window._fdExp.has(r.id);
         const cnt=paidCount(r);
@@ -3200,23 +3201,23 @@ function fundDistRender(targetId) {
             border-right:1px solid var(--bdr);padding:0;cursor:pointer;" onclick="fdTogCol('${r.id}')">
           <div style="padding:4px 4px 3px;text-align:center;overflow:hidden;">
           ${exp?`
-            <div style="font-size:9px;font-weight:600;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:${w-6}px;">${shortName}</div>
-            <div style="font-size:9px;color:var(--tx3)">${r.bank}</div>
-            <div style="font-size:9px;color:var(--tx3)">${r.date?r.date.replace(/-/g,'/'):''}}</div>
-            <div style="font-size:9px;color:var(--gd);margin-top:1px">${cnt}期</div>
+            <div style="font-size:11px;font-weight:600;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:${w-6}px;">${shortName}</div>
+            <div style="font-size:11px;color:var(--tx3)">${r.bank}</div>
+            <div style="font-size:11px;color:var(--tx3)">${r.date?r.date.replace(/-/g,'/'):''}}</div>
+            <div style="font-size:11px;color:var(--gd);margin-top:1px">${cnt}期</div>
             <div style="display:flex;align-items:center;justify-content:center;gap:4px;margin-top:2px;">
-              <span style="font-size:9px;color:var(--ac2)">◀</span>
+              <span style="font-size:11px;color:var(--ac2)">◀</span>
             </div>
-          `:`<div style="font-size:10px;color:var(--ac2);writing-mode:vertical-rl;margin:4px auto;white-space:nowrap;overflow:hidden;max-height:80px;">▶ ${shortName}</div>`}
+          `:`<div style="font-size:16px;color:var(--ac2);writing-mode:vertical-rl;margin:4px auto;white-space:nowrap;overflow:hidden;max-height:80px;">▶ ${shortName}</div>`}
           </div>
         </th>`;
       }).join('')}
       <th style="position:sticky;top:0;z-index:3;background:var(--sur2);min-width:${TOTAL_CW}px;width:${TOTAL_CW}px;
-          border-left:3px solid var(--ac2);font-size:9px;font-weight:600;color:var(--tx3);text-align:center;">當月合計</th>
+          border-left:3px solid var(--ac2);font-size:11px;font-weight:600;color:var(--tx3);text-align:center;">當月合計</th>
     </tr>
     ${INFO_LABELS.map((lbl,li)=>`<tr class="int-info-row" style="${anyExp?'':'display:none'}">
       <th style="position:sticky;left:0;top:${HEADER_H+li*INFO_ROW_H}px;z-index:5;background:var(--gdl);
-          font-size:9px;font-weight:600;color:var(--tx3);padding:3px 6px;white-space:nowrap;
+          font-size:11px;font-weight:600;color:var(--tx3);padding:3px 6px;white-space:nowrap;
           width:${MW}px;min-width:${MW}px;text-align:right;border-right:3px solid var(--ac2);
           ${li===INFO_LABELS.length-1?'border-bottom:3px solid var(--ac2);':''}">${lbl}</th>
       ${distFunds.map(r=>{
@@ -3242,7 +3243,7 @@ function fundDistRender(targetId) {
     if (y !== prevY) {
       prevY = y;
       h += `<tr style="background:var(--ac);"><td colspan="${distFunds.length + 2}"
-        style="padding:3px 10px;font-size:10px;font-weight:700;color:rgba(255,255,255,.8)">${y} 年</td></tr>`;
+        style="padding:3px 10px;font-size:16px;font-weight:700;color:rgba(255,255,255,.8)">${y} 年</td></tr>`;
     }
     let monthTotals = {};
     distFunds.forEach(r => {
@@ -3250,11 +3251,11 @@ function fundDistRender(targetId) {
       if (d && d.total) monthTotals[r.ccy] = (monthTotals[r.ccy]||0) + d.total;
     });
     const totHtml = Object.entries(monthTotals).map(([ccy,v])=>
-      `<div class="mono" style="font-size:11px;font-weight:600;color:var(--gn)">${SY(ccy)}${F(v,2)}</div>`
-    ).join('')||'<span style="color:var(--tx3);font-size:11px">—</span>';
+      `<div class="mono" style="font-size:15px;font-weight:600;color:var(--gn)">${SY(ccy)}${F(v,2)}</div>`
+    ).join('')||'<span style="color:var(--tx3);font-size:15px">—</span>';
 
     h += `<tr>
-      <td style="position:sticky;left:0;z-index:2;background:var(--sur2);font-weight:700;font-size:12px;
+      <td style="position:sticky;left:0;z-index:2;background:var(--sur2);font-weight:700;font-size:16px;
           text-align:center;padding:5px 4px;border-right:3px solid var(--ac2);border-bottom:1px solid var(--bdr);">
         ${parseInt(m)}月</td>
       ${distFunds.map(r=>{
@@ -3272,12 +3273,12 @@ function fundDistRender(targetId) {
           style="border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);
           min-width:${w}px;width:${w}px;cursor:pointer;vertical-align:middle;
           background:${hasData?'var(--gnl)':'var(--bg)'};">
-          <div style="padding:4px 5px;font-size:10px;text-align:${exp?'left':'center'};">
+          <div style="padding:4px 5px;font-size:16px;text-align:${exp?'left':'center'};">
           ${hasData?(exp?`
             <div class="mono" style="font-weight:600;color:var(--gn)">${sym}${F(d.total,2)}</div>
-            ${d.units?`<div style="color:var(--tx3);font-size:9px">${F(d.units,0)}u × ${d.perUnit||'—'}</div>`:''}
-            ${d.rate?`<div style="color:var(--bl);font-size:9px">${d.rate}%</div>`:''}
-          `:`<div style="color:var(--gn);font-size:10px">✓</div>`)
+            ${d.units?`<div style="color:var(--tx3);font-size:11px">${F(d.units,0)}u × ${d.perUnit||'—'}</div>`:''}
+            ${d.rate?`<div style="color:var(--bl);font-size:11px">${d.rate}%</div>`:''}
+          `:`<div style="color:var(--gn);font-size:16px">✓</div>`)
           :(exp?`<div style="color:var(--tx3);text-align:center">＋</div>`
                :`<div style="color:var(--tx3)">+</div>`)}
           </div>
@@ -3317,9 +3318,9 @@ function fundDistEdit(fundId, ym) {
   const autoUnits = r.units || '';
 
   const html = `
-    <div style="font-size:13px;font-weight:600;margin-bottom:12px;">
+    <div style="font-size:15px;font-weight:600;margin-bottom:12px;">
       ${r.name}<br>
-      <span style="font-size:11px;color:var(--tx3);font-weight:400">${y}年${parseInt(m)}月 配息紀錄</span>
+      <span style="font-size:15px;color:var(--tx3);font-weight:400">${y}年${parseInt(m)}月 配息紀錄</span>
     </div>
     <div class="fg" style="margin-bottom:10px;">
       <div class="fgrp">
@@ -3358,7 +3359,7 @@ function fundDistEdit(fundId, ym) {
         <input type="text" id="fd-edit-note" value="${existing.note || ''}" placeholder="例：含匯率損益">
       </div>
     </div>
-    <div id="fd-edit-hint" style="font-size:11px;color:var(--tx3);margin-bottom:10px;"></div>`;
+    <div id="fd-edit-hint" style="font-size:15px;color:var(--tx3);margin-bottom:10px;"></div>`;
 
   // 用 modal 顯示
   const modal = document.createElement('div');
@@ -3493,20 +3494,20 @@ function gistSetup(){
   modal.className='mo open';
   modal.innerHTML=`<div class="mb2" style="width:480px;">
     <h3 style="margin-bottom:12px;">⚙ GitHub Gist 設定</h3>
-    <p style="font-size:12px;color:var(--tx2);margin-bottom:14px;line-height:1.6;">
+    <p style="font-size:16px;color:var(--tx2);margin-bottom:14px;line-height:1.6;">
       設定後，點「☁ 上傳雲端」將資料儲存到你的 GitHub Gist，<br>
       任何人開啟此網頁都可點「⬇ 從雲端讀取」看到你的最新資料。
     </p>
     <div class="fgrp" style="margin-bottom:10px;">
       <label>GitHub Personal Access Token</label>
       <input type="password" id="gs-token" value="${cfg.token}" placeholder="ghp_xxxxxxxxxxxx"
-        style="font-family:var(--mono);font-size:12px;">
+        style="font-family:var(--mono);font-size:16px;">
       <div class="hint">需要 gist 權限。到 GitHub → Settings → Developer settings → Personal access tokens 建立</div>
     </div>
     <div class="fgrp" style="margin-bottom:14px;">
       <label>Gist ID（第一次留空，系統自動建立）</label>
       <input type="text" id="gs-gistid" value="${cfg.gistId}" placeholder="自動建立後會填入"
-        style="font-family:var(--mono);font-size:12px;">
+        style="font-family:var(--mono);font-size:16px;">
     </div>
     <div class="mba">
       <button class="btn" onclick="this.closest('.mo').remove()">取消</button>

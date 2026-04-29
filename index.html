@@ -940,10 +940,16 @@ async function refreshAll(){
   const btn=document.getElementById('refresh-btn');
   btn.textContent='更新中…';btn.disabled=true;
   const allSymbols=[...new Set(D.flatMap(d=>d.stocks.map(s=>s.name).filter(n=>!/^\d/.test(n))))];
-  // reset cache so we always get fresh prices
   priceCache={};
-  await Promise.all([fetchFX(), fetchPrices(allSymbols)]);
-  btn.textContent='↻ 更新';btn.disabled=false;
+  await fetchPrices([...allSymbols,'USDTWD=X','JPYTWD=X']);
+  // 更新匯率顯示
+  if(priceCache['USDTWD=X']){
+    const el=document.getElementById('fx-rate');
+    if(el)el.value=priceCache['USDTWD=X'].toFixed(2);
+    const tl=document.getElementById('fx-time');
+    if(tl)tl.textContent='匯率 '+priceCache['USDTWD=X'].toFixed(2);
+  }
+  btn.textContent='↻ 更新股價+匯率';btn.disabled=false;
   rdash();
   if(document.getElementById('sec-list').classList.contains('active'))renderListTable(
     (()=>{let rows=cf==='all'?D:cf==='yin'?D.filter(d=>d.bank.includes('音')):cf==='lin'?D.filter(d=>d.bank.includes('林')):D.filter(d=>d.status===cf);return[...rows].sort((a,b)=>b.date.localeCompare(a.date));})()
@@ -2685,6 +2691,13 @@ async function fetchGistNav(){
     const content=j?.files?.['fund_nav.json']?.content;
     if(!content){console.log('No fund_nav.json in gist');return null;}
     const data=JSON.parse(content);
+    console.log('Gist updated_at:',data.updated_at);
+    console.log('Gist funds count:',Object.keys(data.funds||{}).length);
+    if(!data.funds||!Object.keys(data.funds).length){
+      console.log('Gist 裡沒有基金資料，請先執行 GitHub Actions');
+      alert('Gist 裡還沒有淨值資料。\n請到 GitHub Actions 手動執行「每日基金淨值更新」');
+      return null;
+    }
     gistNavCache=data.funds||{};
     console.log('Gist keys:',Object.keys(gistNavCache));
     let updated=0;

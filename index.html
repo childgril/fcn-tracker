@@ -3963,47 +3963,93 @@ function bondEditPrice(id) {
 }
 
 function bondRender() {
-  // summary card
-  const totalFace = BD.reduce((a,r) => a + r.face, 0);
-  const totalTWD = BD.reduce((a,r) => a + r.twd, 0);
-  const totalInt = BD.reduce((a,r) => a + r.interest, 0);
-  // 持有中：用 curPrice * units / 100；已出場：用 sellAmt
-  const totalCur = BD.reduce((a,r) => {
+  // 用即期匯率（與總覽一致）
+  const fx = getFX();
+
+  // 統計
+  const totalFace = BD.reduce((a,r) => a + r.face, 0);          // 投資總額（USD）
+  const totalTWD = BD.reduce((a,r) => a + r.twd, 0);            // 實際支出台幣
+  const totalInt = BD.reduce((a,r) => a + r.interest, 0);       // 已領利息
+
+  // 持有中：目前持有總額 = curPrice × units / 100
+  const heldCur = BD.reduce((a,r) => {
     if (r.exitDate) return a;
     return a + (r.curPrice && r.units ? r.curPrice * r.units / 100 : 0);
   }, 0);
-  const totalRealized = BD.reduce((a,r) => {
-    if (!r.exitDate) return a;
-    const sell = r.sellAmt || (r.curPrice * r.units / 100);
-    return a + sell;
-  }, 0);
-  const totalPL = BD.reduce((a,r) => {
-    const sell = r.exitDate ? (r.sellAmt || r.curPrice * r.units / 100) : (r.curPrice * r.units / 100);
-    return sell ? a + sell + r.interest - r.face : a;
-  }, 0);
-  const plPct = totalFace ? (totalPL / totalFace * 100).toFixed(2) : 0;
 
-  // 已實現 vs 未實現損益
+  // 已實現賣出總額（含已賣的）
+  const realizedSell = BD.reduce((a,r) => {
+    if (!r.exitDate) return a;
+    return a + (r.sellAmt || (r.curPrice * r.units / 100));
+  }, 0);
+
+  // 已實現損益（含息）：已賣的賣出價 + 利息 - 投資面額
   const realizedPL = BD.reduce((a,r) => {
     if (!r.exitDate) return a;
-    const sell = r.sellAmt || r.curPrice * r.units / 100;
+    const sell = r.sellAmt || (r.curPrice * r.units / 100);
     return sell ? a + sell + r.interest - r.face : a;
   }, 0);
+  const realizedFace = BD.filter(r => r.exitDate).reduce((a,r) => a + r.face, 0);
+  const realizedInt = BD.filter(r => r.exitDate).reduce((a,r) => a + r.interest, 0);
+
+  // 未實現損益（持有中暫估）
   const unrealizedPL = BD.reduce((a,r) => {
     if (r.exitDate) return a;
     const sell = r.curPrice * r.units / 100;
     return sell ? a + sell + r.interest - r.face : a;
   }, 0);
 
+  // 應賣出總額 = 投資總額 - 目前持有總額（預期回收的金額）
+  // 不過比較合理的解釋：應賣出 = 持有中的目前價格總額（如果現在全部賣掉的話）
+  // 你的描述："投資總額 - 目前持有總額 = 應賣出總額"
+  const heldFace = BD.filter(r => !r.exitDate).reduce((a,r) => a + r.face, 0);
+  const shouldSell = heldFace - heldCur; // 還需要漲多少才能回本（負數=已超過買價）
+
+  // 報酬率
+  const realizedPct = realizedFace ? (realizedPL / realizedFace * 100).toFixed(2) : 0;
+  const realizedPctNoInt = realizedFace ? ((realizedPL - realizedInt) / realizedFace * 100).toFixed(2) : 0;
+
   document.getElementById('bond-summary').innerHTML = `
     <div class="card" style="padding:14px;">
-      <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:14px;">
-        <div><div class="ml">投資面額</div><div style="font-size:18px;font-weight:600;font-family:var(--mono)">$${F(Math.round(totalFace))}</div><div class="ms">NT$${F(Math.round(totalTWD))}</div></div>
-        <div><div class="ml">目前持有金額</div><div style="font-size:18px;font-weight:600;font-family:var(--mono);color:var(--bl)">$${F(Math.round(totalCur))}</div></div>
-        <div><div class="ml">已領利息</div><div style="font-size:18px;font-weight:600;font-family:var(--mono);color:var(--gn)">$${F(Math.round(totalInt))}</div></div>
-        <div><div class="ml">已實現損益</div><div style="font-size:18px;font-weight:600;font-family:var(--mono);color:${realizedPL>=0?'var(--gn)':'var(--rd)'}">${realizedPL>=0?'+':''}$${F(Math.round(realizedPL))}</div></div>
-        <div><div class="ml">未實現損益</div><div style="font-size:18px;font-weight:600;font-family:var(--mono);color:${unrealizedPL>=0?'var(--gn)':'var(--rd)'}">${unrealizedPL>=0?'+':''}$${F(Math.round(unrealizedPL))}</div></div>
-        <div><div class="ml">總報酬率</div><div style="font-size:18px;font-weight:600;font-family:var(--mono);color:${totalPL>=0?'var(--gn)':'var(--rd)'}">${totalPL>=0?'+':''}${plPct}%</div></div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:14px;">
+        <div>
+          <div class="ml">投資總額</div>
+          <div style="font-size:18px;font-weight:600;font-family:var(--mono)">$${F(Math.round(totalFace))}</div>
+          <div class="ms">NT$${F(Math.round(totalTWD))}</div>
+        </div>
+        <div>
+          <div class="ml">目前持有總額</div>
+          <div style="font-size:18px;font-weight:600;font-family:var(--mono);color:var(--bl)">$${F(Math.round(heldCur))}</div>
+          <div class="ms" style="color:${unrealizedPL>=0?'var(--gn)':'var(--rd)'}">
+            未實現 ${unrealizedPL>=0?'+':''}$${F(Math.round(unrealizedPL))}
+          </div>
+        </div>
+        <div>
+          <div class="ml">應賣出總額</div>
+          <div style="font-size:18px;font-weight:600;font-family:var(--mono);color:var(--gd)">$${F(Math.round(shouldSell))}</div>
+          <div class="ms">投資-持有</div>
+        </div>
+        <div>
+          <div class="ml">實際賣出總額</div>
+          <div style="font-size:18px;font-weight:600;font-family:var(--mono);color:var(--ac2)">$${F(Math.round(realizedSell))}</div>
+        </div>
+        <div>
+          <div class="ml">已領利息</div>
+          <div style="font-size:18px;font-weight:600;font-family:var(--mono);color:var(--gn)">$${F(Math.round(totalInt))}</div>
+        </div>
+        <div>
+          <div class="ml">已實現損益（含息）</div>
+          <div style="font-size:18px;font-weight:600;font-family:var(--mono);color:${realizedPL>=0?'var(--gn)':'var(--rd)'}">${realizedPL>=0?'+':''}$${F(Math.round(realizedPL))}</div>
+        </div>
+        <div>
+          <div class="ml">報酬率</div>
+          <div style="font-size:16px;font-weight:600;font-family:var(--mono);color:${realizedPL>=0?'var(--gn)':'var(--rd)'}">${realizedPL>=0?'+':''}${realizedPct}%
+            <span style="font-size:12px;color:var(--tx3);font-weight:400">(含息)</span>
+          </div>
+          <div class="ms" style="color:${(realizedPL-realizedInt)>=0?'var(--gn)':'var(--rd)'}">
+            ${(realizedPL-realizedInt)>=0?'+':''}${realizedPctNoInt}% <span style="color:var(--tx3)">(不含息)</span>
+          </div>
+        </div>
       </div>
     </div>`;
 
@@ -4015,14 +4061,13 @@ function bondRender() {
     <div class="tw"><table style="font-size:13px;border-collapse:collapse;">
       <thead><tr>
         ${th('狀態')}${th('買進日')}${th('賣出日')}${th('銀行')}${th('債券名稱')}${th('CUSIP')}
-        ${th('買進價')}${th('面額')}${th('投資面額')}${th('目前價格')}${th('目前/賣出金額')}${th('已領利息')}
+        ${th('買進價')}${th('面額')}${th('投資總額')}${th('目前價格')}${th('目前/賣出金額')}${th('已領利息')}
         ${th('損益（含息）')}${th('報酬率')}
         ${th('利率')}${th('殖利率')}${th('到期日')}${th('配息日')}${th('')}
       </tr></thead>
       <tbody>
       ${rows.map(r => {
         const isExit = !!r.exitDate;
-        // 已出場用 sellAmt（實際賣出價值）；持有中用 curPrice * units / 100
         const sellAmt = isExit
           ? (r.sellAmt || (r.curPrice && r.units ? r.curPrice * r.units / 100 : 0))
           : (r.curPrice && r.units ? r.curPrice * r.units / 100 : 0);
@@ -4247,7 +4292,15 @@ function bondDistRender(targetId) {
     let monthTotals = {};
     BD.forEach(b => {
       const d = bdDist[b.id] && bdDist[b.id][ym];
-      if (d && d.total) monthTotals['USD'] = (monthTotals['USD']||0) + d.total;
+      const payDates = getBondPayDates(b);
+      const monthHasPay = payDates.some(dt => dt.startsWith(ym));
+      if (d && d.total) {
+        // 已手動輸入：用實際金額
+        monthTotals['USD'] = (monthTotals['USD']||0) + d.total;
+      } else if (monthHasPay && b.couponAmt) {
+        // 自動帶入預估配息
+        monthTotals['USD'] = (monthTotals['USD']||0) + b.couponAmt;
+      }
     });
     const totHtml = Object.entries(monthTotals).map(([ccy,v]) =>
       `<div class="mono" style="font-size:13px;font-weight:600;color:var(--gn)">$${F(v,2)}</div>`
@@ -4262,22 +4315,27 @@ function bondDistRender(targetId) {
         const w = exp ? CW : CW_COL;
         const d = (bdDist[b.id]||{})[ym] || {};
         const hasData = !!d.total;
-        // 判斷此月是否在持有期間，且該月有此債券的配息日
         const payDates = getBondPayDates(b);
         const monthHasPay = payDates.some(dt => dt.startsWith(ym));
         if (!monthHasPay) return `<td style="border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);
           background:var(--bg);min-width:${w}px;width:${w}px;"></td>`;
+        // 預估金額（從 couponAmt 自動帶入）
+        const estAmt = b.couponAmt || 0;
         return `<td onclick="bondDistEdit('${b.id}','${ym}')"
           style="border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);
           min-width:${w}px;width:${w}px;cursor:pointer;vertical-align:middle;
-          background:${hasData?'var(--gnl)':'var(--bg)'};">
+          background:${hasData?'var(--gnl)':(estAmt?'rgba(34,197,94,.05)':'var(--bg)')};">
           <div style="padding:4px 5px;font-size:12px;text-align:${exp?'left':'center'};">
           ${hasData?(exp?`
             <div class="mono" style="font-weight:600;color:var(--gn)">$${F(d.total,2)}</div>
-            ${d.note?`<div style="color:var(--tx3);font-size:11px">${d.note}</div>`:''}
+            ${d.note?`<div style="color:var(--tx3);font-size:11px">${d.note}</div>`:'<div style="color:var(--gn);font-size:11px">已確認</div>'}
           `:`<div style="color:var(--gn);font-size:12px">✓</div>`)
-          :(exp?`<div style="color:var(--bl);text-align:center">＋</div>`
-               :`<div style="color:var(--bl)">+</div>`)}
+          :(estAmt?(exp?`
+            <div class="mono" style="color:var(--ac2);font-weight:500">$${F(estAmt,2)}</div>
+            <div style="color:var(--tx3);font-size:11px">預估</div>
+          `:`<div style="color:var(--ac2);font-size:11px">~</div>`)
+                  :(exp?`<div style="color:var(--bl);text-align:center">＋</div>`
+                       :`<div style="color:var(--bl)">+</div>`))}
           </div>
         </td>`;
       }).join('')}

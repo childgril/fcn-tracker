@@ -371,6 +371,7 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
       <table id="dash-table" style="font-size:15px;">
         <thead>
           <tr>
+            <th rowspan="2" style="vertical-align:middle">#</th>
             <th rowspan="2" style="vertical-align:middle">狀態</th>
             <th rowspan="2" style="vertical-align:middle">帳戶</th>
             <th rowspan="2" style="vertical-align:middle">買進日</th>
@@ -1268,6 +1269,17 @@ async function rdash(){
       </div>`:`<div class="ms" style="margin-top:6px;">尚無換匯紀錄<br><a href="#" onclick="showSec('fxlog');return false;" style="font-size:16px;color:var(--ac2)">前往新增 →</a></div>`}
     </div>`;
 
+  // 計算每筆 FCN 的序號（依音/林分組，每組由買進日舊到新依序）
+  const seqMap = {};
+  ['音','林'].forEach(grp => {
+    const group = D.filter(d => d.bank.includes(grp)).slice().sort((a,b) => a.date.localeCompare(b.date));
+    group.forEach((d, i) => { seqMap[d.id] = `${grp}#${i+1}`; });
+  });
+  // 不在「音」也不在「林」的（極少見），給其他編號
+  D.filter(d => !d.bank.includes('音') && !d.bank.includes('林'))
+    .slice().sort((a,b) => a.date.localeCompare(b.date))
+    .forEach((d,i) => { seqMap[d.id] = `其#${i+1}`; });
+
   let rows=dashCF==='all'?D:dashCF==='yin'?D.filter(d=>d.bank.includes('音')):dashCF==='lin'?D.filter(d=>d.bank.includes('林')):D.filter(d=>d.status===dashCF);
   rows=[...rows].sort((a,b)=>b.date.localeCompare(a.date));
   document.getElementById('dash-cnt').textContent=`共 ${rows.length} 筆`;
@@ -1276,7 +1288,11 @@ async function rdash(){
     const overrides=d.monthlyOverride||{};
     const paidAmt=(d.paidDates||[]).reduce((a,dt)=>a+(overrides[dt]!==undefined?overrides[dt]:d.monthly),0);
     const totalAmt=d.payDates.length*d.monthly;
+    const seq = seqMap[d.id] || '—';
+    const seqColor = seq.startsWith('音') ? 'var(--ac)' : seq.startsWith('林') ? 'var(--bl)' : 'var(--tx3)';
+    const seqBg = seq.startsWith('音') ? 'var(--gnl)' : seq.startsWith('林') ? 'var(--bll)' : 'var(--sur2)';
     return `<tr>
+      <td class="mono" style="text-align:center;font-weight:700;color:${seqColor};background:${seqBg};font-size:13px;white-space:nowrap;">${seq}</td>
       <td>${bdg(d.status)}</td>
       <td style="white-space:nowrap">${d.bank}</td>
       <td class="mono" style="white-space:nowrap">${d.date}</td>

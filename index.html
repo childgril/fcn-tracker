@@ -3779,10 +3779,10 @@ const BD_DEFAULT = [
    coupon:'4.25%',yield:'4.64%',maturity:'2049-01-05',distFreq:'半年',distDates:'1/15, 7/15',
    couponAmt:1062.5,holdYears:24,note:'2026/4/23 賣出'},
 
-  {id:'bd04',date:'2024-09-12',exitDate:'',bank:'達-元大',ccy:'USD',name:'波克夏海瑟威金融公司 BRK 5.75 2040/1/15',isin:'US084664BL47',cusip:'084664BL4',
-   buyPrice:114.9,units:20000,face:23165.28,fx:32.15,twd:744833.25,curPrice:107.67,interest:1150,
+  {id:'bd04',date:'2024-09-12',exitDate:'2026-04-28',bank:'達-元大',ccy:'USD',name:'波克夏海瑟威金融公司 BRK 5.75 2040/1/15',isin:'US084664BL47',cusip:'084664BL4',
+   buyPrice:114.9,units:20000,face:23165.28,fx:32.15,twd:744833.25,curPrice:106.9,sellAmt:21712.23,interest:1725,
    coupon:'5.75%',yield:'4.40%',maturity:'2040-01-15',distFreq:'半年',distDates:'1/15, 7/15',
-   couponAmt:575,holdYears:15,note:''},
+   couponAmt:575,holdYears:15,note:'2026/4/28 賣出'},
 
   {id:'bd05',date:'2024-09-16',exitDate:'2026-04-23',bank:'達-元大',ccy:'USD',name:'輝瑞大藥廠 PFE 4 2049/3/15',isin:'US717081EV18',cusip:'717081EV1',
    buyPrice:89.45,units:50000,face:44741.67,fx:31.90,twd:1427348.76,curPrice:78.56,sellAmt:39496.67,interest:3000,
@@ -3794,10 +3794,10 @@ const BD_DEFAULT = [
    coupon:'6%',yield:'4.30%',maturity:'2039-04-01',distFreq:'半年',distDates:'4/1, 10/1',
    couponAmt:1500,holdYears:14,note:'2026/4/23 賣出'},
 
-  {id:'bd07',date:'2024-09-16',exitDate:'',bank:'達-元大',ccy:'USD',name:'波克夏海瑟威金融公司 BRK 5.75 2040/1/15',isin:'US084664BL47',cusip:'084664BL4',
-   buyPrice:115,units:30000,face:34801.88,fx:31.90,twd:1110249.58,curPrice:107.67,interest:1725,
+  {id:'bd07',date:'2024-09-16',exitDate:'2026-04-28',bank:'達-元大',ccy:'USD',name:'波克夏海瑟威金融公司 BRK 5.75 2040/1/15',isin:'US084664BL47',cusip:'084664BL4',
+   buyPrice:115,units:30000,face:34801.88,fx:31.90,twd:1110249.58,curPrice:106.9,sellAmt:32568.33,interest:2587.5,
    coupon:'5.75%',yield:'4.39%',maturity:'2040-01-15',distFreq:'半年',distDates:'1/15, 7/15',
-   couponAmt:862.5,holdYears:15,note:''},
+   couponAmt:862.5,holdYears:15,note:'2026/4/28 賣出'},
 
   {id:'bd08',date:'2024-09-16',exitDate:'2026-04-23',bank:'達-元大',ccy:'USD',name:'波克夏海瑟威金融公司 BRK 4.25 2049/1/15',isin:'US084664CR08',cusip:'084664CR0',
    buyPrice:94.5,units:80000,face:76195,fx:31.90,twd:2430772.89,curPrice:82.17,sellAmt:66671.01,interest:5100,
@@ -3820,13 +3820,18 @@ if (!BD) {
   BD = BD_DEFAULT;
   localStorage.setItem('fcnBD', JSON.stringify(BD));
 }
-// 遷移：如果是舊預設資料（沒有 sellAmt 欄位且符合預設 ID 範圍），用新預設覆蓋
-else if (BD.length > 0 && BD[0].id && BD[0].id.startsWith('bd') && BD.every(b => b.sellAmt === undefined)) {
-  // 保留使用者新增的非預設資料
-  const userAdded = BD.filter(b => !b.id.match(/^bd0[1-9]$|^bd10$/));
-  BD = [...BD_DEFAULT, ...userAdded];
-  localStorage.setItem('fcnBD', JSON.stringify(BD));
-  console.log('已更新債券預設資料（含 4/23 賣出紀錄）');
+// 遷移：偵測舊版預設資料並覆蓋（保留使用者新增的非預設資料）
+else {
+  const bd04 = BD.find(b => b.id === 'bd04');
+  const bd07 = BD.find(b => b.id === 'bd07');
+  // 條件：bd04 或 bd07 還沒標記 4/28 賣出
+  const needMigration = (bd04 && bd04.exitDate !== '2026-04-28') || (bd07 && bd07.exitDate !== '2026-04-28');
+  if (needMigration) {
+    const userAdded = BD.filter(b => !b.id.match(/^bd0[1-9]$|^bd10$/));
+    BD = [...BD_DEFAULT, ...userAdded];
+    localStorage.setItem('fcnBD', JSON.stringify(BD));
+    console.log('已更新債券預設資料（含 4/23、4/28 賣出紀錄）');
+  }
 }
 function saveBD() { localStorage.setItem('fcnBD', JSON.stringify(BD)); syncToGist(); }
 

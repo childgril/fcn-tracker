@@ -4061,9 +4061,10 @@ function bondRender() {
     <div class="tw"><table style="font-size:13px;border-collapse:collapse;">
       <thead><tr>
         ${th('狀態')}${th('買進日')}${th('賣出日')}${th('銀行')}${th('債券名稱')}${th('CUSIP')}
-        ${th('買進價')}${th('面額')}${th('投資總額')}${th('目前價格')}${th('目前/賣出金額')}${th('已領利息')}
-        ${th('損益（含息）')}${th('報酬率')}
-        ${th('利率')}${th('殖利率')}${th('到期日')}${th('配息日')}${th('')}
+        ${th('到期殖利率')}${th('到期日')}
+        ${th('目前價格')}${th('買進價')}${th('面額')}${th('投資總額')}${th('目前/賣出金額')}${th('已領利息')}
+        ${th('損益（含息）')}${th('報酬率（含息）')}${th('損益（不含息）')}
+        ${th('利率')}${th('配息日')}${th('')}
       </tr></thead>
       <tbody>
       ${rows.map(r => {
@@ -4072,12 +4073,15 @@ function bondRender() {
           ? (r.sellAmt || (r.curPrice && r.units ? r.curPrice * r.units / 100 : 0))
           : (r.curPrice && r.units ? r.curPrice * r.units / 100 : 0);
         const pl = sellAmt ? sellAmt + r.interest - r.face : 0;
+        const plNoInt = sellAmt ? sellAmt - r.face : 0;
         const pct = r.face && pl ? (pl / r.face * 100).toFixed(2) : null;
         const plColor = pl > 0 ? 'var(--gn)' : pl < 0 ? 'var(--rd)' : 'var(--tx3)';
+        const plNoColor = plNoInt > 0 ? 'var(--gn)' : plNoInt < 0 ? 'var(--rd)' : 'var(--tx3)';
         const badge = isExit
           ? `<span class="badge" style="background:var(--sur2);color:var(--tx3);font-size:11px">已出場</span>`
           : `<span class="badge" style="background:var(--bll);color:var(--bl);font-size:11px">持有中</span>`;
         const isEstimate = !isExit && sellAmt > 0;
+        // 「到期殖利率」原 yield 欄位、「利率」原 coupon 欄位 — 對調名稱顯示
         return `<tr style="${isExit?'opacity:.85':''}">
           <td>${badge}</td>
           <td class="mono" style="white-space:nowrap">${r.date}</td>
@@ -4085,10 +4089,12 @@ function bondRender() {
           <td style="white-space:nowrap;font-weight:600">${r.bank}</td>
           <td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${r.name}">${r.name}</td>
           <td class="mono" style="font-size:11px;color:var(--tx3);white-space:nowrap">${r.cusip||'—'}</td>
+          <td class="mono right">${r.coupon||'—'}</td>
+          <td class="mono" style="white-space:nowrap;font-size:11px">${r.maturity||'—'}</td>
+          <td class="mono right" style="cursor:pointer;color:${r.curPrice?(isExit?'var(--tx2)':'var(--bl)'):'var(--tx3)'}" onclick="bondEditPrice('${r.id}')" title="點擊更新">${r.curPrice||'點擊填入'}</td>
           <td class="mono right">${r.buyPrice||'—'}</td>
           <td class="mono right">${F(r.units,0)}</td>
           <td class="mono right">$${F(r.face,0)}<div style="font-size:11px;color:var(--tx3)">NT$${F(Math.round(r.twd))}</div></td>
-          <td class="mono right" style="cursor:pointer;color:${r.curPrice?(isExit?'var(--tx2)':'var(--bl)'):'var(--tx3)'}" onclick="bondEditPrice('${r.id}')" title="點擊更新">${r.curPrice||'點擊填入'}</td>
           <td class="mono right" style="color:${isExit?'var(--tx)':'var(--bl)'};font-weight:${isExit?'600':'400'}">
             ${sellAmt?'$'+F(Math.round(sellAmt)):'—'}
             ${isEstimate?'<div style="font-size:11px;color:var(--gd)">暫估</div>':''}
@@ -4102,9 +4108,11 @@ function bondRender() {
             ${pct?(pl>=0?'+':'')+pct+'%':'—'}
             ${isEstimate?'<div style="font-size:11px;color:var(--gd)">暫估</div>':''}
           </td>
-          <td class="mono right">${r.coupon||'—'}</td>
+          <td class="mono right" style="color:${plNoColor}">
+            ${plNoInt?(plNoInt>=0?'+':'')+'$'+F(Math.round(plNoInt)):'—'}
+            ${isEstimate?'<div style="font-size:11px;color:var(--gd)">暫估</div>':''}
+          </td>
           <td class="mono right">${r.yield||'—'}</td>
-          <td class="mono" style="white-space:nowrap;font-size:11px">${r.maturity||'—'}</td>
           <td style="font-size:11px;color:var(--tx2);white-space:nowrap">${r.distDates||'—'}</td>
           <td style="white-space:nowrap">
             <button class="btn btnsm" onclick="bondOpenForm('${r.id}')">編輯</button>

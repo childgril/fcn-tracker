@@ -1515,13 +1515,13 @@ function rint(){
   const INFO_LABELS=['狀態','帳戶','買進日','出場日','幣別・面額','利率・期限','月配息','已領利息'];
   const infoVal=(d,li)=>[
     `<span style="white-space:nowrap;display:inline-block">${bdg(d.status)}</span>`,
-    `<span style="font-size:16px">${d.bank}</span>`,
-    `<span class="mono" style="font-size:16px">${d.date}</span>`,
-    `<span class="mono" style="font-size:16px;color:${d.exitDate?'var(--rd)':'var(--tx3)'}">${d.exitDate||'—'}</span>`,
-    `<span style="font-size:16px">${d.ccy==='JPY'?'<span class="badge bj" style="font-size:11px">JPY</span> ':'<span class="badge bu" style="font-size:11px">USD</span> '}${SY(d.ccy)}${F(d.face)}</span>`,
-    `<span style="font-size:16px;color:var(--bl)">${d.coupon}% · ${d.term}</span>`,
-    `<span class="mono" style="font-size:16px;color:var(--gn)">${SY(d.ccy)}${F(d.monthly,0)}</span>`,
-    `<span class="mono" style="font-size:16px;color:var(--gn)">${SY(d.ccy)}${F((()=>{const ov=d.monthlyOverride||{};return(d.paidDates||[]).reduce((a,dt)=>a+(ov[dt]!==undefined?ov[dt]:d.monthly),0);})(),2)}</span>`,
+    `<span style="font-size:12px">${d.bank}</span>`,
+    `<span class="mono" style="font-size:12px">${d.date}</span>`,
+    `<span class="mono" style="font-size:12px;color:${d.exitDate?'var(--rd)':'var(--tx3)'}">${d.exitDate||'—'}</span>`,
+    `<span style="font-size:12px">${d.ccy==='JPY'?'<span class="badge bj" style="font-size:11px">JPY</span> ':'<span class="badge bu" style="font-size:11px">USD</span> '}${SY(d.ccy)}${F(d.face)}</span>`,
+    `<span style="font-size:12px;color:var(--bl)">${d.coupon}% · ${d.term}</span>`,
+    `<span class="mono" style="font-size:12px;color:var(--gn)">${SY(d.ccy)}${F(d.monthly,0)}</span>`,
+    `<span class="mono" style="font-size:12px;color:var(--gn)">${SY(d.ccy)}${F((()=>{const ov=d.monthlyOverride||{};return(d.paidDates||[]).reduce((a,dt)=>a+(ov[dt]!==undefined?ov[dt]:d.monthly),0);})(),2)}</span>`,
   ][li];
 
   const MW=62,CW=74,TOTAL_CW=82;
@@ -1548,7 +1548,7 @@ function rint(){
           return m?`${m[2]}-${m[1]}`:d.bank;
         })();
         // 幣別配色
-        const ccyBg = d.ccy === 'JPY' ? 'rgba(168,85,247,.10)' : 'rgba(239,68,68,.08)';
+        const ccyBg = d.ccy === 'JPY' ? 'var(--pul)' : 'var(--rdl)';
         const ccyBorder = d.ccy === 'JPY' ? 'var(--pu)' : 'var(--rd)';
         const ccyBadge = d.ccy === 'JPY' ? '<span style="background:var(--pul);color:var(--pu);font-size:10px;padding:1px 4px;border-radius:4px;font-weight:600;">JPY</span>' :
                         '<span style="background:var(--rdl);color:var(--rd);font-size:10px;padding:1px 4px;border-radius:4px;font-weight:600;">USD</span>';
@@ -1585,16 +1585,16 @@ function rint(){
   INT_MONTHS.forEach(ym=>{
     if(ym.y!==prevY){
       prevY=ym.y;
-      h+=`<tr style="background:var(--ac);"><td colspan="${rows.length+2}" style="padding:3px 10px;font-size:16px;font-weight:700;color:rgba(255,255,255,.8);letter-spacing:.08em;">${ym.y} 年</td></tr>`;
+      h+=`<tr style="background:var(--ac);"><td colspan="${rows.length+2}" style="padding:3px 10px;font-size:12px;font-weight:700;color:rgba(255,255,255,.85);">${ym.y} 年</td></tr>`;
     }
     const tot=monthTotal(ym);
     h+=`<tr>
-      <td style="position:sticky;left:0;z-index:2;background:var(--sur2);font-weight:700;font-size:16px;text-align:center;padding:5px 4px;white-space:nowrap;width:${MW}px;min-width:${MW}px;border-right:3px solid var(--ac2);border-bottom:1px solid var(--bdr);">${ym.m}月</td>
+      <td style="position:sticky;left:0;z-index:2;background:var(--sur2);font-weight:700;font-size:14px;text-align:center;padding:5px 4px;white-space:nowrap;width:${MW}px;min-width:${MW}px;border-right:3px solid var(--ac2);border-bottom:1px solid var(--bdr);">${ym.m}月</td>
       ${rows.map(d=>{
         const dt=dtForYM(d,ym);
         const exp=window._intExp.has(d.id);
         const isClosed=!!(d.exitDate);
-        if(!dt)return`<td style="border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);background:var(--bg);text-align:center;color:var(--tx3);font-size:15px;min-width:${exp?CW:28}px;width:${exp?CW:28}px;">—</td>`;
+        if(!dt)return`<td style="border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);background:var(--bg);text-align:center;color:var(--tx3);font-size:13px;min-width:${exp?CW:28}px;width:${exp?CW:28}px;">—</td>`;
         const paid=(d.paidDates||[]).includes(dt);
         // 取得這個月的實際金額（可能有覆寫）
         const overrides=d.monthlyOverride||{};
@@ -1605,9 +1605,9 @@ function rint(){
             <div class="int-cell-inner">
               ${exp?`
               <div style="font-size:11px;color:${paid?'var(--gn)':'var(--tx3)'};margin-bottom:1px">${dt}</div>
-              <div class="ia" style="font-family:var(--mono);font-size:15px">${SY(d.ccy)}${F(monthAmt,2)}</div>
+              <div class="ia" style="font-family:var(--mono);font-size:13px">${SY(d.ccy)}${F(monthAmt,2)}</div>
               <div style="font-size:11px;margin-top:1px;color:${paid?'var(--gn)':'var(--tx3)'}">🔒${paid?'已收':'—'}</div>
-              `:`<div style="font-size:16px;color:${paid?'var(--gn)':'var(--tx3)'}">${paid?'✓':'—'}</div>`}
+              `:`<div style="font-size:14px;color:${paid?'var(--gn)':'var(--tx3)'}">${paid?'✓':'—'}</div>`}
             </div>
           </td>`;
         }
@@ -1615,16 +1615,16 @@ function rint(){
           <div class="int-cell-inner">
             ${exp?`
             <div style="font-size:11px;color:${paid?'var(--gn)':'var(--tx3)'};margin-bottom:1px">${dt}</div>
-            <div class="ia" style="font-family:var(--mono);font-size:15px">${SY(d.ccy)}${F(monthAmt,2)}</div>
+            <div class="ia" style="font-family:var(--mono);font-size:13px">${SY(d.ccy)}${F(monthAmt,2)}</div>
             <div style="font-size:11px;margin-top:1px;color:${paid?'var(--gn)':'var(--gd)'}">${paid?'✓ 已收':'待收'}${overrides[dt]!==undefined?' ✎':''}</div>
-            `:`<div style="font-size:16px;color:${paid?'var(--gn)':'var(--gd)'}">${paid?'✓':'●'}</div>`}
+            `:`<div style="font-size:14px;color:${paid?'var(--gn)':'var(--gd)'}">${paid?'✓':'●'}</div>`}
           </div>
         </td>`;
       }).join('')}
       <td style="border-left:3px solid var(--ac2);border-bottom:1px solid var(--bdr);text-align:center;padding:4px;min-width:${TOTAL_CW}px;vertical-align:middle;background:${(tot.usd||tot.jpy)?'var(--gnl)':'var(--bg)'};">
-        ${tot.usd?`<div class="mono" style="font-size:15px;font-weight:600;color:var(--gn)">USD$${F(tot.usd,0)}</div>`:''}
-        ${tot.jpy?`<div class="mono" style="font-size:16px;color:var(--gn)">¥${F(tot.jpy,0)}</div>`:''}
-        ${!tot.usd&&!tot.jpy?'<span style="color:var(--tx3);font-size:15px">—</span>':''}
+        ${tot.usd?`<div class="mono" style="font-size:13px;font-weight:600;color:var(--gn)">USD$${F(tot.usd,0)}</div>`:''}
+        ${tot.jpy?`<div class="mono" style="font-size:13px;color:var(--gn)">¥${F(tot.jpy,0)}</div>`:''}
+        ${!tot.usd&&!tot.jpy?'<span style="color:var(--tx3);font-size:13px">—</span>':''}
       </td>
     </tr>`;
   });
@@ -3502,7 +3502,7 @@ function fundDistRender(targetId) {
         const shortName=r.name.length>10?r.name.slice(0,10)+'…':r.name;
         const w=exp?CW:CW_COL;
         // 幣別配色
-        const ccyBg = r.ccy === 'JPY' ? 'rgba(168,85,247,.10)' : r.ccy === 'USD' ? 'rgba(239,68,68,.08)' : 'rgba(34,197,94,.08)';
+        const ccyBg = r.ccy === 'JPY' ? 'var(--pul)' : r.ccy === 'USD' ? 'var(--rdl)' : 'var(--gnl)';
         const ccyBorder = r.ccy === 'JPY' ? 'var(--pu)' : r.ccy === 'USD' ? 'var(--rd)' : 'var(--ac)';
         const ccyBadge = r.ccy === 'JPY' ? '<span style="background:var(--pul);color:var(--pu);font-size:10px;padding:1px 4px;border-radius:4px;font-weight:600;">JPY</span>' :
                         r.ccy === 'USD' ? '<span style="background:var(--rdl);color:var(--rd);font-size:10px;padding:1px 4px;border-radius:4px;font-weight:600;">USD</span>' :
@@ -4538,7 +4538,7 @@ function bondDistRender(targetId) {
         const shortName = b.name.length > 8 ? b.name.slice(0, 8) + '…' : b.name;
         const w = exp ? CW : CW_COL;
         // USD 配色（債券都是 USD）
-        const ccyBg = 'rgba(239,68,68,.08)';
+        const ccyBg = 'var(--rdl)';
         const ccyBorder = 'var(--rd)';
         const ccyBadge = '<span style="background:var(--rdl);color:var(--rd);font-size:10px;padding:1px 4px;border-radius:4px;font-weight:600;">USD</span>';
         return `<th style="position:sticky;top:0;z-index:3;background:${ccyBg};min-width:${w}px;width:${w}px;
@@ -5698,6 +5698,11 @@ viewerAutoLoad();
 })();
 
 document.getElementById('last-update').textContent=localStorage.getItem('fcnlast')||'首次載入';
+
+// 預設總覽頁面為開啟狀態，初始化它
+if (document.getElementById('sec-overview')?.classList.contains('active')) {
+  initOverview();
+}
 </script>
 </body>
 </html>

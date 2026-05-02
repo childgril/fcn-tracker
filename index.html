@@ -209,7 +209,7 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
     <div class="ni" data-sec="fxlog" onclick="showSec('fxlog')"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8h10M10 5l3 3-3 3" stroke-linecap="round" stroke-linejoin="round"/><path d="M13 8H3M6 5L3 8l3 3" stroke-linecap="round" stroke-linejoin="round" opacity=".4"/></svg>換外幣紀錄</div>
     <div style="height:1px;background:rgba(255,255,255,.1);margin:10px 18px;"></div>
     <div class="ni" data-sec="dashboard" onclick="showSec('dashboard')"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1" opacity=".9"/><rect x="9" y="1" width="6" height="6" rx="1" opacity=".5"/><rect x="1" y="9" width="6" height="6" rx="1" opacity=".5"/><rect x="9" y="9" width="6" height="6" rx="1" opacity=".9"/></svg>FCN 清單</div>
-    <div class="ni" data-sec="list" onclick="showSec('list')"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="3" width="14" height="2" rx="1"/><rect x="1" y="7" width="14" height="2" rx="1" opacity=".6"/><rect x="1" y="11" width="9" height="2" rx="1" opacity=".4"/></svg>FCN 明細</div>
+    <div class="ni" data-sec="list" onclick="showSec('list')"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="3" width="14" height="2" rx="1"/><rect x="1" y="7" width="14" height="2" rx="1" opacity=".6"/><rect x="1" y="11" width="9" height="2" rx="1" opacity=".4"/></svg>FCN 清單明細</div>
     <div class="ni" data-sec="interest" onclick="showSec('interest')"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2" stroke-linecap="round"/></svg>FCN 配息紀錄</div>
     <div class="ni" data-sec="holdtrack" onclick="showSec('holdtrack')"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12l4-4 3 3 5-6" stroke-linecap="round" stroke-linejoin="round"/></svg>承接股票追蹤</div>
     <div class="ni" data-sec="quote" onclick="showSec('quote')"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="1.5"/><path d="M5 8h6M5 5.5h6M5 10.5h4" stroke-linecap="round"/></svg>報價 FCN</div>
@@ -318,7 +318,7 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
 <!-- LIST -->
 <div id="sec-list" class="sec">
   <div class="ph">
-    <div><div class="pt">FCN 明細</div><div class="ps" id="list-cnt"></div></div>
+    <div><div class="pt">FCN 清單明細</div><div class="ps" id="list-cnt"></div></div>
     <button class="btn btnp" onclick="showSec('add')">＋ 新增投資</button>
   </div>
   <div class="fr">
@@ -4557,208 +4557,435 @@ function initOverview() {
 
 function overviewRender() {
   const fx = parseFloat(document.getElementById('ov-fx').value) || getFX();
-  // 同步寫回 fx-rate（保持一致）
   const fxRate = document.getElementById('fx-rate');
   if (fxRate) fxRate.value = fx.toFixed(2);
+  const jpyFx = fx * 0.0068; // 每 1 JPY 約等於多少 TWD
 
-  // ── FCN 統計 ──
-  const fcnActive = D.filter(d => d.status === 'active');
-  const fcnHold = D.filter(d => d.status === 'hold');
-  const fcnClosed = D.filter(d => d.status === 'closed');
+  // 統一換算函數
+  const toTwd = (amt, ccy) => {
+    if (!amt) return 0;
+    if (ccy === 'TWD') return amt;
+    if (ccy === 'USD') return amt * fx;
+    if (ccy === 'JPY') return amt * jpyFx;
+    return amt;
+  };
+
+  // ── 1. FCN 數據 ──
   const fcnFaceUSD = D.filter(d => d.ccy === 'USD').reduce((a, d) => a + d.face, 0);
   const fcnFaceJPY = D.filter(d => d.ccy === 'JPY').reduce((a, d) => a + d.face, 0);
-  const fcnTwd = D.reduce((a, d) => a + (d.twd || d.face * (d.fx || (d.ccy === 'USD' ? fx : fx * 0.0068))), 0);
-  const fcnInterestUSD = D.filter(d => d.ccy === 'USD').reduce((a, d) => {
+  const fcnTwdCost = D.reduce((a, d) => a + (d.twd || toTwd(d.face, d.ccy)), 0);
+  const fcnPaidUSD = D.filter(d => d.ccy === 'USD').reduce((a, d) => {
     const ov = d.monthlyOverride || {};
     return a + (d.paidDates || []).reduce((s, dt) => s + (ov[dt] !== undefined ? ov[dt] : d.monthly), 0);
   }, 0);
-  const fcnInterestJPY = D.filter(d => d.ccy === 'JPY').reduce((a, d) => {
+  const fcnPaidJPY = D.filter(d => d.ccy === 'JPY').reduce((a, d) => {
     const ov = d.monthlyOverride || {};
     return a + (d.paidDates || []).reduce((s, dt) => s + (ov[dt] !== undefined ? ov[dt] : d.monthly), 0);
   }, 0);
-  const fcnTotalInterestTwd = fcnInterestUSD * fx + fcnInterestJPY * fx * 0.0068;
+  const fcnPaidTwd = fcnPaidUSD * fx + fcnPaidJPY * jpyFx;
+  // 已實現（closed status，rate 欄位代表報酬率）
+  const fcnRealized = D.filter(d => d.status === 'closed');
+  const fcnRealizedPLTwd = fcnRealized.reduce((a, d) => {
+    const twd = d.twd || toTwd(d.face, d.ccy);
+    const r = parseFloat(d.rate) || 0;
+    return a + twd * r / 100;
+  }, 0);
+  const fcnRealizedFaceTwd = fcnRealized.reduce((a, d) => a + (d.twd || toTwd(d.face, d.ccy)), 0);
+  // 未出場進行中
+  const fcnActive = D.filter(d => d.status === 'active');
+  const fcnHold = D.filter(d => d.status === 'hold');
+  const fcnActiveFaceUSD = fcnActive.filter(d => d.ccy === 'USD').reduce((a, d) => a + d.face, 0);
+  const fcnActiveFaceJPY = fcnActive.filter(d => d.ccy === 'JPY').reduce((a, d) => a + d.face, 0);
+  const fcnActiveTwd = fcnActive.reduce((a, d) => a + (d.twd || toTwd(d.face, d.ccy)), 0);
+  // 預估未領利息（active 的剩餘配息）
+  const fcnRemainingUSD = fcnActive.filter(d => d.ccy === 'USD').reduce((a, d) => {
+    const total = (d.payDates || []).length;
+    const paid = (d.paidDates || []).length;
+    return a + (total - paid) * (d.monthly || 0);
+  }, 0);
+  const fcnRemainingJPY = fcnActive.filter(d => d.ccy === 'JPY').reduce((a, d) => {
+    const total = (d.payDates || []).length;
+    const paid = (d.paidDates || []).length;
+    return a + (total - paid) * (d.monthly || 0);
+  }, 0);
+  const fcnRemainingTwd = fcnRemainingUSD * fx + fcnRemainingJPY * jpyFx;
+  // 未實現損益（active = 0，因為還沒出場；hold 用承接細節算）
+  const fcnUnrealizedPLTwd = 0; // FCN 在未出場時無未實現損益（票面價值）
 
-  // ── 基金統計 ──
+  // ── 2. 基金數據 ──
   const fdHeld = FD.filter(f => !f.exitDate);
   const fdExited = FD.filter(f => f.exitDate);
-  const fdFaceTwd = FD.reduce((a, f) => a + (f.twd || 0), 0);
+  const fdFaceUSD = FD.filter(f => f.ccy === 'USD').reduce((a, f) => a + f.face, 0);
+  const fdFaceJPY = FD.filter(f => f.ccy === 'JPY').reduce((a, f) => a + f.face, 0);
+  const fdFaceTWD = FD.filter(f => f.ccy === 'TWD').reduce((a, f) => a + f.face, 0);
+  const fdTwdCost = FD.reduce((a, f) => a + (f.twd || toTwd(f.face, f.ccy)), 0);
   const fdInterestUSD = FD.filter(f => f.ccy === 'USD').reduce((a, f) => a + (f.interest || 0), 0);
   const fdInterestJPY = FD.filter(f => f.ccy === 'JPY').reduce((a, f) => a + (f.interest || 0), 0);
   const fdInterestTWD = FD.filter(f => f.ccy === 'TWD').reduce((a, f) => a + (f.interest || 0), 0);
-  const fdInterestAllTwd = fdInterestUSD * fx + fdInterestJPY * fx * 0.0068 + fdInterestTWD;
-
-  // 基金損益
-  const fdRealizedPL = FD.filter(f => f.exitDate).reduce((a, f) => {
-    const sell = f.redeem || 0;
-    const fxVal = f.twd && f.face ? f.twd / f.face : (f.ccy === 'USD' ? fx : f.ccy === 'JPY' ? fx * 0.0068 : 1);
-    return a + (sell ? (sell + (f.interest || 0) - f.face) * fxVal : 0);
+  const fdPaidTwd = fdInterestUSD * fx + fdInterestJPY * jpyFx + fdInterestTWD;
+  // 已實現
+  const fdRealizedPLTwd = fdExited.reduce((a, f) => {
+    if (!f.redeem) return a;
+    const fxv = f.twd && f.face ? f.twd / f.face : (f.ccy === 'USD' ? fx : f.ccy === 'JPY' ? jpyFx : 1);
+    return a + (f.redeem + (f.interest || 0) - f.face) * fxv;
   }, 0);
-  const fdUnrealizedPL = FD.filter(f => !f.exitDate).reduce((a, f) => {
+  const fdRealizedFaceTwd = fdExited.reduce((a, f) => a + (f.twd || toTwd(f.face, f.ccy)), 0);
+  // 未出場金額（換算台幣）
+  const fdHeldFaceTwd = fdHeld.reduce((a, f) => a + (f.twd || toTwd(f.face, f.ccy)), 0);
+  const fdHeldCurTwd = fdHeld.reduce((a, f) => {
+    const cur = (f.curNav && f.units) ? f.curNav * f.units : 0;
+    if (!cur) return a;
+    const fxv = f.twd && f.face ? f.twd / f.face : (f.ccy === 'USD' ? fx : f.ccy === 'JPY' ? jpyFx : 1);
+    return a + cur * fxv;
+  }, 0);
+  // 未實現損益
+  const fdUnrealizedPLTwd = fdHeld.reduce((a, f) => {
     const cur = (f.curNav && f.units) ? f.curNav * f.units : 0;
     if (!cur || !f.face) return a;
-    const fxVal = f.twd && f.face ? f.twd / f.face : (f.ccy === 'USD' ? fx : f.ccy === 'JPY' ? fx * 0.0068 : 1);
-    return a + (cur + (f.interest || 0) - f.face) * fxVal;
+    const fxv = f.twd && f.face ? f.twd / f.face : (f.ccy === 'USD' ? fx : f.ccy === 'JPY' ? jpyFx : 1);
+    return a + (cur + (f.interest || 0) - f.face) * fxv;
   }, 0);
-  const fdTotalPL = fdRealizedPL + fdUnrealizedPL;
 
-  // ── 債券統計 ──
+  // ── 3. 債券數據 ──
   const bdHeld = BD.filter(b => !b.exitDate);
   const bdExited = BD.filter(b => b.exitDate);
   const bdFaceUSD = BD.reduce((a, b) => a + b.face, 0);
-  const bdFaceTwd = BD.reduce((a, b) => a + (b.twd || b.face * fx), 0);
+  const bdTwdCost = BD.reduce((a, b) => a + (b.twd || b.face * fx), 0);
   const bdInterestUSD = BD.reduce((a, b) => a + (b.interest || 0), 0);
-  const bdRealizedPL = BD.filter(b => b.exitDate).reduce((a, b) => {
-    const sell = b.sellAmt || (b.curPrice && b.units ? b.curPrice * b.units / 100 : 0);
+  const bdPaidTwd = bdInterestUSD * fx;
+  // 已實現
+  const bdRealizedPLUsd = bdExited.reduce((a, b) => {
+    const sell = b.sellAmt || (b.curPrice * b.units / 100);
     return a + (sell ? sell + b.interest - b.face : 0);
   }, 0);
-  const bdUnrealizedPL = BD.filter(b => !b.exitDate).reduce((a, b) => {
-    const sell = b.curPrice && b.units ? b.curPrice * b.units / 100 : 0;
+  const bdRealizedPLTwd = bdRealizedPLUsd * fx;
+  const bdRealizedFaceUsd = bdExited.reduce((a, b) => a + b.face, 0);
+  const bdRealizedFaceTwd = bdRealizedFaceUsd * fx;
+  // 未出場
+  const bdHeldFaceUsd = bdHeld.reduce((a, b) => a + b.face, 0);
+  const bdHeldFaceTwd = bdHeldFaceUsd * fx;
+  const bdHeldCurUsd = bdHeld.reduce((a, b) => a + (b.curPrice && b.units ? b.curPrice * b.units / 100 : 0), 0);
+  const bdHeldCurTwd = bdHeldCurUsd * fx;
+  const bdUnrealizedPLUsd = bdHeld.reduce((a, b) => {
+    const sell = b.curPrice * b.units / 100;
     return a + (sell ? sell + b.interest - b.face : 0);
   }, 0);
-  const bdTotalPLUSD = bdRealizedPL + bdUnrealizedPL;
+  const bdUnrealizedPLTwd = bdUnrealizedPLUsd * fx;
 
-  // ── 換匯統計 ──
-  const fxlActive = FXL || [];
-  const usdAcquired = fxlActive.filter(f => f.toCcy === 'USD').reduce((a, f) => a + f.foreign, 0);
-  const usdSpent = fxlActive.filter(f => f.fromCcy === 'USD').reduce((a, f) => a + f.twd, 0);
-  const jpyAcquired = fxlActive.filter(f => f.toCcy === 'JPY').reduce((a, f) => a + f.foreign, 0);
-  const jpySpent = fxlActive.filter(f => f.fromCcy === 'JPY').reduce((a, f) => a + f.twd, 0);
+  // ── 合併（最上面三張卡）──
+  const totalFaceTwd = fcnTwdCost + fdTwdCost + bdTwdCost;
+  const totalPaidTwd = fcnPaidTwd + fdPaidTwd + bdPaidTwd;
+  const totalRealizedPLTwd = fcnRealizedPLTwd + fdRealizedPLTwd + bdRealizedPLTwd;
+  const totalRealizedFaceTwd = fcnRealizedFaceTwd + fdRealizedFaceTwd + bdRealizedFaceTwd;
+  const totalRealizedRate = totalRealizedFaceTwd ? (totalRealizedPLTwd / totalRealizedFaceTwd * 100).toFixed(2) : 0;
+  const totalUnrealizedPLTwd = fcnUnrealizedPLTwd + fdUnrealizedPLTwd + bdUnrealizedPLTwd;
+  const totalRemainingTwd = fcnRemainingTwd; // FCN 預估未領
+  const totalActiveCurTwd = fcnActiveTwd + fdHeldCurTwd + bdHeldCurTwd;
+
+  // ── 本月待配息（三個加總） ──
+  const today = new Date();
+  const ym = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}`;
+  let monthDistFcn = { USD: 0, JPY: 0 };
+  D.filter(d => d.status === 'active').forEach(d => {
+    const payMaps = (function(){
+      if(!d.payDates)return [];
+      const buyDate=new Date(d.date);
+      let y=buyDate.getFullYear(), prevM=buyDate.getMonth()+1;
+      return d.payDates.map(dt=>{
+        const m=parseInt(dt.split('/')[0]);
+        if(m<prevM)y++;
+        prevM=m;
+        return {ymKey:`${y}-${String(m).padStart(2,'0')}`, dateStr:dt};
+      });
+    })();
+    payMaps.filter(p=>p.ymKey===ym).forEach(p => {
+      if(!(d.paidDates||[]).includes(p.dateStr)) {
+        const ov=d.monthlyOverride||{};
+        monthDistFcn[d.ccy] += (ov[p.dateStr]!==undefined?ov[p.dateStr]:d.monthly);
+      }
+    });
+  });
+  // 基金配息（用 distPerUnit × units，預估）
+  let monthDistFD = { USD: 0, JPY: 0, TWD: 0 };
+  fdHeld.forEach(f => {
+    if (f.distType === '無配息' || f.distType === '定期定額') return;
+    if (f.distPerUnit && f.units) monthDistFD[f.ccy] += f.distPerUnit * f.units;
+  });
+  // 債券本月配息
+  let monthDistBD_USD = 0;
+  bdHeld.forEach(b => {
+    if (!b.distDates) return;
+    const monthDays = b.distDates.split(/[,，]/).map(s => s.trim());
+    monthDays.forEach(md => {
+      const [mm] = md.split('/').map(s => parseInt(s));
+      if (mm === today.getMonth() + 1) monthDistBD_USD += (b.couponAmt || 0);
+    });
+  });
+  const monthDistTotalTwd = (monthDistFcn.USD + monthDistFD.USD + monthDistBD_USD) * fx
+                          + (monthDistFcn.JPY + monthDistFD.JPY) * jpyFx
+                          + monthDistFD.TWD;
+
+  // ── 換匯 / 流動性 ──
+  const usdAcquired = (FXL||[]).filter(f => f.toCcy === 'USD').reduce((a, f) => a + f.foreign, 0);
+  const usdSpent = (FXL||[]).filter(f => f.fromCcy === 'USD').reduce((a, f) => a + f.twd, 0);
+  const jpyAcquired = (FXL||[]).filter(f => f.toCcy === 'JPY').reduce((a, f) => a + f.foreign, 0);
+  const jpySpent = (FXL||[]).filter(f => f.fromCcy === 'JPY').reduce((a, f) => a + f.twd, 0);
   const usdInUseFCN = D.filter(d => d.status === 'active' && d.ccy === 'USD').reduce((a, d) => a + d.face, 0);
   const usdInUseFD = FD.filter(f => !f.exitDate && f.ccy === 'USD').reduce((a, f) => a + f.face, 0);
-  const usdInUseBD = BD.filter(b => !b.exitDate).reduce((a, b) => a + b.face, 0);
+  const usdInUseBD = bdHeldFaceUsd;
   const usdRemaining = usdAcquired - usdSpent - usdInUseFCN - usdInUseFD - usdInUseBD;
+  const jpyInUseFCN = D.filter(d => d.status === 'active' && d.ccy === 'JPY').reduce((a, d) => a + d.face, 0);
+  const jpyInUseFD = FD.filter(f => !f.exitDate && f.ccy === 'JPY').reduce((a, f) => a + f.face, 0);
+  const jpyRemaining = jpyAcquired - jpySpent - jpyInUseFCN - jpyInUseFD;
 
-  // ── 三個摘要卡片（FCN / 基金 / 債券）──
-  const cards = [
-    { title: 'FCN', color: 'var(--ac)', bgColor: 'var(--gnl)',
-      mainLabel: '投資面額', mainVal: '$' + F(Math.round(fcnFaceUSD), 0) + (fcnFaceJPY ? ' / ¥' + F(Math.round(fcnFaceJPY)) : ''),
-      subLabel: '台幣成本', subVal: 'NT$' + F(Math.round(fcnTwd)),
-      stat1Label: '進行中', stat1Val: fcnActive.length,
-      stat2Label: '承接', stat2Val: fcnHold.length,
-      stat3Label: '已結算', stat3Val: fcnClosed.length,
-      bottomLabel: '已領利息（台幣換算）', bottomVal: 'NT$' + F(Math.round(fcnTotalInterestTwd)),
-      action: 'showSec(\'dashboard\')',
-    },
-    { title: '基金', color: 'var(--bl)', bgColor: 'var(--bll)',
-      mainLabel: '台幣成本', mainVal: 'NT$' + F(Math.round(fdFaceTwd)),
-      subLabel: '已領配息', subVal: 'NT$' + F(Math.round(fdInterestAllTwd)),
-      stat1Label: '持有中', stat1Val: fdHeld.length,
-      stat2Label: '已出場', stat2Val: fdExited.length,
-      stat3Label: '配息基金', stat3Val: FD.filter(f => f.distType !== '無配息').length,
-      bottomLabel: '損益（含息，台幣）', bottomVal: (fdTotalPL >= 0 ? '+' : '') + 'NT$' + F(Math.round(fdTotalPL)),
-      bottomColor: fdTotalPL >= 0 ? 'var(--gn)' : 'var(--rd)',
-      action: 'showSec(\'fund\')',
-    },
-    { title: '債券', color: 'var(--gd)', bgColor: 'var(--gdl)',
-      mainLabel: '投資總額（USD）', mainVal: '$' + F(Math.round(bdFaceUSD)),
-      subLabel: '台幣成本', subVal: 'NT$' + F(Math.round(bdFaceTwd)),
-      stat1Label: '持有中', stat1Val: bdHeld.length,
-      stat2Label: '已出場', stat2Val: bdExited.length,
-      stat3Label: '已領利息', stat3Val: '$' + F(Math.round(bdInterestUSD)),
-      bottomLabel: '損益（含息，USD）', bottomVal: (bdTotalPLUSD >= 0 ? '+' : '') + '$' + F(Math.round(bdTotalPLUSD)),
-      bottomColor: bdTotalPLUSD >= 0 ? 'var(--gn)' : 'var(--rd)',
-      action: 'showSec(\'bond\')',
-    },
-  ];
-
-  const cardsHtml = cards.map(c => `
-    <div class="card" style="padding:16px;cursor:pointer;border-left:4px solid ${c.color};" onclick="${c.action}">
-      <div style="font-size:18px;font-weight:700;color:${c.color};margin-bottom:10px;">${c.title}</div>
-      <div style="margin-bottom:12px;">
-        <div style="font-size:12px;color:var(--tx3)">${c.mainLabel}</div>
-        <div style="font-size:20px;font-weight:600;font-family:var(--mono);color:var(--tx);">${c.mainVal}</div>
-        <div style="font-size:11px;color:var(--tx3)">${c.subLabel} ${c.subVal}</div>
+  // ── 上方三張合併卡 ──
+  const topCards = `
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px;min-width:980px;">
+      <div class="card" style="padding:16px;">
+        <div style="font-size:13px;color:var(--tx3);margin-bottom:6px;">投資金額（合計）</div>
+        <div style="font-size:14px;color:var(--tx2);font-family:var(--mono);">
+          $${F(Math.round(fcnFaceUSD+fdFaceUSD+bdFaceUSD),0)}
+          ${(fcnFaceJPY+fdFaceJPY)?` / ¥${F(Math.round(fcnFaceJPY+fdFaceJPY))}`:''}
+          ${fdFaceTWD?` / NT$${F(Math.round(fdFaceTWD))}`:''}
+        </div>
+        <div style="font-size:22px;font-weight:700;font-family:var(--mono);margin-top:6px;">NT$${F(Math.round(totalFaceTwd))}</div>
+        <div style="font-size:12px;color:var(--tx3)">台幣成本</div>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;padding-top:10px;border-top:1px solid var(--bdr);">
-        <div><div style="font-size:11px;color:var(--tx3)">${c.stat1Label}</div><div style="font-size:15px;font-weight:600;font-family:var(--mono);">${c.stat1Val}</div></div>
-        <div><div style="font-size:11px;color:var(--tx3)">${c.stat2Label}</div><div style="font-size:15px;font-weight:600;font-family:var(--mono);">${c.stat2Val}</div></div>
-        <div><div style="font-size:11px;color:var(--tx3)">${c.stat3Label}</div><div style="font-size:15px;font-weight:600;font-family:var(--mono);">${c.stat3Val}</div></div>
+      <div class="card" style="padding:16px;">
+        <div style="font-size:13px;color:var(--tx3);margin-bottom:6px;">已領利息（合計）</div>
+        <div style="font-size:14px;color:var(--tx2);font-family:var(--mono);">
+          $${F(Math.round(fcnPaidUSD+fdInterestUSD+bdInterestUSD),0)}
+          ${(fcnPaidJPY+fdInterestJPY)?` / ¥${F(Math.round(fcnPaidJPY+fdInterestJPY))}`:''}
+        </div>
+        <div style="font-size:22px;font-weight:700;font-family:var(--mono);color:var(--gn);margin-top:6px;">NT$${F(Math.round(totalPaidTwd))}</div>
+        <div style="font-size:12px;color:var(--tx3)">台幣換算</div>
       </div>
-      <div style="background:${c.bgColor};border-radius:8px;padding:8px 10px;">
-        <div style="font-size:11px;color:var(--tx3)">${c.bottomLabel}</div>
-        <div style="font-size:16px;font-weight:600;font-family:var(--mono);color:${c.bottomColor||c.color};">${c.bottomVal}</div>
-      </div>
-    </div>`).join('');
-
-  document.getElementById('overview-cards').innerHTML = `
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;min-width:980px;">${cardsHtml}</div>`;
-
-  // ── 詳細：USD 流動性 + 提醒 + 到期分佈 ──
-  const upcoming = [];
-  // FCN 到期
-  D.filter(d => d.status === 'active' && d.maturity).forEach(d => {
-    const days = Math.round((new Date(d.maturity) - new Date()) / 86400000);
-    if (days >= 0 && days <= 60) upcoming.push({ type: 'FCN', name: d.bank, ccy: d.ccy, amt: d.face, date: d.maturity, days });
-  });
-  // 債券到期
-  BD.filter(b => !b.exitDate && b.maturity).forEach(b => {
-    const days = Math.round((new Date(b.maturity) - new Date()) / 86400000);
-    if (days >= 0 && days <= 365) upcoming.push({ type: '債券', name: b.name, ccy: 'USD', amt: b.face, date: b.maturity, days });
-  });
-  upcoming.sort((a, b) => a.days - b.days);
-
-  const remindHtml = upcoming.length ? `
-    <div class="card" style="padding:14px;">
-      <div style="font-size:14px;font-weight:600;margin-bottom:10px;color:var(--gd);">⚠ 即將到期</div>
-      ${upcoming.slice(0, 8).map(u => `
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px dashed var(--bdr);font-size:13px;">
-          <div>
-            <span class="badge" style="background:${u.type==='FCN'?'var(--gnl)':'var(--gdl)'};color:${u.type==='FCN'?'var(--ac)':'var(--gd)'};font-size:11px;margin-right:6px;">${u.type}</span>
-            <span style="font-weight:500">${u.name}</span>
-          </div>
-          <div style="text-align:right;">
-            <div class="mono" style="font-size:13px;">${u.ccy==='JPY'?'¥':'$'}${F(u.amt,0)}</div>
-            <div style="font-size:11px;color:${u.days<=30?'var(--rd)':'var(--tx3)'}">${u.date} (剩 ${u.days} 天)</div>
-          </div>
-        </div>`).join('')}
-    </div>` : `
-    <div class="card" style="padding:14px;color:var(--tx3);font-size:13px;">無近期到期項目</div>`;
-
-  // USD 流動性
-  const liquidityHtml = `
-    <div class="card" style="padding:14px;">
-      <div style="font-size:14px;font-weight:600;margin-bottom:10px;color:var(--bl);">💵 USD 流動性</div>
-      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px 14px;font-size:13px;">
-        <div><span style="color:var(--tx3)">已換取</span></div><div class="mono right">+$${F(Math.round(usdAcquired))}</div>
-        <div><span style="color:var(--tx3)">已轉出</span></div><div class="mono right" style="color:var(--rd)">−$${F(Math.round(usdSpent))}</div>
-        <div><span style="color:var(--tx3)">FCN 進行中</span></div><div class="mono right" style="color:var(--rd)">−$${F(Math.round(usdInUseFCN))}</div>
-        <div><span style="color:var(--tx3)">基金持有</span></div><div class="mono right" style="color:var(--rd)">−$${F(Math.round(usdInUseFD))}</div>
-        <div><span style="color:var(--tx3)">債券持有</span></div><div class="mono right" style="color:var(--rd)">−$${F(Math.round(usdInUseBD))}</div>
-        <div style="grid-column:span 2;border-top:1px solid var(--bdr);margin:4px 0;"></div>
-        <div style="font-weight:600">剩餘可用</div><div class="mono right" style="color:${usdRemaining>=0?'var(--gn)':'var(--rd)'};font-weight:600;font-size:15px;">$${F(Math.round(usdRemaining))}</div>
+      <div class="card" style="padding:16px;">
+        <div style="font-size:13px;color:var(--tx3);margin-bottom:6px;">已實現損益 / 報酬率</div>
+        <div style="font-size:22px;font-weight:700;font-family:var(--mono);color:${totalRealizedPLTwd>=0?'var(--gn)':'var(--rd)'};">${totalRealizedPLTwd>=0?'+':''}NT$${F(Math.round(totalRealizedPLTwd))}</div>
+        <div style="font-size:18px;font-weight:600;font-family:var(--mono);color:${totalRealizedPLTwd>=0?'var(--gn)':'var(--rd)'};margin-top:4px;">${totalRealizedPLTwd>=0?'+':''}${totalRealizedRate}%</div>
+        <div style="font-size:12px;color:var(--tx3)">基於台幣成本</div>
       </div>
     </div>`;
 
-  // JPY 流動性（如有）
-  let jpyHtml = '';
-  if (jpyAcquired > 0 || fcnFaceJPY > 0) {
-    const jpyInUseFCN = D.filter(d => d.status === 'active' && d.ccy === 'JPY').reduce((a, d) => a + d.face, 0);
-    const jpyInUseFD = FD.filter(f => !f.exitDate && f.ccy === 'JPY').reduce((a, f) => a + f.face, 0);
-    const jpyRemaining = jpyAcquired - jpySpent - jpyInUseFCN - jpyInUseFD;
-    jpyHtml = `
+  // ── 中間：三類分開卡片 ──
+  const renderTypeCard = (title, color, bgColor, data) => `
+    <div class="card" style="padding:14px;border-left:4px solid ${color};">
+      <div style="font-size:16px;font-weight:700;color:${color};margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
+        <span>${title}</span>
+        <span style="font-size:12px;color:var(--tx3);font-weight:400;">
+          進行中 ${data.activeCount}${data.holdCount?` / 承接 ${data.holdCount}`:''} / 已出場 ${data.exitCount}
+        </span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;font-size:13px;">
+        <div><div style="color:var(--tx3);font-size:11px">投資金額</div>
+          <div class="mono" style="font-weight:600;">${data.faceLine}</div>
+          <div style="color:var(--tx3);font-size:11px">NT$${F(Math.round(data.faceTwd))}</div>
+        </div>
+        <div><div style="color:var(--tx3);font-size:11px">已領利息</div>
+          <div class="mono" style="color:var(--gn);font-weight:600;">${data.paidLine}</div>
+          <div style="color:var(--tx3);font-size:11px">NT$${F(Math.round(data.paidTwd))}</div>
+        </div>
+        <div><div style="color:var(--tx3);font-size:11px">已實現損益</div>
+          <div class="mono" style="color:${data.realizedPLTwd>=0?'var(--gn)':'var(--rd)'};font-weight:600;">${data.realizedPLTwd>=0?'+':''}NT$${F(Math.round(data.realizedPLTwd))}</div>
+          <div style="color:var(--tx3);font-size:11px">${data.realizedRate}</div>
+        </div>
+        <div><div style="color:var(--tx3);font-size:11px">未出場金額</div>
+          <div class="mono" style="font-weight:600;color:var(--bl);">NT$${F(Math.round(data.activeCurTwd))}</div>
+          ${data.estRemainingLine?`<div style="color:var(--tx3);font-size:11px">預估未領 ${data.estRemainingLine}</div>`:''}
+        </div>
+        <div style="grid-column:span 2;background:${bgColor};border-radius:8px;padding:8px 10px;margin-top:4px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="color:var(--tx3);font-size:12px">未實現損益</span>
+            <span class="mono" style="font-weight:700;color:${data.unrealizedPLTwd>=0?'var(--gn)':'var(--rd)'};">${data.unrealizedPLTwd>=0?'+':''}NT$${F(Math.round(data.unrealizedPLTwd))}</span>
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  const fcnFaceLine = `$${F(Math.round(fcnFaceUSD),0)}` + (fcnFaceJPY?` / ¥${F(Math.round(fcnFaceJPY))}`:'');
+  const fcnPaidLine = `$${F(Math.round(fcnPaidUSD),0)}` + (fcnPaidJPY?` / ¥${F(Math.round(fcnPaidJPY))}`:'');
+  const fcnRealizedRate = fcnRealizedFaceTwd ? (fcnRealizedPLTwd/fcnRealizedFaceTwd*100).toFixed(2)+'%' : '—';
+  const fcnEstRemainingLine = fcnRemainingUSD || fcnRemainingJPY
+    ? (fcnRemainingUSD?`$${F(Math.round(fcnRemainingUSD))}`:'') + (fcnRemainingJPY?(fcnRemainingUSD?' / ':'')+`¥${F(Math.round(fcnRemainingJPY))}`:'')
+    : '';
+
+  const fdFaceLine = `${fdFaceUSD?'$'+F(Math.round(fdFaceUSD)):''}` +
+    `${(fdFaceUSD&&fdFaceJPY)?' / ':''}${fdFaceJPY?'¥'+F(Math.round(fdFaceJPY)):''}` +
+    `${((fdFaceUSD||fdFaceJPY)&&fdFaceTWD)?' / ':''}${fdFaceTWD?'NT$'+F(Math.round(fdFaceTWD)):''}`;
+  const fdPaidLine = `${fdInterestUSD?'$'+F(Math.round(fdInterestUSD)):''}` +
+    `${(fdInterestUSD&&fdInterestJPY)?' / ':''}${fdInterestJPY?'¥'+F(Math.round(fdInterestJPY)):''}` +
+    `${((fdInterestUSD||fdInterestJPY)&&fdInterestTWD)?' / ':''}${fdInterestTWD?'NT$'+F(Math.round(fdInterestTWD)):''}`;
+  const fdRealizedRate = fdRealizedFaceTwd ? (fdRealizedPLTwd/fdRealizedFaceTwd*100).toFixed(2)+'%' : '—';
+
+  const bdFaceLine = `$${F(Math.round(bdFaceUSD))}`;
+  const bdPaidLine = `$${F(Math.round(bdInterestUSD))}`;
+  const bdRealizedRate = bdRealizedFaceUsd ? (bdRealizedPLUsd/bdRealizedFaceUsd*100).toFixed(2)+'%' : '—';
+
+  const typeCards = `
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px;min-width:980px;">
+      ${renderTypeCard('FCN', 'var(--ac)', 'var(--gnl)', {
+        activeCount: fcnActive.length, holdCount: fcnHold.length, exitCount: fcnRealized.length,
+        faceLine: fcnFaceLine, faceTwd: fcnTwdCost,
+        paidLine: fcnPaidLine || '—', paidTwd: fcnPaidTwd,
+        realizedPLTwd: fcnRealizedPLTwd, realizedRate: fcnRealizedRate,
+        activeCurTwd: fcnActiveTwd,
+        estRemainingLine: fcnEstRemainingLine,
+        unrealizedPLTwd: fcnUnrealizedPLTwd,
+      })}
+      ${renderTypeCard('基金', 'var(--bl)', 'var(--bll)', {
+        activeCount: fdHeld.length, holdCount: 0, exitCount: fdExited.length,
+        faceLine: fdFaceLine || '—', faceTwd: fdTwdCost,
+        paidLine: fdPaidLine || '—', paidTwd: fdPaidTwd,
+        realizedPLTwd: fdRealizedPLTwd, realizedRate: fdRealizedRate,
+        activeCurTwd: fdHeldCurTwd,
+        estRemainingLine: '',
+        unrealizedPLTwd: fdUnrealizedPLTwd,
+      })}
+      ${renderTypeCard('債券', 'var(--gd)', 'var(--gdl)', {
+        activeCount: bdHeld.length, holdCount: 0, exitCount: bdExited.length,
+        faceLine: bdFaceLine, faceTwd: bdTwdCost,
+        paidLine: bdPaidLine, paidTwd: bdPaidTwd,
+        realizedPLTwd: bdRealizedPLTwd, realizedRate: bdRealizedRate,
+        activeCurTwd: bdHeldCurTwd,
+        estRemainingLine: '',
+        unrealizedPLTwd: bdUnrealizedPLTwd,
+      })}
+    </div>`;
+
+  // ── 本月待配息卡片 + 12 個月日曆 ──
+  const distLines = [];
+  if (monthDistFcn.USD || monthDistFD.USD || monthDistBD_USD) distLines.push(`$${F(Math.round(monthDistFcn.USD+monthDistFD.USD+monthDistBD_USD))}`);
+  if (monthDistFcn.JPY || monthDistFD.JPY) distLines.push(`¥${F(Math.round(monthDistFcn.JPY+monthDistFD.JPY))}`);
+  if (monthDistFD.TWD) distLines.push(`NT$${F(Math.round(monthDistFD.TWD))}`);
+
+  // 12 個月日曆
+  const months12 = [];
+  const startMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(startMonth);
+    d.setMonth(d.getMonth() + i);
+    months12.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`);
+  }
+  const calcMonthDist = (ymKey) => {
+    const [yy, mm] = ymKey.split('-').map(Number);
+    let usd = 0, jpy = 0, twdAmt = 0;
+    // FCN
+    D.filter(d => d.status === 'active').forEach(d => {
+      const buyDate = new Date(d.date);
+      let y = buyDate.getFullYear(), prevM = buyDate.getMonth() + 1;
+      (d.payDates || []).forEach(dt => {
+        const m = parseInt(dt.split('/')[0]);
+        if (m < prevM) y++;
+        prevM = m;
+        const k = `${y}-${String(m).padStart(2,'0')}`;
+        if (k === ymKey && !(d.paidDates||[]).includes(dt)) {
+          const ov = d.monthlyOverride || {};
+          const amt = ov[dt] !== undefined ? ov[dt] : d.monthly;
+          if (d.ccy === 'USD') usd += amt;
+          else if (d.ccy === 'JPY') jpy += amt;
+        }
+      });
+    });
+    // 基金（簡單估：月配的話每月配，季配的話該月為買進月+3n）
+    fdHeld.forEach(f => {
+      if (f.distType === '無配息' || f.distType === '定期定額') return;
+      if (!f.distPerUnit || !f.units) return;
+      const buy = new Date(f.date);
+      const ymStart = new Date(yy, mm - 1, 1);
+      if (ymStart < buy) return;
+      const monthsSince = (yy - buy.getFullYear()) * 12 + (mm - 1) - buy.getMonth();
+      let isPayMonth = false;
+      if (f.distType === '月配') isPayMonth = monthsSince >= 0;
+      else if (f.distType === '季配') isPayMonth = monthsSince >= 0 && monthsSince % 3 === 0;
+      else if (f.distType === '年配') isPayMonth = monthsSince >= 0 && monthsSince % 12 === 0;
+      if (isPayMonth) {
+        const amt = f.distPerUnit * f.units;
+        if (f.ccy === 'USD') usd += amt;
+        else if (f.ccy === 'JPY') jpy += amt;
+        else twdAmt += amt;
+      }
+    });
+    // 債券
+    bdHeld.forEach(b => {
+      if (!b.distDates || !b.couponAmt) return;
+      const buy = new Date(b.date);
+      const mat = b.maturity ? new Date(b.maturity) : null;
+      const ymStart = new Date(yy, mm - 1, 1);
+      if (ymStart < buy || (mat && ymStart > mat)) return;
+      const monthDays = b.distDates.split(/[,，]/).map(s => s.trim());
+      monthDays.forEach(md => {
+        const [m] = md.split('/').map(Number);
+        if (m === mm) usd += b.couponAmt;
+      });
+    });
+    return { usd, jpy, twd: twdAmt, total: usd * fx + jpy * jpyFx + twdAmt };
+  };
+
+  const monthCells = months12.map((ymKey, i) => {
+    const data = calcMonthDist(ymKey);
+    const [yy, mm] = ymKey.split('-');
+    const isCurrent = i === 0;
+    return `<div style="border:1px solid var(--bdr);border-radius:8px;padding:8px 10px;background:${isCurrent?'var(--gnl)':'var(--sur)'};">
+      <div style="font-size:11px;color:var(--tx3);">${yy}/${parseInt(mm)}月${isCurrent?' <span style="color:var(--ac);font-weight:600;">本月</span>':''}</div>
+      ${data.total ? `
+        <div class="mono" style="font-size:11px;margin-top:3px;">
+          ${data.usd?`<div>$${F(Math.round(data.usd))}</div>`:''}
+          ${data.jpy?`<div>¥${F(Math.round(data.jpy))}</div>`:''}
+          ${data.twd?`<div>NT$${F(Math.round(data.twd))}</div>`:''}
+        </div>
+        <div class="mono" style="font-size:13px;font-weight:700;color:var(--gn);margin-top:4px;border-top:1px dashed var(--bdr);padding-top:3px;">NT$${F(Math.round(data.total))}</div>
+      ` : '<div style="color:var(--tx3);font-size:11px;margin-top:6px;">—</div>'}
+    </div>`;
+  }).join('');
+
+  const monthDist = `
+    <div class="card" style="padding:14px;margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+        <div>
+          <div style="font-size:14px;font-weight:600;color:var(--gn);">📅 本月待配息金額</div>
+          <div style="font-size:11px;color:var(--tx3);">FCN ＋ 基金 ＋ 債券 加總</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="mono" style="font-size:13px;color:var(--tx2);">${distLines.join(' / ')||'—'}</div>
+          <div class="mono" style="font-size:22px;font-weight:700;color:var(--gn);">NT$${F(Math.round(monthDistTotalTwd))}</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;">${monthCells}</div>
+    </div>`;
+
+  // ── 流動性卡 ──
+  const liquidityCards = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;min-width:600px;">
       <div class="card" style="padding:14px;">
-        <div style="font-size:14px;font-weight:600;margin-bottom:10px;color:var(--pu);">💴 JPY 流動性</div>
-        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px 14px;font-size:13px;">
+        <div style="font-size:14px;font-weight:600;margin-bottom:10px;color:var(--bl);">🇺🇸 USD 目前剩餘可用金額</div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px 14px;font-size:13px;">
+          <div><span style="color:var(--tx3)">已換取</span></div><div class="mono right">+$${F(Math.round(usdAcquired))}</div>
+          <div><span style="color:var(--tx3)">已轉出</span></div><div class="mono right" style="color:var(--rd)">−$${F(Math.round(usdSpent))}</div>
+          <div><span style="color:var(--tx3)">FCN 進行中</span></div><div class="mono right" style="color:var(--rd)">−$${F(Math.round(usdInUseFCN))}</div>
+          <div><span style="color:var(--tx3)">基金持有</span></div><div class="mono right" style="color:var(--rd)">−$${F(Math.round(usdInUseFD))}</div>
+          <div><span style="color:var(--tx3)">債券持有</span></div><div class="mono right" style="color:var(--rd)">−$${F(Math.round(usdInUseBD))}</div>
+          <div style="grid-column:span 2;border-top:1px solid var(--bdr);margin:4px 0;"></div>
+          <div style="font-weight:600">剩餘可用</div><div class="mono right" style="color:${usdRemaining>=0?'var(--gn)':'var(--rd)'};font-weight:700;font-size:16px;">$${F(Math.round(usdRemaining))}</div>
+        </div>
+      </div>
+      <div class="card" style="padding:14px;">
+        <div style="font-size:14px;font-weight:600;margin-bottom:10px;color:var(--pu);">🇯🇵 JPY 目前剩餘可用金額</div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px 14px;font-size:13px;">
           <div><span style="color:var(--tx3)">已換取</span></div><div class="mono right">+¥${F(Math.round(jpyAcquired))}</div>
           <div><span style="color:var(--tx3)">已轉出</span></div><div class="mono right" style="color:var(--rd)">−¥${F(Math.round(jpySpent))}</div>
           <div><span style="color:var(--tx3)">FCN 進行中</span></div><div class="mono right" style="color:var(--rd)">−¥${F(Math.round(jpyInUseFCN))}</div>
           <div><span style="color:var(--tx3)">基金持有</span></div><div class="mono right" style="color:var(--rd)">−¥${F(Math.round(jpyInUseFD))}</div>
           <div style="grid-column:span 2;border-top:1px solid var(--bdr);margin:4px 0;"></div>
-          <div style="font-weight:600">剩餘可用</div><div class="mono right" style="color:${jpyRemaining>=0?'var(--gn)':'var(--rd)'};font-weight:600;font-size:15px;">¥${F(Math.round(jpyRemaining))}</div>
+          <div style="font-weight:600">剩餘可用</div><div class="mono right" style="color:${jpyRemaining>=0?'var(--gn)':'var(--rd)'};font-weight:700;font-size:16px;">¥${F(Math.round(jpyRemaining))}</div>
         </div>
-      </div>`;
-  }
-
-  document.getElementById('overview-detail').innerHTML = `
-    <div style="display:grid;grid-template-columns:${jpyHtml?'1fr 1fr 1fr':'1fr 1fr'};gap:14px;min-width:800px;">
-      ${liquidityHtml}
-      ${jpyHtml}
-      ${remindHtml}
+      </div>
     </div>`;
+
+  document.getElementById('overview-cards').innerHTML = topCards + typeCards + monthDist;
+  document.getElementById('overview-detail').innerHTML = liquidityCards;
 }
 
-
-// ═══════════════════════════════════════════════════════════
 // ── FUND REPORT ─────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════
 

@@ -171,7 +171,7 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
 .mba{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;}
 .cg{color:var(--gn);}.cr{color:var(--rd);}.cb{color:var(--bl);}.cgd{color:var(--gd);}.cmu{color:var(--tx3);}
 /* interest cross-table */
-.int-wrap{overflow-x:auto;overflow-y:auto;max-height:calc(100vh - 155px);border:1px solid var(--bdr);border-radius:var(--rl);background:var(--sur);margin-bottom:0;}
+.int-wrap{overflow-x:auto;overflow-y:auto;max-height:calc(100vh - 130px);border:1px solid var(--bdr);border-radius:var(--rl);background:var(--sur);margin-bottom:0;}
 .int-table{border-collapse:collapse;font-size:15px;white-space:nowrap;}
 .int-table th,.int-table td{border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);padding:0;}
 .int-table tr:last-child td,.int-table tr:last-child th{border-bottom:none;}
@@ -3470,7 +3470,7 @@ function fundDistRender(targetId) {
 
   const anyExp = distFunds.some(r=>window._fdExp.has(r.id));
 
-  let h = `<div class="int-wrap" style="max-height:calc(100vh - 180px);">
+  let h = `<div class="int-wrap" style="max-height:calc(100vh - 130px);">
   <table class="int-table" style="border-collapse:collapse;">
   <thead>
     <tr>
@@ -4497,7 +4497,7 @@ function bondDistRender(targetId) {
 
   const anyExp = sortedBD.some(b => window._bdExp.has(b.id));
 
-  let h = `<div class="int-wrap" style="max-height:calc(100vh - 180px);">
+  let h = `<div class="int-wrap" style="max-height:calc(100vh - 130px);">
   <table class="int-table" style="border-collapse:collapse;">
   <thead>
     <tr>
@@ -4522,7 +4522,8 @@ function bondDistRender(targetId) {
           </div>
         </th>`;
       }).join('')}
-      <th style="position:sticky;top:0;z-index:3;background:var(--sur2);min-width:90px;
+      <th style="position:sticky;top:0;z-index:3;background:var(--sur2);
+          padding:4px 8px;white-space:nowrap;
           border-left:3px solid var(--bl);font-size:11px;font-weight:600;color:var(--tx3);text-align:center;">當月合計</th>
     </tr>
     ${INFO_LABELS.map((lbl,li) => `<tr class="int-info-row" style="${anyExp?'':'display:none'}">
@@ -4607,7 +4608,7 @@ function bondDistRender(targetId) {
         </td>`;
       }).join('')}
       <td style="border-left:3px solid var(--bl);border-bottom:1px solid var(--bdr);
-          text-align:center;padding:4px;min-width:90px;
+          text-align:center;padding:4px 8px;white-space:nowrap;
           background:${Object.keys(monthTotals).length?'var(--gnl)':'var(--bg)'};">
         ${totHtml}
       </td>

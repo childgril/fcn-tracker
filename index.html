@@ -223,26 +223,106 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
     <div class="ni" data-sec="bonddist" onclick="showSec('bonddist')"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="1.5"/><path d="M5 6h6M5 8.5h4M5 11h3" stroke-linecap="round"/><circle cx="12" cy="11" r="2.5" fill="var(--bl)" stroke="none" opacity=".8"/><path d="M11 11h2M12 10v2" stroke="white" stroke-width="1.2" stroke-linecap="round"/></svg>債券配息紀錄</div>
     <div class="ni" data-sec="bondreport" onclick="showSec('bondreport')"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2 13l3-4 3 2 4-6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="13" cy="5" r="1.3" fill="currentColor"/></svg>債券報表分析</div>
   </div>
-  <div class="sbf">資料存於本機瀏覽器<br>最後更新：<span id="last-update">—</span>
-    <span id="sync-status" style="font-size:16px;color:var(--gn);margin-left:6px;"></span>
-    <div style="display:flex;gap:6px;margin-top:8px;">
-      <button class="btn btnsm" onclick="exportData()" style="flex:1;font-size:16px;">📤 匯出</button>
-      <button class="btn btnsm" onclick="document.getElementById('import-file').click()" style="flex:1;font-size:16px;">📥 匯入</button>
-      <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(this)">
+  <div class="sbf">最後更新：<span id="last-update">—</span>
+    <span id="sync-status" style="font-size:14px;color:var(--gn);margin-left:6px;"></span>
+    <div style="display:flex;gap:6px;margin-top:8px;align-items:center;">
+      <button class="btn btnsm" onclick="syncToGist().then(ok=>alert(ok?'✓ 已同步到雲端':'✗ 同步失敗，請先設定 Token'))" style="flex:1;font-size:14px;background:var(--gnl);border-color:var(--gn);color:var(--gn);">☁ 同步雲端</button>
+      <button class="btn btnsm" onclick="loadFromGist().then(ts=>ts?(alert('✓ 已從雲端載入'),location.reload()):alert('✗ 載入失敗，請先設定 Gist ID'))" style="flex:1;font-size:14px;">⬇ 從雲端載入</button>
+      <button class="btn btnsm" onclick="openSettingsModal()" style="font-size:14px;padding:4px 8px;" title="設定">⚙</button>
     </div>
-    <div style="display:flex;gap:6px;margin-top:6px;">
-      <button class="btn btnsm" onclick="syncToGist().then(ok=>alert(ok?'✓ 已同步到雲端':'✗ 同步失敗，請檢查Token'))" style="flex:1;font-size:16px;background:var(--gnl);border-color:var(--gn);color:var(--gn);">☁ 同步雲端</button>
-      <button class="btn btnsm" onclick="loadFromGist().then(ts=>ts?(alert('✓ 已從雲端載入\n時間：'+ts),location.reload()):alert('✗ 載入失敗'))" style="flex:1;font-size:16px;">⬇ 從雲端載入</button>
-    </div>
-    <div style="margin-top:6px;">
-      <button class="btn btnsm" onclick="setupToken()" style="width:100%;font-size:16px;color:var(--tx3);">🔑 設定 GitHub Token</button>
-    </div>
-    <div style="margin-top:5px;">
-      <button class="btn btnsm" onclick="gistSetup()" style="width:100%;font-size:16px;color:var(--tx3);">⚙ GitHub Gist 設定</button>
-    </div>
-    <div id="gist-status" style="font-size:16px;color:var(--tx3);margin-top:4px;text-align:center;"></div>
+    <div id="gist-status" style="font-size:11px;color:var(--tx3);margin-top:4px;text-align:center;"></div>
+    <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(this)">
   </div>
 </nav>
+
+<!-- 設定 Modal -->
+<div class="mo" id="settings-modal" onclick="if(event.target===this)closeSettingsModal()">
+  <div class="mb2" style="width:600px;max-height:92vh;overflow-y:auto;">
+    <div class="mh"><h3>⚙ 雲端與資料設定</h3><button class="mc" onclick="closeSettingsModal()">×</button></div>
+
+    <!-- 模式切換：擁有者 vs 觀看者 -->
+    <div style="background:var(--sur2);border-radius:8px;padding:12px;margin-bottom:14px;">
+      <div style="font-size:14px;font-weight:600;margin-bottom:8px;">使用模式</div>
+      <div style="display:flex;gap:8px;">
+        <label style="flex:1;cursor:pointer;padding:10px;border:2px solid var(--bdr);border-radius:8px;background:var(--bg);" id="mode-owner-label">
+          <input type="radio" name="user-mode" value="owner" checked onchange="updateSettingsMode()" style="margin-right:6px;">
+          <strong>📝 擁有者（讀寫）</strong>
+          <div style="font-size:11px;color:var(--tx3);margin-top:4px;">會寫入資料的主要使用者</div>
+        </label>
+        <label style="flex:1;cursor:pointer;padding:10px;border:2px solid var(--bdr);border-radius:8px;background:var(--bg);" id="mode-viewer-label">
+          <input type="radio" name="user-mode" value="viewer" onchange="updateSettingsMode()" style="margin-right:6px;">
+          <strong>👀 觀看者（唯讀）</strong>
+          <div style="font-size:11px;color:var(--tx3);margin-top:4px;">家人開啟看資料</div>
+        </label>
+      </div>
+    </div>
+
+    <!-- 擁有者設定 -->
+    <div id="settings-owner" style="display:block;">
+      <div style="background:var(--gnl);border-radius:8px;padding:12px;margin-bottom:14px;">
+        <div style="font-size:14px;font-weight:600;color:var(--ac);margin-bottom:6px;">📋 擁有者設定步驟</div>
+        <ol style="font-size:13px;color:var(--tx2);padding-left:20px;line-height:1.7;margin:0;">
+          <li>建立 GitHub Token（勾 gist 權限）</li>
+          <li>把 Token 貼到下方</li>
+          <li>點「☁ 同步雲端」首次上傳資料</li>
+          <li>把產生的 Gist ID 設為公開（公共可讀）</li>
+          <li>把 Gist ID 傳給家人</li>
+        </ol>
+      </div>
+
+      <div class="fgrp" style="margin-bottom:12px;">
+        <label>GitHub Token <span style="color:var(--rd)">*必要</span></label>
+        <input type="password" id="set-token" placeholder="ghp_xxxxxxxxxxxxxxxxxx">
+        <div class="hint">
+          <a href="https://github.com/settings/tokens/new?scopes=gist&description=FCN%20Tracker" target="_blank" style="color:var(--ac2)">→ 點此建立新 Token</a>（勾 gist 權限後 Generate）
+        </div>
+      </div>
+
+      <div class="fgrp" style="margin-bottom:12px;">
+        <label>Gist ID（首次同步後自動產生）</label>
+        <input type="text" id="set-gist-id" placeholder="同步後自動填入" readonly style="background:var(--sur2);">
+        <div class="hint" id="gist-id-hint" style="display:none;">
+          <button class="btn btnsm" onclick="copyShareLink()">📋 複製分享 ID</button>
+          <button class="btn btnsm" onclick="openGistOnGitHub()" style="margin-left:6px;">🔗 在 GitHub 上開啟（設為公開）</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 觀看者設定 -->
+    <div id="settings-viewer" style="display:none;">
+      <div style="background:var(--bll);border-radius:8px;padding:12px;margin-bottom:14px;">
+        <div style="font-size:14px;font-weight:600;color:var(--bl);margin-bottom:6px;">👀 觀看者設定步驟</div>
+        <ol style="font-size:13px;color:var(--tx2);padding-left:20px;line-height:1.7;margin:0;">
+          <li>從擁有者取得 Gist ID（一串英文數字）</li>
+          <li>貼到下方欄位</li>
+          <li>點「儲存並載入」</li>
+          <li>之後每次打開網頁會自動載入最新資料</li>
+        </ol>
+      </div>
+
+      <div class="fgrp" style="margin-bottom:12px;">
+        <label>Gist ID</label>
+        <input type="text" id="set-viewer-gist-id" placeholder="例如：bf8707eb71000f97cfb6cfb9267aaf67">
+        <div class="hint">擁有者設為公開的 Gist 不需要 Token 即可讀取</div>
+      </div>
+    </div>
+
+    <!-- 進階：匯出匯入 -->
+    <div style="border-top:1px solid var(--bdr);padding-top:12px;margin-top:12px;">
+      <div style="font-size:14px;font-weight:600;margin-bottom:8px;">📦 本機備份</div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btnsm" onclick="exportData();" style="flex:1;">📤 匯出 JSON</button>
+        <button class="btn btnsm" onclick="document.getElementById('import-file').click();" style="flex:1;">📥 匯入 JSON</button>
+      </div>
+      <div class="hint" style="margin-top:6px;">不使用雲端時也可用 JSON 檔交換資料</div>
+    </div>
+
+    <div class="mba" style="margin-top:18px;">
+      <button class="btn" onclick="closeSettingsModal()">取消</button>
+      <button class="btn btnp" onclick="saveSettings()">儲存設定</button>
+    </div>
+  </div>
+</div>
 <main class="main">
 
 <!-- OVERVIEW (新總覽：FCN/基金/債券 整合) -->
@@ -2866,6 +2946,16 @@ async function fetchGistNav(){
 
 // ── 投資資料同步到 Gist ──
 async function syncToGist(){
+  // 觀看者模式不允許上傳
+  if (localStorage.getItem('fcnUserMode') === 'viewer') {
+    console.log('觀看者模式不能上傳');
+    return false;
+  }
+  const tk = getToken();
+  if (!tk) {
+    console.log('未設定 Token');
+    return false;
+  }
   const data={
     savedAt:new Date().toISOString(),
     fcnv3:JSON.parse(localStorage.getItem('fcnv3')||'[]'),
@@ -2878,7 +2968,7 @@ async function syncToGist(){
   };
   const content=JSON.stringify(data,null,2);
   const headers={
-    'Authorization':'token '+getToken(),
+    'Authorization':'token '+tk,
     'Accept':'application/vnd.github.v3+json',
     'Content-Type':'application/json',
   };
@@ -2908,9 +2998,15 @@ async function syncToGist(){
 async function loadFromGist(){
   if(!_gistDataId)return false;
   try{
-    const resp=await fetch('https://api.github.com/gists/'+_gistDataId,{
-      headers:{'Authorization':'token '+getToken(),'Accept':'application/vnd.github.v3+json'},
-    });
+    const headers={'Accept':'application/vnd.github.v3+json'};
+    // 有 Token 用 Token（限額較高）；沒有 Token 仍可讀公開 Gist
+    const tk = getToken();
+    if(tk) headers['Authorization'] = 'token ' + tk;
+    const resp=await fetch('https://api.github.com/gists/'+_gistDataId,{headers});
+    if(!resp.ok){
+      console.log('load failed:', resp.status);
+      return false;
+    }
     const j=await resp.json();
     const content=j?.files?.['fcn_data.json']?.content;
     if(!content)return false;
@@ -5290,6 +5386,122 @@ function bondReportRender() {
       </table>
     </div>` : ''}`;
 }
+
+
+// ═══════════════════════════════════════════════════════════
+// ── 設定 Modal & 觀看者模式 ────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+
+function getUserMode() {
+  return localStorage.getItem('fcnUserMode') || 'owner';
+}
+
+function openSettingsModal() {
+  // 載入目前設定
+  const mode = getUserMode();
+  document.querySelector(`input[name="user-mode"][value="${mode}"]`).checked = true;
+  document.getElementById('set-token').value = getToken() || '';
+  document.getElementById('set-gist-id').value = _gistDataId || '';
+  document.getElementById('set-viewer-gist-id').value = _gistDataId || '';
+  document.getElementById('gist-id-hint').style.display = _gistDataId ? 'block' : 'none';
+  updateSettingsMode();
+  document.getElementById('settings-modal').classList.add('open');
+}
+
+function closeSettingsModal() {
+  document.getElementById('settings-modal').classList.remove('open');
+}
+
+function updateSettingsMode() {
+  const mode = document.querySelector('input[name="user-mode"]:checked').value;
+  document.getElementById('settings-owner').style.display = mode === 'owner' ? 'block' : 'none';
+  document.getElementById('settings-viewer').style.display = mode === 'viewer' ? 'block' : 'none';
+  // 高亮選中項
+  document.getElementById('mode-owner-label').style.borderColor = mode === 'owner' ? 'var(--ac)' : 'var(--bdr)';
+  document.getElementById('mode-owner-label').style.background = mode === 'owner' ? 'var(--gnl)' : 'var(--bg)';
+  document.getElementById('mode-viewer-label').style.borderColor = mode === 'viewer' ? 'var(--bl)' : 'var(--bdr)';
+  document.getElementById('mode-viewer-label').style.background = mode === 'viewer' ? 'var(--bll)' : 'var(--bg)';
+}
+
+async function saveSettings() {
+  const mode = document.querySelector('input[name="user-mode"]:checked').value;
+  localStorage.setItem('fcnUserMode', mode);
+
+  if (mode === 'owner') {
+    const token = document.getElementById('set-token').value.trim();
+    if (token) setToken(token);
+    closeSettingsModal();
+    alert('✓ 擁有者設定已儲存\n\n下一步：點側欄「☁ 同步雲端」首次上傳資料');
+  } else {
+    // 觀看者：儲存 Gist ID 並立即載入
+    const gistId = document.getElementById('set-viewer-gist-id').value.trim();
+    if (!gistId) { alert('請輸入 Gist ID'); return; }
+    _gistDataId = gistId;
+    localStorage.setItem('fcnGistDataId', gistId);
+    closeSettingsModal();
+    const ts = await loadFromGist();
+    if (ts) {
+      alert('✓ 已載入雲端資料！\n以後打開網頁會自動載入最新資料。');
+      location.reload();
+    } else {
+      alert('✗ 載入失敗\n請確認 Gist ID 正確且已設為公開');
+    }
+  }
+}
+
+function copyShareLink() {
+  if (!_gistDataId) return;
+  navigator.clipboard.writeText(_gistDataId).then(() => {
+    alert('✓ Gist ID 已複製\n\n' + _gistDataId + '\n\n把這串文字傳給家人，他們在「設定」選擇觀看者模式並貼上即可。');
+  });
+}
+
+function openGistOnGitHub() {
+  if (!_gistDataId) return;
+  window.open(`https://gist.github.com/${_gistDataId}`, '_blank');
+}
+
+// 觀看者模式：每次打開網頁自動從雲端載入
+async function viewerAutoLoad() {
+  if (getUserMode() !== 'viewer') return;
+  if (!_gistDataId) return;
+  console.log('觀看者模式：自動從雲端載入...');
+  const status = document.getElementById('gist-status');
+  if (status) status.textContent = '⬇ 載入雲端資料中...';
+  try {
+    const ts = await loadFromGist();
+    if (ts) {
+      console.log('觀看者載入成功:', ts);
+      if (status) status.textContent = '✓ 觀看者模式 - 已從雲端載入';
+      // 重新渲染當前頁面
+      const activeSec = document.querySelector('.sec.active');
+      if (activeSec) {
+        const id = activeSec.id.replace('sec-', '');
+        showSec(id);
+      }
+    } else {
+      if (status) status.textContent = '✗ 載入失敗，請檢查 Gist ID';
+    }
+  } catch (e) {
+    if (status) status.textContent = '✗ 載入錯誤';
+  }
+}
+
+// 啟動時自動載入（觀看者模式）
+viewerAutoLoad();
+
+// 同步狀態顯示
+(function updateSyncStatus(){
+  const status = document.getElementById('gist-status');
+  if (!status) return;
+  if (getUserMode() === 'viewer') {
+    status.innerHTML = '👀 <b>觀看者模式</b>（唯讀）';
+    status.style.color = 'var(--bl)';
+  } else if (_gistDataId) {
+    status.innerHTML = '☁ 已連結雲端';
+    status.style.color = 'var(--gn)';
+  }
+})();
 
 document.getElementById('last-update').textContent=localStorage.getItem('fcnlast')||'首次載入';
 </script>

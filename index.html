@@ -4020,9 +4020,6 @@ function bondRender() {
         <div>
           <div class="ml">目前持有總額</div>
           <div style="font-size:18px;font-weight:600;font-family:var(--mono);color:var(--bl)">$${F(Math.round(heldCur))}</div>
-          <div class="ms" style="color:${unrealizedPL>=0?'var(--gn)':'var(--rd)'}">
-            未實現 ${unrealizedPL>=0?'+':''}$${F(Math.round(unrealizedPL))}
-          </div>
         </div>
         <div>
           <div class="ml">應賣出總額</div>
@@ -4040,6 +4037,9 @@ function bondRender() {
         <div>
           <div class="ml">已實現損益（含息）</div>
           <div style="font-size:18px;font-weight:600;font-family:var(--mono);color:${realizedPL>=0?'var(--gn)':'var(--rd)'}">${realizedPL>=0?'+':''}$${F(Math.round(realizedPL))}</div>
+          <div class="ms" style="color:${unrealizedPL>=0?'var(--gn)':'var(--rd)'}">
+            未實現 ${unrealizedPL>=0?'+':''}$${F(Math.round(unrealizedPL))}
+          </div>
         </div>
         <div>
           <div class="ml">報酬率</div>

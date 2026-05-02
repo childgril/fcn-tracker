@@ -1584,7 +1584,7 @@ function rint(){
               <div style="font-size:13px;font-weight:700;color:${seqColor};background:${seqBg2};border-radius:8px;padding:1px 4px;display:inline-block;">${seq}</div>
               ${ccyBadge}
             </div>
-            <div style="font-size:11px;font-weight:600;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:${CW-6}px;">${bankShort}</div>
+            <div style="font-size:11px;font-weight:600;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;width:100%;">${bankShort}</div>
             <div style="font-size:11px;color:var(--tx3)">${d.date.slice(5)}</div>
             <div style="font-family:var(--mono);font-size:11px;color:${pc===tc&&tc>0?'var(--gn)':'var(--gd)'};margin-top:1px">${pc}/${tc}</div>
             <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:2px;">
@@ -1624,11 +1624,9 @@ function rint(){
         const isClosed=!!(d.exitDate);
         if(!dt)return`<td style="border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);background:var(--bg);text-align:center;color:var(--tx3);font-size:13px;min-width:${exp?CW:28}px;width:${exp?CW:28}px;">—</td>`;
         const paid=(d.paidDates||[]).includes(dt);
-        // 取得這個月的實際金額（可能有覆寫）
         const overrides=d.monthlyOverride||{};
         const monthAmt=overrides[dt]!==undefined?overrides[dt]:d.monthly;
-        // 已收 = 綠底 + 金額 + 已確認
-        // 待收 = 淡色預估金額 + 預估標記
+        const note=(d.monthNote||{})[dt]||'';
         return`<td onclick="fcnDistEdit(${d.id},'${dt}')" 
           style="border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);
           min-width:${exp?CW:28}px;width:${exp?CW:28}px;cursor:pointer;vertical-align:middle;
@@ -1636,11 +1634,11 @@ function rint(){
           <div style="padding:4px 5px;font-size:12px;text-align:${exp?'left':'center'};">
           ${paid?(exp?`
             <div class="mono" style="font-weight:600;color:var(--gn)">${SY(d.ccy)}${F(monthAmt,2)}</div>
-            <div style="color:var(--gn);font-size:11px">${overrides[dt]!==undefined?'✓ 已確認 ✎':'✓ 已確認'}</div>
+            ${note?`<div style="color:var(--tx3);font-size:11px">${note}</div>`:'<div style="color:var(--gn);font-size:11px">已確認</div>'}
           `:`<div style="color:var(--gn);font-size:12px">✓</div>`)
           :(exp?`
             <div class="mono" style="color:var(--ac2);font-weight:500">${SY(d.ccy)}${F(monthAmt,2)}</div>
-            <div style="color:var(--tx3);font-size:11px">預估${overrides[dt]!==undefined?' ✎':''}</div>
+            <div style="color:var(--tx3);font-size:11px">預估</div>
           `:`<div style="color:var(--ac2);font-size:11px">~</div>`)}
           </div>
         </td>`;
@@ -1679,10 +1677,13 @@ function togPaidForce(id,dt){
 function fcnDistEdit(id, dt) {
   const d = D.find(x => x.id === id);
   if (!d) return;
-  const ov = d.monthlyOverride || {};
-  const isPaid = (d.paidDates || []).includes(dt);
+  if (!d.monthlyOverride) d.monthlyOverride = {};
+  if (!d.monthNote) d.monthNote = {};
+  const ov = d.monthlyOverride;
   const defaultAmt = d.monthly || 0;
   const currentAmt = ov[dt] !== undefined ? ov[dt] : defaultAmt;
+  const currentNote = d.monthNote[dt] || '';
+  const isPaid = (d.paidDates || []).includes(dt);
 
   const html = `
     <div style="font-size:15px;font-weight:600;margin-bottom:12px;">
@@ -1691,18 +1692,18 @@ function fcnDistEdit(id, dt) {
     </div>
     <div class="fg" style="margin-bottom:10px;">
       <div class="fgrp">
-        <label>系統預設配息</label>
+        <label>系統預設配息（每期）</label>
         <input type="text" value="${SY(d.ccy)}${F(defaultAmt,2)}" readonly style="background:var(--sur2);font-family:var(--mono);">
-        <div class="hint" style="color:var(--bl)">月配 / 季配等預設</div>
+        <div class="hint" style="color:var(--bl)">月配 ${d.coupon||''}%</div>
       </div>
       <div class="fgrp">
-        <label style="color:var(--gn)">實際配息金額（可修改）</label>
+        <label style="color:var(--gn)">實際配息金額（手動輸入）</label>
         <input type="number" id="fcn-dist-amt" value="${currentAmt}" step="0.01">
       </div>
     </div>
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;padding:8px;background:var(--gnl);border-radius:6px;">
-      <input type="checkbox" id="fcn-dist-paid" ${isPaid?'checked':''} style="width:18px;height:18px;cursor:pointer;">
-      <label for="fcn-dist-paid" style="cursor:pointer;font-size:14px;font-weight:600;color:var(--gn);">已收到配息</label>
+    <div class="fgrp" style="margin-bottom:14px;">
+      <label>備註</label>
+      <input type="text" id="fcn-dist-note" value="${currentNote}" placeholder="例：到帳日 ${dt}">
     </div>`;
 
   const modal = document.createElement('div');
@@ -1711,6 +1712,7 @@ function fcnDistEdit(id, dt) {
     ${html}
     <div class="mba">
       <button class="btn" onclick="this.closest('.mo').remove()">取消</button>
+      ${isPaid?`<button class="btn" style="color:var(--rd)" onclick="fcnDistDelete(${id},'${dt}',this)">刪除</button>`:''}
       <button class="btn btnp" onclick="fcnDistSave(${id},'${dt}',this)">儲存</button>
     </div>
   </div>`;
@@ -1722,20 +1724,36 @@ function fcnDistSave(id, dt, btn) {
   const d = D.find(x => x.id === id);
   if (!d) return;
   const amt = parseFloat(document.getElementById('fcn-dist-amt').value) || 0;
-  const isPaid = document.getElementById('fcn-dist-paid').checked;
+  const note = document.getElementById('fcn-dist-note').value.trim();
+  if (!amt) { alert('請輸入配息金額'); return; }
 
   if (!d.monthlyOverride) d.monthlyOverride = {};
+  if (!d.monthNote) d.monthNote = {};
   if (!d.paidDates) d.paidDates = [];
 
-  // 金額：如果跟預設一致，刪除覆寫；否則記入
+  // 金額：跟預設一致就刪除覆寫，否則記入
   if (amt === d.monthly) delete d.monthlyOverride[dt];
   else d.monthlyOverride[dt] = amt;
 
-  // 已收狀態
-  const wasPaid = d.paidDates.includes(dt);
-  if (isPaid && !wasPaid) d.paidDates.push(dt);
-  else if (!isPaid && wasPaid) d.paidDates = d.paidDates.filter(x => x !== dt);
+  // 備註
+  if (note) d.monthNote[dt] = note;
+  else delete d.monthNote[dt];
 
+  // 自動標記為已收（儲存等於確認）
+  if (!d.paidDates.includes(dt)) d.paidDates.push(dt);
+
+  save();
+  btn.closest('.mo').remove();
+  rint();
+}
+
+function fcnDistDelete(id, dt, btn) {
+  if (!confirm('刪除這筆配息紀錄？')) return;
+  const d = D.find(x => x.id === id);
+  if (!d) return;
+  if (d.paidDates) d.paidDates = d.paidDates.filter(x => x !== dt);
+  if (d.monthlyOverride) delete d.monthlyOverride[dt];
+  if (d.monthNote) delete d.monthNote[dt];
   save();
   btn.closest('.mo').remove();
   rint();

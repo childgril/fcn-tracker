@@ -992,7 +992,7 @@ function save(){
   });
 }
 const F=(n,d=0)=>Number(n||0).toLocaleString('zh-TW',{minimumFractionDigits:d,maximumFractionDigits:d});
-const SY=c=>c==='JPY'?'¥':c==='TWD'?'NT$':'$';
+const SY=c=>c==='JPY'?'¥':c==='TWD'?'NT$':'USD$';
 function bdg(s){if(s==='active')return'<span class="badge ba">持有中</span>';if(s==='hold')return'<span class="badge bh">承接股票</span>';return'<span class="badge bc">已出場</span>';}
 function tags(st){return st.map(s=>`<span class="tag">${s.name}</span>`).join('');}
 function twd(d){return d.ccy==='TWD'?d.face:(d.fx&&d.face?d.face*d.fx:0);}
@@ -1138,7 +1138,7 @@ async function rdash(){
       <div class="ml">投資面額合計</div>
       <div style="margin-top:4px;">
         <div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;">
-          <span class="mv mono">$${F(uF)}</span>
+          <span class="mv mono">USD$${F(uF)}</span>
           <span style="font-size:16px;color:var(--tx3)">USD</span>
         </div>
         <div style="font-size:16px;color:var(--tx3);margin-top:1px">≈ NT$${F(Math.round(uF*fx))}</div>
@@ -1154,7 +1154,7 @@ async function rdash(){
       <div class="ml">累計配息合計</div>
       <div style="margin-top:4px;">
         <div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;">
-          <span class="mv mono gn">$${F(tIntUSD)}</span>
+          <span class="mv mono gn">USD$${F(tIntUSD)}</span>
           <span style="font-size:16px;color:var(--tx3)">USD</span>
         </div>
         <div style="font-size:16px;color:var(--gn);margin-top:1px">≈ NT$${F(Math.round(tIntUSD*fx))}</div>
@@ -1170,10 +1170,10 @@ async function rdash(){
       <div class="ml">剩餘外幣</div>
       ${hasRem?`<div style="margin-top:4px;">
         ${fxlUSD>0?`<div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;">
-          <span class="mv mono ${remUSD<0?'cr':remUSD===0?'':'gn'}" style="font-size:16px">$${F(Math.abs(remUSD),0)}</span>
+          <span class="mv mono ${remUSD<0?'cr':remUSD===0?'':'gn'}" style="font-size:16px">USD$${F(Math.abs(remUSD),0)}</span>
           <span style="font-size:16px;color:var(--tx3)">USD ${remUSD<0?'⚠ 不足':remUSD===0?'剛好用完':''}</span>
         </div>
-        <div style="font-size:16px;color:var(--tx3);margin-top:1px">換匯 $${F(fxlUSD,0)} － 使用中 $${F(activeUSD,0)}</div>`:''}
+        <div style="font-size:16px;color:var(--tx3);margin-top:1px">換匯 USD$${F(fxlUSD,0)} － 使用中 USD$${F(activeUSD,0)}</div>`:''}
         ${fxlJPY>0?`<div style="display:flex;align-items:baseline;gap:6px;margin-top:6px;flex-wrap:wrap;">
           <span class="mv mono ${remJPY<0?'cr':remJPY===0?'':'gn'}" style="font-size:16px">¥${F(Math.abs(remJPY),0)}</span>
           <span style="font-size:16px;color:var(--tx3)">JPY ${remJPY<0?'⚠ 不足':remJPY===0?'剛好用完':''}</span>
@@ -1507,7 +1507,7 @@ function rint(){
         </td>`;
       }).join('')}
       <td style="border-left:3px solid var(--ac2);border-bottom:1px solid var(--bdr);text-align:center;padding:4px;min-width:${TOTAL_CW}px;vertical-align:middle;background:${(tot.usd||tot.jpy)?'var(--gnl)':'var(--bg)'};">
-        ${tot.usd?`<div class="mono" style="font-size:15px;font-weight:600;color:var(--gn)">$${F(tot.usd,0)}</div>`:''}
+        ${tot.usd?`<div class="mono" style="font-size:15px;font-weight:600;color:var(--gn)">USD$${F(tot.usd,0)}</div>`:''}
         ${tot.jpy?`<div class="mono" style="font-size:16px;color:var(--gn)">¥${F(tot.jpy,0)}</div>`:''}
         ${!tot.usd&&!tot.jpy?'<span style="color:var(--tx3);font-size:15px">—</span>':''}
       </td>
@@ -1556,7 +1556,7 @@ function updTWD(){
   const fx=parseFloat(document.getElementById('f-fx').value)||0;
   const ccy=document.getElementById('f-ccy').value;
   let t=ccy==='TWD'?face:(face&&fx?face*fx:0);
-  document.getElementById('f-twd').value=t?'$'+F(t):'';
+  document.getElementById('f-twd').value=t?'NT$' + F(t):'';
   document.getElementById('twd-pv').textContent=t?`${F(face)} × ${fx} = ${F(t)} 元`:'（請輸入面額與匯率）';
   calcTot();
 }
@@ -1569,7 +1569,7 @@ function calcTot(){
   const totTWD=fx?tot*fx:0;
   const rate=face?parseFloat((tot/face*100).toFixed(2)):0;
   document.getElementById('f-tot').value=tot?F(tot,2):'';
-  document.getElementById('f-tottwd').value=totTWD?'$'+F(totTWD):'';
+  document.getElementById('f-tottwd').value=totTWD?'NT$' + F(totTWD):'';
   document.getElementById('f-rate').value=rate>0?rate+'%':'';
 }
 function addSR(s){
@@ -1631,9 +1631,9 @@ function rrep(){
   const uR=D.filter(d=>d.ccy==='USD');const tF=uR.reduce((a,d)=>a+d.face,0);const tI=uR.reduce((a,d)=>a+(d.totalUSD||0),0);const tTWD=D.reduce((a,d)=>a+(d.totalTWD||0),0);
   const cl=D.filter(d=>d.status==='closed'&&d.rate>0);const avg=cl.length?(cl.reduce((a,d)=>a+(d.rate||0),0)/cl.length).toFixed(2):0;
   document.getElementById('rep-m').innerHTML=`
-    <div class="mc"><div class="ml">USD 面額合計</div><div class="mv mono">$${F(tF)}</div><div class="ms">${uR.length} 筆</div></div>
-    <div class="mc"><div class="ml">累計配息 USD</div><div class="mv mono gn">$${F(tI)}</div></div>
-    <div class="mc"><div class="ml">累計配息 TWD</div><div class="mv mono gn">$${F(tTWD)}</div></div>
+    <div class="mc"><div class="ml">USD 面額合計</div><div class="mv mono">USD$${F(tF)}</div><div class="ms">${uR.length} 筆</div></div>
+    <div class="mc"><div class="ml">累計配息 USD</div><div class="mv mono gn">USD$${F(tI)}</div></div>
+    <div class="mc"><div class="ml">累計配息 TWD</div><div class="mv mono gn">NT$${F(tTWD)}</div></div>
     <div class="mc"><div class="ml">平均報酬率（已出場）</div><div class="mv mono gd">${avg}%</div><div class="ms">${cl.length} 筆計算</div></div>`;
   const rr=D.filter(d=>d.rate>0).sort((a,b)=>b.rate-a.rate);const mx=Math.max(...rr.map(d=>d.rate),1);
   document.getElementById('rep-bars').innerHTML=rr.map(d=>`<div class="bg"><div class="bl2"><span>${d.date.slice(5)} ${d.stocks.slice(0,2).map(s=>s.name).join('/')}</span><span>${d.rate}%</span></div><div class="bt"><div class="bf" style="width:${(d.rate/mx)*100}%"></div></div></div>`).join('');
@@ -1645,11 +1645,11 @@ function rrep(){
     <td class="mono" style="font-size:15px">${d.date}</td><td style="font-size:15px">${d.bank}</td>
     <td class="mono right">${SY(d.ccy)}${F(d.face)}</td>
     <td>${d.ccy==='JPY'?'<span class="badge bj">JPY</span>':d.ccy}</td>
-    <td class="mono right">${twd(d)?'$'+F(twd(d)):'—'}</td>
+    <td class="mono right">${twd(d)?'USD$'+F(twd(d)):'—'}</td>
     <td class="cb">${d.coupon}%</td><td>${d.term}</td>
     <td style="font-size:15px">${d.maturity||'—'}</td>
     <td style="font-size:15px">${d.exitDate||'—'}</td>
-    <td class="mono right cg">${d.ccy!=='JPY'&&d.totalUSD?'$'+F(d.totalUSD):'—'}</td>
+    <td class="mono right cg">${d.ccy!=='JPY'&&d.totalUSD?'USD$'+F(d.totalUSD):'—'}</td>
     <td class="${d.rate>0?'cg':'cmu'}">${d.rate>0?d.rate+'%':'—'}</td>
     <td>${bdg(d.status)}</td>
   </tr>`).join('');
@@ -1702,7 +1702,7 @@ function rHoldTrack(){
     let gapHtml='—';
     if(gap!==null){
       const col=reached?'var(--gn)':Math.abs(gapPct)<15?'var(--gd)':'var(--rd)';
-      gapHtml=`<span style="color:${col};font-weight:600">${reached?'+':''}$${F(Math.abs(gap),2)}</span>`
+      gapHtml=`<span style="color:${col};font-weight:600">${reached?'+':''}USD$${F(Math.abs(gap),2)}</span>`
               +`<div style="font-size:11px;color:${col}">${reached?'✓ 已超回本':''} ${gapPct!==null?(reached?'+':'')+gapPct.toFixed(1)+'%':''}</div>`;
     }
 
@@ -1724,36 +1724,36 @@ function rHoldTrack(){
         <div style="display:flex;align-items:center;flex:1;padding:0 16px;gap:6px;font-family:var(--mono);font-size:16px;font-weight:600;flex-wrap:wrap;">
           <div style="text-align:center;padding:0 10px;">
             <div style="font-size:11px;color:var(--tx3);font-weight:400;font-family:var(--sans);letter-spacing:.05em;margin-bottom:2px">面額</div>
-            <div style="color:var(--gd)">$${F(d.face,0)}</div>
+            <div style="color:var(--gd)">USD$${F(d.face,0)}</div>
           </div>
           <div style="color:var(--tx3);font-size:16px;font-weight:300">－</div>
           <div style="text-align:center;padding:0 10px;">
             <div style="font-size:11px;color:var(--tx3);font-weight:400;font-family:var(--sans);letter-spacing:.05em;margin-bottom:2px">已領利息</div>
-            <div style="color:var(--gn)">$${F(paidUSD,2)}</div>
+            <div style="color:var(--gn)">USD$${F(paidUSD,2)}</div>
           </div>
           <div style="color:var(--tx3);font-size:16px;font-weight:300">－</div>
           <div style="text-align:center;padding:0 10px;">
             <div style="font-size:11px;color:var(--tx3);font-weight:400;font-family:var(--sans);letter-spacing:.05em;margin-bottom:2px">已退款</div>
-            <div style="color:var(--gn)">$${F(refund,0)}</div>
+            <div style="color:var(--gn)">USD$${F(refund,0)}</div>
           </div>
           ${soldAmt>0?`
           <div style="color:var(--tx3);font-size:16px;font-weight:300">－</div>
           <div style="text-align:center;padding:0 10px;">
             <div style="font-size:11px;color:var(--tx3);font-weight:400;font-family:var(--sans);letter-spacing:.05em;margin-bottom:2px">已賣出</div>
-            <div style="color:var(--gn)">$${F(soldAmt,0)}</div>
+            <div style="color:var(--gn)">USD$${F(soldAmt,0)}</div>
             <div style="font-size:11px;color:var(--tx3)">${F(soldQty)}股</div>
           </div>`:''}
           <div style="color:var(--tx3);font-size:16px;font-weight:300">=</div>
           <div style="text-align:center;background:rgba(139,38,53,.06);border-radius:6px;padding:4px 12px;">
             <div style="font-size:11px;color:var(--rd);font-weight:400;font-family:var(--sans);letter-spacing:.05em;margin-bottom:2px">需回本</div>
-            <div style="color:var(--rd);font-size:16px">$${F(totalToRecover,0)}</div>
+            <div style="color:var(--rd);font-size:16px">USD$${F(totalToRecover,0)}</div>
             <div style="font-size:11px;color:var(--rd);font-weight:400">≈ NT$${F(Math.round(totalToRecover*fx))}</div>
           </div>
           ${curVal?`
           <div style="color:var(--tx3);font-size:16px;font-weight:300">→</div>
           <div style="text-align:center;background:${totalToRecover>curVal?'rgba(139,38,53,.08)':'rgba(45,106,79,.08)'};border-radius:6px;padding:4px 12px;">
             <div style="font-size:11px;color:${totalToRecover>curVal?'var(--rd)':'var(--gn)'};font-weight:400;font-family:var(--sans);letter-spacing:.05em;margin-bottom:2px">${totalToRecover>curVal?'目前虧損':'目前獲利'}</div>
-            <div style="color:${totalToRecover>curVal?'var(--rd)':'var(--gn)'};font-size:16px;font-weight:700">${totalToRecover>curVal?'-':'+'} $${F(Math.abs(totalToRecover-curVal),0)}</div>
+            <div style="color:${totalToRecover>curVal?'var(--rd)':'var(--gn)'};font-size:16px;font-weight:700">${totalToRecover>curVal?'-':'+'} USD$${F(Math.abs(totalToRecover-curVal),0)}</div>
             <div style="font-size:11px;color:${totalToRecover>curVal?'var(--rd)':'var(--gn)'};font-weight:400">≈ ${totalToRecover>curVal?'-':'+'}NT$${F(Math.round(Math.abs(totalToRecover-curVal)*fx))}</div>
           </div>`:''}
         </div>
@@ -1782,20 +1782,20 @@ function rHoldTrack(){
               <td class="mono right">${F(shares)} 股</td>
               <td class="mono right" style="color:var(--bl)">${soldQty?F(soldQty)+' 股':'—'}</td>
               <td class="mono right" style="color:${remainShares<=0?'var(--gn)':'var(--tx)'};font-weight:600">${F(remainShares)} 股</td>
-              <td class="mono right">$${F(amt,0)}</td>
-              <td class="mono right ${reached?'cg':'cr'}" style="font-weight:700">$${F(breakevenPrice,2)}</td>
+              <td class="mono right">USD$${F(amt,0)}</td>
+              <td class="mono right ${reached?'cg':'cr'}" style="font-weight:700">USD$${F(breakevenPrice,2)}</td>
               <td class="mono right" style="color:${curPrice?(reached?'var(--gn)':Math.abs(gapPct||0)<15?'var(--gd)':'var(--rd)'):'var(--tx3)'}">
-                ${curPrice?'$'+F(curPrice,2):'—'}
+                ${curPrice?'USD$'+F(curPrice,2):'—'}
               </td>
               <td class="mono right" style="color:var(--bl)">
-                ${soldQty?'$'+F(soldAmt/soldQty,2):'—'}
+                ${soldQty?'USD$'+F(soldAmt/soldQty,2):'—'}
               </td>
               <td class="mono right" style="color:var(--bl)">
-                ${soldAmt?'$'+F(soldAmt,0)+'<div style="font-size:11px;color:var(--tx3)">≈ NT$'+F(Math.round(soldAmt*fx))+'</div>':'—'}
+                ${soldAmt?'USD$'+F(soldAmt,0)+'<div style="font-size:11px;color:var(--tx3)">≈ NT$'+F(Math.round(soldAmt*fx))+'</div>':'—'}
               </td>
-              <td class="mono right">$${F(totalToRecover,0)}<div style="font-size:11px;color:var(--tx3)">≈ NT$${F(Math.round(totalToRecover*fx))}</div></td>
+              <td class="mono right">USD$${F(totalToRecover,0)}<div style="font-size:11px;color:var(--tx3)">≈ NT$${F(Math.round(totalToRecover*fx))}</div></td>
               <td class="mono right" style="color:${curVal?(reached?'var(--gn)':curVal>totalToRecover*0.85?'var(--gd)':'var(--rd)'):'var(--tx3)'}">
-                ${curVal?'$'+F(curVal,0):'—'}
+                ${curVal?'USD$'+F(curVal,0):'—'}
                 ${curVal?`<div style="font-size:11px;color:var(--tx3)">≈ NT$${F(Math.round(curVal*fx))}</div>`:''}
               </td>
               <td class="mono right">${gapHtml}${barHtml}</td>
@@ -1806,9 +1806,9 @@ function rHoldTrack(){
                 <span style="color:var(--tx3);min-width:70px">${s.date}</span>
                 <span>${F(s.qty)} 股</span>
                 <span style="color:var(--tx3)">×</span>
-                <span>$${F(s.price,2)}</span>
+                <span>USD$${F(s.price,2)}</span>
                 <span style="color:var(--tx3)">=</span>
-                <span style="color:var(--bl);font-weight:600">$${F(s.qty*s.price,0)}</span>
+                <span style="color:var(--bl);font-weight:600">USD$${F(s.qty*s.price,0)}</span>
               </div>`).join('')}
             </td></tr>`:''}
             ${hd.note?`<tr><td colspan="12" style="font-size:16px;color:var(--tx2);background:var(--sur2);padding:5px 10px">備註：${hd.note}</td></tr>`:''}
@@ -1831,10 +1831,10 @@ function openHoldPanel(id){
   document.getElementById('hp-title').textContent=`承接股票明細 · ${d.bank}`;
   document.getElementById('hp-bank').textContent=d.bank;
   document.getElementById('hp-date').textContent=d.date;
-  document.getElementById('hp-face').textContent=`$${F(d.face)}`;
+  document.getElementById('hp-face').textContent=`USD$${F(d.face)}`;
   const paidUSD=(d.paidDates||[]).length*d.monthly;
-  document.getElementById('hp-paid').textContent=`$${F(paidUSD,2)}`;
-  document.getElementById('hp-net').textContent=`$${F(d.face-paidUSD,2)}`;
+  document.getElementById('hp-paid').textContent=`USD$${F(paidUSD,2)}`;
+  document.getElementById('hp-net').textContent=`USD$${F(d.face-paidUSD,2)}`;
   // fill stock dropdown
   const sel=document.getElementById('hp-stock-sel');
   sel.innerHTML='<option value="">選擇股票</option>'+d.stocks.map(s=>`<option value="${s.name}">${s.name}（承接價 $${s.strike}）</option>`).join('');
@@ -1868,13 +1868,13 @@ function renderSells(){
       <span class="mono" style="color:var(--tx2);min-width:60px">${s.date}</span>
       <span class="mono">${F(s.qty)}股</span>
       <span style="color:var(--tx3)">×</span>
-      <span class="mono">$${F(s.price,2)}</span>
+      <span class="mono">USD$${F(s.price,2)}</span>
       <span style="color:var(--tx3)">=</span>
-      <span class="mono" style="color:var(--bl);font-weight:600">$${F(s.qty*s.price,0)}</span>
+      <span class="mono" style="color:var(--bl);font-weight:600">USD$${F(s.qty*s.price,0)}</span>
       <button onclick="removeSell(${i})" style="margin-left:auto;background:none;border:none;color:var(--tx3);cursor:pointer;font-size:15px;">✕</button>
     </div>`).join('');
   document.getElementById('hp-sell-total').innerHTML=
-    `合計：<b>${F(totalQty)} 股</b>　平均賣出價 <b class="mono">$${F(avgPrice,2)}</b>　總賣出金額 <b class="mono" style="color:var(--bl)">$${F(totalAmt,0)}</b>`;
+    `合計：<b>${F(totalQty)} 股</b>　平均賣出價 <b class="mono">USD$${F(avgPrice,2)}</b>　總賣出金額 <b class="mono" style="color:var(--bl)">USD$${F(totalAmt,0)}</b>`;
 }
 function addSell(){
   const d=D.find(x=>x.id===hpId);if(!d)return;
@@ -1915,15 +1915,15 @@ function hpCalc(){
   const selStock=d.stocks.find(s=>s.name===selSym);
   const curPrice=selSym&&priceCache[selSym]?priceCache[selSym]:0;
 
-  document.getElementById('hp-cost-per').textContent=costPerShare?`$${F(costPerShare,2)}`:'—';
-  document.getElementById('hp-net-cost').textContent=netCost?`$${F(netCost,2)}`:'—';
-  document.getElementById('hp-int-usd').textContent=`$${F(paidUSD,2)}`;
-  document.getElementById('hp-principal-net').textContent=`$${F(principalNet,2)}`;
+  document.getElementById('hp-cost-per').textContent=costPerShare?`USD$${F(costPerShare,2)}`:'—';
+  document.getElementById('hp-net-cost').textContent=netCost?`USD$${F(netCost,2)}`:'—';
+  document.getElementById('hp-int-usd').textContent=`USD$${F(paidUSD,2)}`;
+  document.getElementById('hp-principal-net').textContent=`USD$${F(principalNet,2)}`;
   if(breakeven>0){
-    document.getElementById('hp-breakeven').textContent=`$${F(breakeven,2)}`;
-    let sub=`需回本 $${F(totalToRecover,2)}`;
-    if(curPrice) sub+=`　目前價 $${F(curPrice,2)}（${((curPrice-breakeven)/breakeven*100).toFixed(1)}%）`;
-    if(selStock&&selStock.strike) sub+=`　承接價 $${F(selStock.strike,2)}`;
+    document.getElementById('hp-breakeven').textContent=`USD$${F(breakeven,2)}`;
+    let sub=`需回本 USD$${F(totalToRecover,2)}`;
+    if(curPrice) sub+=`　目前價 USD$${F(curPrice,2)}（${((curPrice-breakeven)/breakeven*100).toFixed(1)}%）`;
+    if(selStock&&selStock.strike) sub+=`　承接價 USD$${F(selStock.strike,2)}`;
     document.getElementById('hp-breakeven-sub').textContent=sub;
   } else {
     document.getElementById('hp-breakeven').textContent='—';
@@ -1954,7 +1954,7 @@ function saveFXL(){localStorage.setItem('fcnfxl',JSON.stringify(FXL));}
 const PAIRS={
   // rate = how many "to" units per 1 "from" unit
   // exception: TWD-USD we store rateDisplay (NT$/USD e.g. 32.75) and convert
-  'TWD-USD':{fromSym:'NT$',toSym:'$',fromLabel:'支出台幣 NT$',toLabel:'取得美元 $',
+  'TWD-USD':{fromSym:'NT$',toSym:'USD$',fromLabel:'支出台幣 NT$',toLabel:'取得美元 USD$',
     fromCcy:'TWD',toCcy:'USD',
     hint:'匯率填銀行牌價（NT$/USD，如 32.75）　或直接輸入取得美元',
     placeholder:'32.75',rateDisplay:'NT$/USD（如 32.75）',
@@ -1971,7 +1971,7 @@ const PAIRS={
     calcRate:(twd,foreign)=>foreign?twd/foreign:0,
     calcFrom:(foreign,rate)=>rate?foreign*rate:0,
   },
-  'USD-JPY':{fromSym:'$',toSym:'¥',fromLabel:'支出美元 $',toLabel:'取得日幣 ¥',
+  'USD-JPY':{fromSym:'USD$',toSym:'¥',fromLabel:'支出美元 USD$',toLabel:'取得日幣 ¥',
     fromCcy:'USD',toCcy:'JPY',
     hint:'匯率填 USD/JPY（如 155.2）　或直接輸入取得日幣',
     placeholder:'155.2',rateDisplay:'USD/JPY（如 155.2）',
@@ -1979,7 +1979,7 @@ const PAIRS={
     calcRate:(from,foreign)=>from?foreign/from:0,
     calcFrom:(foreign,rate)=>rate?foreign/rate:0,
   },
-  'JPY-USD':{fromSym:'¥',toSym:'$',fromLabel:'支出日幣 ¥',toLabel:'取得美元 $',
+  'JPY-USD':{fromSym:'¥',toSym:'USD$',fromLabel:'支出日幣 ¥',toLabel:'取得美元 USD$',
     fromCcy:'JPY',toCcy:'USD',
     hint:'匯率填 JPY/USD（如 0.0064）　或直接輸入取得美元',
     placeholder:'0.0064',rateDisplay:'JPY/USD（如 0.0064）',
@@ -2001,7 +2001,7 @@ function pairLabel(r){
   return `TWD → ${r.ccy||'?'}`;
 }
 function fromSym(r){return r.fromSym||(r.pair?PAIRS[r.pair]?.fromSym:'NT$')||'NT$';}
-function toSym(r){return r.toSym||(r.pair?PAIRS[r.pair]?.toSym:(r.ccy==='JPY'?'¥':'$'))||'$';}
+function toSym(r){return r.toSym||(r.pair?PAIRS[r.pair]?.toSym:(r.ccy==='JPY'?'¥':'USD$'))||'USD$';}
 function toCcy(r){return r.toCcy||(r.pair?PAIRS[r.pair]?.toCcy:r.ccy)||'USD';}
 function fromCcy(r){return r.fromCcy||(r.pair?PAIRS[r.pair]?.fromCcy:'TWD')||'TWD';}
 
@@ -2089,7 +2089,7 @@ function rFxLog(){
   });
 
   const summaryHtml=orderedKeys.map(ccy=>{
-    const sym=ccy==='JPY'?'¥':'$';
+    const sym=ccy==='JPY'?'¥':'USD$';
     const isJPY=ccy==='JPY';
     const rows=groups[ccy];
     // total received into this ccy
@@ -2138,7 +2138,7 @@ function rFxLog(){
   // render one card+table per toCcy
   document.getElementById('fxlog-tables').innerHTML=orderedKeys.map(ccy=>{
     const rows=groups[ccy];
-    const sym=ccy==='JPY'?'¥':'$';
+    const sym=ccy==='JPY'?'¥':'USD$';
     const isJPY=ccy==='JPY';
     const total=rows.reduce((a,r)=>a+r.foreign,0);
     const totalFrom=rows.reduce((a,r)=>a+r.twd,0);
@@ -2446,7 +2446,7 @@ function quoteRenderOneTable(title, records, mkt){
     <div style="font-size:16px;font-weight:600;color:var(--tx2)">${title} <span style="font-weight:400;font-size:15px;color:var(--tx3)">（尚無紀錄）</span></div>
   </div>`;
   const isJP=mkt==='JP';
-  const sym2=isJP?'¥':'$';
+  const sym2=isJP?'¥':'USD$';
   const th=(t,col='')=>`<th style="white-space:nowrap;${col?'color:'+col:''}">${t}</th>`;
 
   const rows=[];
@@ -2961,7 +2961,7 @@ function fmTwdHint(face,fx,ccy){
 function fmCalc(){
   const face=parseFloat(document.getElementById('fm-face').value)||0;
   const ccy=document.getElementById('fm-ccy').value;
-  const sym=ccy==='JPY'?'¥':ccy==='TWD'?'NT$':'$';
+  const sym=ccy==='JPY'?'¥':ccy==='TWD'?'NT$':'USD$';
   let fx=parseFloat(document.getElementById('fm-fx').value)||0;
   if(!fx){fx=fmGetFx();document.getElementById('fm-fx').value=fx.toFixed(4);}
   const redeem=parseFloat(document.getElementById('fm-redeem').value)||0;
@@ -3149,7 +3149,7 @@ function fundRender(){
   const summaryCards=ccys.map(ccy=>{
     const rows=FD.filter(r=>r.ccy===ccy);
     if(!rows.length)return'';
-    const sym=ccy==='JPY'?'¥':ccy==='TWD'?'NT$':'$';
+    const sym=ccy==='JPY'?'¥':ccy==='TWD'?'NT$':'USD$';
     const totalFace=rows.reduce((a,r)=>a+r.face,0);
     const activeFace=rows.filter(r=>!r.exitDate).reduce((a,r)=>a+r.face,0);
     const totalInt=rows.reduce((a,r)=>a+r.interest,0);
@@ -3172,7 +3172,7 @@ function fundRender(){
       return (+a.seq||9999)-(+b.seq||9999);
     });
     if(!rows.length)return'';
-    const sym=ccy==='JPY'?'¥':ccy==='TWD'?'NT$':'$';
+    const sym=ccy==='JPY'?'¥':ccy==='TWD'?'NT$':'USD$';
     const isJPY=ccy==='JPY';
     const th=t=>`<th style="white-space:nowrap;font-size:16px">${t}</th>`;
     return`<div class="card" style="margin-bottom:14px;">
@@ -3961,7 +3961,7 @@ function bmCalc() {
     const sellAmt = cur * units / 100;
     const pl = sellAmt + interest - face;
     const pct = face ? (pl / face * 100).toFixed(2) : 0;
-    document.getElementById('bm-pl').value = (pl >= 0 ? '+' : '') + '$' + F(pl, 2);
+    document.getElementById('bm-pl').value = (pl >= 0 ? '+' : '') + 'USD$' + F(pl, 2);
     document.getElementById('bm-plPct').value = (pl >= 0 ? '+' : '') + pct + '%';
   } else {
     document.getElementById('bm-pl').value = '';
@@ -4108,31 +4108,31 @@ function bondRender() {
       <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:14px;">
         <div>
           <div class="ml">投資總額</div>
-          <div style="font-size:18px;font-weight:600;font-family:var(--mono)">$${F(Math.round(totalFace))}</div>
+          <div style="font-size:18px;font-weight:600;font-family:var(--mono)">USD$${F(Math.round(totalFace))}</div>
           <div class="ms">NT$${F(Math.round(totalTWD))}</div>
         </div>
         <div>
           <div class="ml">目前持有總額</div>
-          <div style="font-size:18px;font-weight:600;font-family:var(--mono);color:var(--bl)">$${F(Math.round(heldCur))}</div>
+          <div style="font-size:18px;font-weight:600;font-family:var(--mono);color:var(--bl)">USD$${F(Math.round(heldCur))}</div>
         </div>
         <div>
           <div class="ml">應賣出總額</div>
-          <div style="font-size:18px;font-weight:600;font-family:var(--mono);color:var(--gd)">$${F(Math.round(shouldSell))}</div>
+          <div style="font-size:18px;font-weight:600;font-family:var(--mono);color:var(--gd)">USD$${F(Math.round(shouldSell))}</div>
           <div class="ms">投資-持有</div>
         </div>
         <div>
           <div class="ml">實際賣出總額</div>
-          <div style="font-size:18px;font-weight:600;font-family:var(--mono);color:var(--ac2)">$${F(Math.round(realizedSell))}</div>
+          <div style="font-size:18px;font-weight:600;font-family:var(--mono);color:var(--ac2)">USD$${F(Math.round(realizedSell))}</div>
         </div>
         <div>
           <div class="ml">已領利息</div>
-          <div style="font-size:18px;font-weight:600;font-family:var(--mono);color:var(--gn)">$${F(Math.round(totalInt))}</div>
+          <div style="font-size:18px;font-weight:600;font-family:var(--mono);color:var(--gn)">USD$${F(Math.round(totalInt))}</div>
         </div>
         <div>
           <div class="ml">已實現損益（含息）</div>
-          <div style="font-size:18px;font-weight:600;font-family:var(--mono);color:${realizedPL>=0?'var(--gn)':'var(--rd)'}">${realizedPL>=0?'+':''}$${F(Math.round(realizedPL))}</div>
+          <div style="font-size:18px;font-weight:600;font-family:var(--mono);color:${realizedPL>=0?'var(--gn)':'var(--rd)'}">${realizedPL>=0?'+':''}USD$${F(Math.round(realizedPL))}</div>
           <div class="ms" style="color:${unrealizedPL>=0?'var(--gn)':'var(--rd)'}">
-            未實現 ${unrealizedPL>=0?'+':''}$${F(Math.round(unrealizedPL))}
+            未實現 ${unrealizedPL>=0?'+':''}USD$${F(Math.round(unrealizedPL))}
           </div>
         </div>
         <div>
@@ -4195,14 +4195,14 @@ function bondRender() {
           <td class="mono right" style="cursor:pointer;color:${r.curPrice?(isExit?'var(--tx2)':'var(--bl)'):'var(--tx3)'}" onclick="bondEditPrice('${r.id}')" title="點擊更新">${r.curPrice||'點擊填入'}</td>
           <td class="mono right">${r.buyPrice||'—'}</td>
           <td class="mono right">${F(r.units,0)}</td>
-          <td class="mono right">$${F(r.face,0)}<div style="font-size:11px;color:var(--tx3)">NT$${F(Math.round(r.twd))}</div></td>
+          <td class="mono right">USD$${F(r.face,0)}<div style="font-size:11px;color:var(--tx3)">NT$${F(Math.round(r.twd))}</div></td>
           <td class="mono right" style="color:${isExit?'var(--tx)':'var(--bl)'};font-weight:${isExit?'600':'400'}">
-            ${sellAmt?'$'+F(Math.round(sellAmt)):'—'}
+            ${sellAmt?'USD$'+F(Math.round(sellAmt)):'—'}
             ${isEstimate?'<div style="font-size:11px;color:var(--gd)">暫估</div>':''}
           </td>
-          <td class="mono right cg">$${F(r.interest,0)}</td>
+          <td class="mono right cg">USD$${F(r.interest,0)}</td>
           <td class="mono right" style="color:${plColor};font-weight:600">
-            ${pl?(pl>=0?'+':'')+'$'+F(Math.round(pl)):'—'}
+            ${pl?(pl>=0?'+':'')+'USD$'+F(Math.round(pl)):'—'}
             ${isEstimate?'<div style="font-size:11px;color:var(--gd)">暫估</div>':''}
           </td>
           <td class="mono right" style="color:${plColor}">
@@ -4210,7 +4210,7 @@ function bondRender() {
             ${isEstimate?'<div style="font-size:11px;color:var(--gd)">暫估</div>':''}
           </td>
           <td class="mono right" style="color:${plNoColor}">
-            ${plNoInt?(plNoInt>=0?'+':'')+'$'+F(Math.round(plNoInt)):'—'}
+            ${plNoInt?(plNoInt>=0?'+':'')+'USD$'+F(Math.round(plNoInt)):'—'}
             ${isEstimate?'<div style="font-size:11px;color:var(--gd)">暫估</div>':''}
           </td>
           <td class="mono right">${r.yield||'—'}</td>
@@ -4344,9 +4344,9 @@ function bondDistRender(targetId) {
       `<span class="mono" style="font-size:12px">${b.curPrice||'—'}</span>`,
       `<span class="mono" style="font-size:12px">${b.buyPrice||'—'}</span>`,
       `<span class="mono" style="font-size:12px">${F(b.units,0)}</span>`,
-      `<span class="mono" style="font-size:12px">$${F(b.face,0)}</span>`,
+      `<span class="mono" style="font-size:12px">USD$${F(b.face,0)}</span>`,
       `<span class="mono" style="font-size:12px;color:var(--bl)">${avgRate?avgRate+'%':'—'}</span>`,
-      `<span class="mono" style="font-size:12px;color:var(--gn)">${totalPaid?'$'+F(totalPaid,2):'—'}</span>`,
+      `<span class="mono" style="font-size:12px;color:var(--gn)">${totalPaid?'USD$'+F(totalPaid,2):'—'}</span>`,
     ][li];
   }
 
@@ -4425,7 +4425,7 @@ function bondDistRender(targetId) {
       }
     });
     const totHtml = Object.entries(monthTotals).map(([ccy,v]) =>
-      `<div class="mono" style="font-size:13px;font-weight:600;color:var(--gn)">$${F(v,2)}</div>`
+      `<div class="mono" style="font-size:13px;font-weight:600;color:var(--gn)">USD$${F(v,2)}</div>`
     ).join('') || '<span style="color:var(--tx3);font-size:13px">—</span>';
 
     h += `<tr>
@@ -4449,11 +4449,11 @@ function bondDistRender(targetId) {
           background:${hasData?'var(--gnl)':(estAmt?'rgba(34,197,94,.05)':'var(--bg)')};">
           <div style="padding:4px 5px;font-size:12px;text-align:${exp?'left':'center'};">
           ${hasData?(exp?`
-            <div class="mono" style="font-weight:600;color:var(--gn)">$${F(d.total,2)}</div>
+            <div class="mono" style="font-weight:600;color:var(--gn)">USD$${F(d.total,2)}</div>
             ${d.note?`<div style="color:var(--tx3);font-size:11px">${d.note}</div>`:'<div style="color:var(--gn);font-size:11px">已確認</div>'}
           `:`<div style="color:var(--gn);font-size:12px">✓</div>`)
           :(estAmt?(exp?`
-            <div class="mono" style="color:var(--ac2);font-weight:500">$${F(estAmt,2)}</div>
+            <div class="mono" style="color:var(--ac2);font-weight:500">USD$${F(estAmt,2)}</div>
             <div style="color:var(--tx3);font-size:11px">預估</div>
           `:`<div style="color:var(--ac2);font-size:11px">~</div>`)
                   :(exp?`<div style="color:var(--bl);text-align:center">＋</div>`
@@ -4559,21 +4559,13 @@ function overviewRender() {
   const fx = parseFloat(document.getElementById('ov-fx').value) || getFX();
   const fxRate = document.getElementById('fx-rate');
   if (fxRate) fxRate.value = fx.toFixed(2);
-  const jpyFx = fx * 0.0068; // 每 1 JPY 約等於多少 TWD
+  const jpyFx = fx * 0.0068;
 
-  // 統一換算函數
-  const toTwd = (amt, ccy) => {
-    if (!amt) return 0;
-    if (ccy === 'TWD') return amt;
-    if (ccy === 'USD') return amt * fx;
-    if (ccy === 'JPY') return amt * jpyFx;
-    return amt;
-  };
-
-  // ── 1. FCN 數據 ──
+  // ── FCN 數據 ──
   const fcnFaceUSD = D.filter(d => d.ccy === 'USD').reduce((a, d) => a + d.face, 0);
   const fcnFaceJPY = D.filter(d => d.ccy === 'JPY').reduce((a, d) => a + d.face, 0);
-  const fcnTwdCost = D.reduce((a, d) => a + (d.twd || toTwd(d.face, d.ccy)), 0);
+  const fcnTwdCost = D.reduce((a, d) => a + (d.twd || (d.ccy==='USD'?d.face*fx:d.face*jpyFx)), 0);
+
   const fcnPaidUSD = D.filter(d => d.ccy === 'USD').reduce((a, d) => {
     const ov = d.monthlyOverride || {};
     return a + (d.paidDates || []).reduce((s, dt) => s + (ov[dt] !== undefined ? ov[dt] : d.monthly), 0);
@@ -4583,21 +4575,26 @@ function overviewRender() {
     return a + (d.paidDates || []).reduce((s, dt) => s + (ov[dt] !== undefined ? ov[dt] : d.monthly), 0);
   }, 0);
   const fcnPaidTwd = fcnPaidUSD * fx + fcnPaidJPY * jpyFx;
-  // 已實現（closed status，rate 欄位代表報酬率）
-  const fcnRealized = D.filter(d => d.status === 'closed');
-  const fcnRealizedPLTwd = fcnRealized.reduce((a, d) => {
-    const twd = d.twd || toTwd(d.face, d.ccy);
+
+  // FCN 已實現（closed）
+  const fcnClosed = D.filter(d => d.status === 'closed');
+  const fcnRealizedUSD = fcnClosed.filter(d => d.ccy === 'USD').reduce((a, d) => {
     const r = parseFloat(d.rate) || 0;
-    return a + twd * r / 100;
+    return a + d.face * r / 100;
   }, 0);
-  const fcnRealizedFaceTwd = fcnRealized.reduce((a, d) => a + (d.twd || toTwd(d.face, d.ccy)), 0);
-  // 未出場進行中
+  const fcnRealizedJPY = fcnClosed.filter(d => d.ccy === 'JPY').reduce((a, d) => {
+    const r = parseFloat(d.rate) || 0;
+    return a + d.face * r / 100;
+  }, 0);
+  const fcnRealizedTwd = fcnRealizedUSD * fx + fcnRealizedJPY * jpyFx;
+  const fcnRealizedFaceTwd = fcnClosed.reduce((a, d) => a + (d.twd || (d.ccy==='USD'?d.face*fx:d.face*jpyFx)), 0);
+
   const fcnActive = D.filter(d => d.status === 'active');
   const fcnHold = D.filter(d => d.status === 'hold');
   const fcnActiveFaceUSD = fcnActive.filter(d => d.ccy === 'USD').reduce((a, d) => a + d.face, 0);
   const fcnActiveFaceJPY = fcnActive.filter(d => d.ccy === 'JPY').reduce((a, d) => a + d.face, 0);
-  const fcnActiveTwd = fcnActive.reduce((a, d) => a + (d.twd || toTwd(d.face, d.ccy)), 0);
-  // 預估未領利息（active 的剩餘配息）
+  const fcnActiveTwd = fcnActive.reduce((a, d) => a + (d.twd || (d.ccy==='USD'?d.face*fx:d.face*jpyFx)), 0);
+
   const fcnRemainingUSD = fcnActive.filter(d => d.ccy === 'USD').reduce((a, d) => {
     const total = (d.payDates || []).length;
     const paid = (d.paidDates || []).length;
@@ -4609,121 +4606,66 @@ function overviewRender() {
     return a + (total - paid) * (d.monthly || 0);
   }, 0);
   const fcnRemainingTwd = fcnRemainingUSD * fx + fcnRemainingJPY * jpyFx;
-  // 未實現損益（active = 0，因為還沒出場；hold 用承接細節算）
-  const fcnUnrealizedPLTwd = 0; // FCN 在未出場時無未實現損益（票面價值）
 
-  // ── 2. 基金數據 ──
+  // ── 基金數據 ──
   const fdHeld = FD.filter(f => !f.exitDate);
   const fdExited = FD.filter(f => f.exitDate);
   const fdFaceUSD = FD.filter(f => f.ccy === 'USD').reduce((a, f) => a + f.face, 0);
   const fdFaceJPY = FD.filter(f => f.ccy === 'JPY').reduce((a, f) => a + f.face, 0);
   const fdFaceTWD = FD.filter(f => f.ccy === 'TWD').reduce((a, f) => a + f.face, 0);
-  const fdTwdCost = FD.reduce((a, f) => a + (f.twd || toTwd(f.face, f.ccy)), 0);
+  const fdTwdCost = FD.reduce((a, f) => a + (f.twd || (f.ccy==='USD'?f.face*fx:f.ccy==='JPY'?f.face*jpyFx:f.face)), 0);
+
   const fdInterestUSD = FD.filter(f => f.ccy === 'USD').reduce((a, f) => a + (f.interest || 0), 0);
   const fdInterestJPY = FD.filter(f => f.ccy === 'JPY').reduce((a, f) => a + (f.interest || 0), 0);
   const fdInterestTWD = FD.filter(f => f.ccy === 'TWD').reduce((a, f) => a + (f.interest || 0), 0);
   const fdPaidTwd = fdInterestUSD * fx + fdInterestJPY * jpyFx + fdInterestTWD;
-  // 已實現
-  const fdRealizedPLTwd = fdExited.reduce((a, f) => {
-    if (!f.redeem) return a;
-    const fxv = f.twd && f.face ? f.twd / f.face : (f.ccy === 'USD' ? fx : f.ccy === 'JPY' ? jpyFx : 1);
-    return a + (f.redeem + (f.interest || 0) - f.face) * fxv;
-  }, 0);
-  const fdRealizedFaceTwd = fdExited.reduce((a, f) => a + (f.twd || toTwd(f.face, f.ccy)), 0);
-  // 未出場金額（換算台幣）
-  const fdHeldFaceTwd = fdHeld.reduce((a, f) => a + (f.twd || toTwd(f.face, f.ccy)), 0);
-  const fdHeldCurTwd = fdHeld.reduce((a, f) => {
-    const cur = (f.curNav && f.units) ? f.curNav * f.units : 0;
-    if (!cur) return a;
-    const fxv = f.twd && f.face ? f.twd / f.face : (f.ccy === 'USD' ? fx : f.ccy === 'JPY' ? jpyFx : 1);
-    return a + cur * fxv;
-  }, 0);
-  // 未實現損益
-  const fdUnrealizedPLTwd = fdHeld.reduce((a, f) => {
-    const cur = (f.curNav && f.units) ? f.curNav * f.units : 0;
-    if (!cur || !f.face) return a;
-    const fxv = f.twd && f.face ? f.twd / f.face : (f.ccy === 'USD' ? fx : f.ccy === 'JPY' ? jpyFx : 1);
-    return a + (cur + (f.interest || 0) - f.face) * fxv;
-  }, 0);
 
-  // ── 3. 債券數據 ──
+  const fdRealizedUSD = fdExited.filter(f => f.ccy === 'USD').reduce((a, f) => a + (f.redeem ? f.redeem + (f.interest || 0) - f.face : 0), 0);
+  const fdRealizedJPY = fdExited.filter(f => f.ccy === 'JPY').reduce((a, f) => a + (f.redeem ? f.redeem + (f.interest || 0) - f.face : 0), 0);
+  const fdRealizedTWD = fdExited.filter(f => f.ccy === 'TWD').reduce((a, f) => a + (f.redeem ? f.redeem + (f.interest || 0) - f.face : 0), 0);
+  const fdRealizedTwd = fdRealizedUSD * fx + fdRealizedJPY * jpyFx + fdRealizedTWD;
+
+  const fdHeldFaceUSD = fdHeld.filter(f => f.ccy === 'USD').reduce((a, f) => a + f.face, 0);
+  const fdHeldFaceJPY = fdHeld.filter(f => f.ccy === 'JPY').reduce((a, f) => a + f.face, 0);
+  const fdHeldFaceTWD = fdHeld.filter(f => f.ccy === 'TWD').reduce((a, f) => a + f.face, 0);
+  const fdHeldTwd = fdHeldFaceUSD * fx + fdHeldFaceJPY * jpyFx + fdHeldFaceTWD;
+
+  // ── 債券數據 ──
   const bdHeld = BD.filter(b => !b.exitDate);
   const bdExited = BD.filter(b => b.exitDate);
   const bdFaceUSD = BD.reduce((a, b) => a + b.face, 0);
   const bdTwdCost = BD.reduce((a, b) => a + (b.twd || b.face * fx), 0);
   const bdInterestUSD = BD.reduce((a, b) => a + (b.interest || 0), 0);
   const bdPaidTwd = bdInterestUSD * fx;
-  // 已實現
-  const bdRealizedPLUsd = bdExited.reduce((a, b) => {
+
+  const bdRealizedUSD = bdExited.reduce((a, b) => {
     const sell = b.sellAmt || (b.curPrice * b.units / 100);
     return a + (sell ? sell + b.interest - b.face : 0);
   }, 0);
-  const bdRealizedPLTwd = bdRealizedPLUsd * fx;
-  const bdRealizedFaceUsd = bdExited.reduce((a, b) => a + b.face, 0);
-  const bdRealizedFaceTwd = bdRealizedFaceUsd * fx;
-  // 未出場
-  const bdHeldFaceUsd = bdHeld.reduce((a, b) => a + b.face, 0);
-  const bdHeldFaceTwd = bdHeldFaceUsd * fx;
-  const bdHeldCurUsd = bdHeld.reduce((a, b) => a + (b.curPrice && b.units ? b.curPrice * b.units / 100 : 0), 0);
-  const bdHeldCurTwd = bdHeldCurUsd * fx;
-  const bdUnrealizedPLUsd = bdHeld.reduce((a, b) => {
-    const sell = b.curPrice * b.units / 100;
-    return a + (sell ? sell + b.interest - b.face : 0);
-  }, 0);
-  const bdUnrealizedPLTwd = bdUnrealizedPLUsd * fx;
+  const bdRealizedTwd = bdRealizedUSD * fx;
+
+  const bdHeldFaceUSD = bdHeld.reduce((a, b) => a + b.face, 0);
+  const bdHeldTwd = bdHeldFaceUSD * fx;
 
   // ── 合併（最上面三張卡）──
+  const totalFaceUSD = fcnFaceUSD + fdFaceUSD + bdFaceUSD;
+  const totalFaceJPY = fcnFaceJPY + fdFaceJPY;
+  const totalFaceTWD = fdFaceTWD;
   const totalFaceTwd = fcnTwdCost + fdTwdCost + bdTwdCost;
-  const totalPaidTwd = fcnPaidTwd + fdPaidTwd + bdPaidTwd;
-  const totalRealizedPLTwd = fcnRealizedPLTwd + fdRealizedPLTwd + bdRealizedPLTwd;
-  const totalRealizedFaceTwd = fcnRealizedFaceTwd + fdRealizedFaceTwd + bdRealizedFaceTwd;
-  const totalRealizedRate = totalRealizedFaceTwd ? (totalRealizedPLTwd / totalRealizedFaceTwd * 100).toFixed(2) : 0;
-  const totalUnrealizedPLTwd = fcnUnrealizedPLTwd + fdUnrealizedPLTwd + bdUnrealizedPLTwd;
-  const totalRemainingTwd = fcnRemainingTwd; // FCN 預估未領
-  const totalActiveCurTwd = fcnActiveTwd + fdHeldCurTwd + bdHeldCurTwd;
 
-  // ── 本月待配息（三個加總） ──
-  const today = new Date();
-  const ym = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}`;
-  let monthDistFcn = { USD: 0, JPY: 0 };
-  D.filter(d => d.status === 'active').forEach(d => {
-    const payMaps = (function(){
-      if(!d.payDates)return [];
-      const buyDate=new Date(d.date);
-      let y=buyDate.getFullYear(), prevM=buyDate.getMonth()+1;
-      return d.payDates.map(dt=>{
-        const m=parseInt(dt.split('/')[0]);
-        if(m<prevM)y++;
-        prevM=m;
-        return {ymKey:`${y}-${String(m).padStart(2,'0')}`, dateStr:dt};
-      });
-    })();
-    payMaps.filter(p=>p.ymKey===ym).forEach(p => {
-      if(!(d.paidDates||[]).includes(p.dateStr)) {
-        const ov=d.monthlyOverride||{};
-        monthDistFcn[d.ccy] += (ov[p.dateStr]!==undefined?ov[p.dateStr]:d.monthly);
-      }
-    });
-  });
-  // 基金配息（用 distPerUnit × units，預估）
-  let monthDistFD = { USD: 0, JPY: 0, TWD: 0 };
-  fdHeld.forEach(f => {
-    if (f.distType === '無配息' || f.distType === '定期定額') return;
-    if (f.distPerUnit && f.units) monthDistFD[f.ccy] += f.distPerUnit * f.units;
-  });
-  // 債券本月配息
-  let monthDistBD_USD = 0;
-  bdHeld.forEach(b => {
-    if (!b.distDates) return;
-    const monthDays = b.distDates.split(/[,，]/).map(s => s.trim());
-    monthDays.forEach(md => {
-      const [mm] = md.split('/').map(s => parseInt(s));
-      if (mm === today.getMonth() + 1) monthDistBD_USD += (b.couponAmt || 0);
-    });
-  });
-  const monthDistTotalTwd = (monthDistFcn.USD + monthDistFD.USD + monthDistBD_USD) * fx
-                          + (monthDistFcn.JPY + monthDistFD.JPY) * jpyFx
-                          + monthDistFD.TWD;
+  const totalPaidUSD = fcnPaidUSD + fdInterestUSD + bdInterestUSD;
+  const totalPaidJPY = fcnPaidJPY + fdInterestJPY;
+  const totalPaidTWD = fdInterestTWD;
+  const totalPaidTwd = fcnPaidTwd + fdPaidTwd + bdPaidTwd;
+
+  const totalRealizedUSD = fcnRealizedUSD + fdRealizedUSD + bdRealizedUSD;
+  const totalRealizedJPY = fcnRealizedJPY + fdRealizedJPY;
+  const totalRealizedTWD = fdRealizedTWD;
+  const totalRealizedTwd = fcnRealizedTwd + fdRealizedTwd + bdRealizedTwd;
+  const totalRealizedFaceTwd = fcnRealizedFaceTwd
+    + fdExited.reduce((a, f) => a + (f.twd || (f.ccy==='USD'?f.face*fx:f.ccy==='JPY'?f.face*jpyFx:f.face)), 0)
+    + bdExited.reduce((a, b) => a + (b.twd || b.face*fx), 0);
+  const totalRealizedRate = totalRealizedFaceTwd ? (totalRealizedTwd / totalRealizedFaceTwd * 100).toFixed(2) : '—';
 
   // ── 換匯 / 流動性 ──
   const usdAcquired = (FXL||[]).filter(f => f.toCcy === 'USD').reduce((a, f) => a + f.foreign, 0);
@@ -4732,144 +4674,208 @@ function overviewRender() {
   const jpySpent = (FXL||[]).filter(f => f.fromCcy === 'JPY').reduce((a, f) => a + f.twd, 0);
   const usdInUseFCN = D.filter(d => d.status === 'active' && d.ccy === 'USD').reduce((a, d) => a + d.face, 0);
   const usdInUseFD = FD.filter(f => !f.exitDate && f.ccy === 'USD').reduce((a, f) => a + f.face, 0);
-  const usdInUseBD = bdHeldFaceUsd;
+  const usdInUseBD = bdHeldFaceUSD;
   const usdRemaining = usdAcquired - usdSpent - usdInUseFCN - usdInUseFD - usdInUseBD;
   const jpyInUseFCN = D.filter(d => d.status === 'active' && d.ccy === 'JPY').reduce((a, d) => a + d.face, 0);
   const jpyInUseFD = FD.filter(f => !f.exitDate && f.ccy === 'JPY').reduce((a, f) => a + f.face, 0);
   const jpyRemaining = jpyAcquired - jpySpent - jpyInUseFCN - jpyInUseFD;
 
+  // 助手：分幣別顯示
+  const fmtCcyLines = (usd, jpy, twd) => {
+    const lines = [];
+    if (usd) lines.push(`<div class="mono">USD$${F(Math.round(usd))}</div>`);
+    if (jpy) lines.push(`<div class="mono">¥${F(Math.round(jpy))}</div>`);
+    if (twd) lines.push(`<div class="mono">NT$${F(Math.round(twd))}</div>`);
+    return lines.length ? lines.join('') : '<div style="color:var(--tx3)">—</div>';
+  };
+
   // ── 上方三張合併卡 ──
   const topCards = `
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px;min-width:980px;">
       <div class="card" style="padding:16px;">
-        <div style="font-size:13px;color:var(--tx3);margin-bottom:6px;">投資金額（合計）</div>
-        <div style="font-size:14px;color:var(--tx2);font-family:var(--mono);">
-          $${F(Math.round(fcnFaceUSD+fdFaceUSD+bdFaceUSD),0)}
-          ${(fcnFaceJPY+fdFaceJPY)?` / ¥${F(Math.round(fcnFaceJPY+fdFaceJPY))}`:''}
-          ${fdFaceTWD?` / NT$${F(Math.round(fdFaceTWD))}`:''}
+        <div style="font-size:13px;color:var(--tx3);margin-bottom:8px;font-weight:600;">投資金額（合計）</div>
+        <div style="font-size:14px;font-family:var(--mono);line-height:1.7;">
+          ${fmtCcyLines(totalFaceUSD, totalFaceJPY, totalFaceTWD)}
         </div>
-        <div style="font-size:22px;font-weight:700;font-family:var(--mono);margin-top:6px;">NT$${F(Math.round(totalFaceTwd))}</div>
-        <div style="font-size:12px;color:var(--tx3)">台幣成本</div>
+        <div style="border-top:1px dashed var(--bdr);margin-top:8px;padding-top:8px;">
+          <div style="font-size:11px;color:var(--tx3)">換算台幣總計</div>
+          <div style="font-size:22px;font-weight:700;font-family:var(--mono);">NT$${F(Math.round(totalFaceTwd))}</div>
+        </div>
       </div>
       <div class="card" style="padding:16px;">
-        <div style="font-size:13px;color:var(--tx3);margin-bottom:6px;">已領利息（合計）</div>
-        <div style="font-size:14px;color:var(--tx2);font-family:var(--mono);">
-          $${F(Math.round(fcnPaidUSD+fdInterestUSD+bdInterestUSD),0)}
-          ${(fcnPaidJPY+fdInterestJPY)?` / ¥${F(Math.round(fcnPaidJPY+fdInterestJPY))}`:''}
+        <div style="font-size:13px;color:var(--tx3);margin-bottom:8px;font-weight:600;">已領利息（合計）</div>
+        <div style="font-size:14px;font-family:var(--mono);line-height:1.7;color:var(--gn);">
+          ${fmtCcyLines(totalPaidUSD, totalPaidJPY, totalPaidTWD)}
         </div>
-        <div style="font-size:22px;font-weight:700;font-family:var(--mono);color:var(--gn);margin-top:6px;">NT$${F(Math.round(totalPaidTwd))}</div>
-        <div style="font-size:12px;color:var(--tx3)">台幣換算</div>
+        <div style="border-top:1px dashed var(--bdr);margin-top:8px;padding-top:8px;">
+          <div style="font-size:11px;color:var(--tx3)">換算台幣總計</div>
+          <div style="font-size:22px;font-weight:700;font-family:var(--mono);color:var(--gn);">NT$${F(Math.round(totalPaidTwd))}</div>
+        </div>
       </div>
       <div class="card" style="padding:16px;">
-        <div style="font-size:13px;color:var(--tx3);margin-bottom:6px;">已實現損益 / 報酬率</div>
-        <div style="font-size:22px;font-weight:700;font-family:var(--mono);color:${totalRealizedPLTwd>=0?'var(--gn)':'var(--rd)'};">${totalRealizedPLTwd>=0?'+':''}NT$${F(Math.round(totalRealizedPLTwd))}</div>
-        <div style="font-size:18px;font-weight:600;font-family:var(--mono);color:${totalRealizedPLTwd>=0?'var(--gn)':'var(--rd)'};margin-top:4px;">${totalRealizedPLTwd>=0?'+':''}${totalRealizedRate}%</div>
-        <div style="font-size:12px;color:var(--tx3)">基於台幣成本</div>
-      </div>
-    </div>`;
-
-  // ── 中間：三類分開卡片 ──
-  const renderTypeCard = (title, color, bgColor, data) => `
-    <div class="card" style="padding:14px;border-left:4px solid ${color};">
-      <div style="font-size:16px;font-weight:700;color:${color};margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
-        <span>${title}</span>
-        <span style="font-size:12px;color:var(--tx3);font-weight:400;">
-          進行中 ${data.activeCount}${data.holdCount?` / 承接 ${data.holdCount}`:''} / 已出場 ${data.exitCount}
-        </span>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;font-size:13px;">
-        <div><div style="color:var(--tx3);font-size:11px">投資金額</div>
-          <div class="mono" style="font-weight:600;">${data.faceLine}</div>
-          <div style="color:var(--tx3);font-size:11px">NT$${F(Math.round(data.faceTwd))}</div>
+        <div style="font-size:13px;color:var(--tx3);margin-bottom:8px;font-weight:600;">已實現損益（合計）</div>
+        <div style="font-size:14px;font-family:var(--mono);line-height:1.7;color:${totalRealizedTwd>=0?'var(--gn)':'var(--rd)'};">
+          ${(totalRealizedUSD||totalRealizedJPY||totalRealizedTWD)?
+            [
+              totalRealizedUSD?`<div class="mono">${totalRealizedUSD>=0?'+':''}USD$${F(Math.round(totalRealizedUSD))}</div>`:'',
+              totalRealizedJPY?`<div class="mono">${totalRealizedJPY>=0?'+':''}¥${F(Math.round(totalRealizedJPY))}</div>`:'',
+              totalRealizedTWD?`<div class="mono">${totalRealizedTWD>=0?'+':''}NT$${F(Math.round(totalRealizedTWD))}</div>`:''
+            ].filter(Boolean).join('') : '<div style="color:var(--tx3)">—</div>'}
         </div>
-        <div><div style="color:var(--tx3);font-size:11px">已領利息</div>
-          <div class="mono" style="color:var(--gn);font-weight:600;">${data.paidLine}</div>
-          <div style="color:var(--tx3);font-size:11px">NT$${F(Math.round(data.paidTwd))}</div>
-        </div>
-        <div><div style="color:var(--tx3);font-size:11px">已實現損益</div>
-          <div class="mono" style="color:${data.realizedPLTwd>=0?'var(--gn)':'var(--rd)'};font-weight:600;">${data.realizedPLTwd>=0?'+':''}NT$${F(Math.round(data.realizedPLTwd))}</div>
-          <div style="color:var(--tx3);font-size:11px">${data.realizedRate}</div>
-        </div>
-        <div><div style="color:var(--tx3);font-size:11px">未出場金額</div>
-          <div class="mono" style="font-weight:600;color:var(--bl);">NT$${F(Math.round(data.activeCurTwd))}</div>
-          ${data.estRemainingLine?`<div style="color:var(--tx3);font-size:11px">預估未領 ${data.estRemainingLine}</div>`:''}
-        </div>
-        <div style="grid-column:span 2;background:${bgColor};border-radius:8px;padding:8px 10px;margin-top:4px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <span style="color:var(--tx3);font-size:12px">未實現損益</span>
-            <span class="mono" style="font-weight:700;color:${data.unrealizedPLTwd>=0?'var(--gn)':'var(--rd)'};">${data.unrealizedPLTwd>=0?'+':''}NT$${F(Math.round(data.unrealizedPLTwd))}</span>
+        <div style="border-top:1px dashed var(--bdr);margin-top:8px;padding-top:8px;">
+          <div style="font-size:11px;color:var(--tx3)">換算台幣總計 / 報酬率</div>
+          <div style="font-size:22px;font-weight:700;font-family:var(--mono);color:${totalRealizedTwd>=0?'var(--gn)':'var(--rd)'};">
+            ${totalRealizedTwd>=0?'+':''}NT$${F(Math.round(totalRealizedTwd))}
           </div>
+          <div style="font-size:14px;font-weight:600;font-family:var(--mono);color:${totalRealizedTwd>=0?'var(--gn)':'var(--rd)'};">${totalRealizedTwd>=0?'+':''}${totalRealizedRate}%</div>
         </div>
       </div>
     </div>`;
 
-  const fcnFaceLine = `$${F(Math.round(fcnFaceUSD),0)}` + (fcnFaceJPY?` / ¥${F(Math.round(fcnFaceJPY))}`:'');
-  const fcnPaidLine = `$${F(Math.round(fcnPaidUSD),0)}` + (fcnPaidJPY?` / ¥${F(Math.round(fcnPaidJPY))}`:'');
-  const fcnRealizedRate = fcnRealizedFaceTwd ? (fcnRealizedPLTwd/fcnRealizedFaceTwd*100).toFixed(2)+'%' : '—';
-  const fcnEstRemainingLine = fcnRemainingUSD || fcnRemainingJPY
-    ? (fcnRemainingUSD?`$${F(Math.round(fcnRemainingUSD))}`:'') + (fcnRemainingJPY?(fcnRemainingUSD?' / ':'')+`¥${F(Math.round(fcnRemainingJPY))}`:'')
-    : '';
+  // ── 三類分開卡片 ──
+  const renderCard = (cfg) => `
+    <div class="card" style="padding:14px;border-left:4px solid ${cfg.color};">
+      <div style="font-size:16px;font-weight:700;color:${cfg.color};margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
+        <span>${cfg.title}</span>
+        <span style="font-size:12px;color:var(--tx3);font-weight:400;">${cfg.statusLine}</span>
+      </div>
+      <div style="font-size:12px;">
+        <!-- 投資金額 -->
+        <div style="margin-bottom:10px;">
+          <div style="color:var(--tx3);font-size:11px;margin-bottom:2px;">投資金額</div>
+          <div style="font-family:var(--mono);">${cfg.faceLines}</div>
+          <div style="font-family:var(--mono);color:var(--tx3);font-size:11px;border-top:1px dashed var(--bdr);padding-top:3px;margin-top:3px;">≈ NT$${F(Math.round(cfg.faceTwd))}</div>
+        </div>
+        <!-- 已領利息 -->
+        <div style="margin-bottom:10px;">
+          <div style="color:var(--tx3);font-size:11px;margin-bottom:2px;">已領利息</div>
+          <div style="font-family:var(--mono);color:var(--gn);">${cfg.paidLines}</div>
+          <div style="font-family:var(--mono);color:var(--gn);opacity:.7;font-size:11px;border-top:1px dashed var(--bdr);padding-top:3px;margin-top:3px;">≈ NT$${F(Math.round(cfg.paidTwd))}</div>
+        </div>
+        <!-- 已實現損益 -->
+        <div style="margin-bottom:10px;">
+          <div style="color:var(--tx3);font-size:11px;margin-bottom:2px;">已實現損益</div>
+          <div style="font-family:var(--mono);color:${cfg.realizedTwd>=0?'var(--gn)':'var(--rd)'};">${cfg.realizedLines}</div>
+          <div style="font-family:var(--mono);color:${cfg.realizedTwd>=0?'var(--gn)':'var(--rd)'};opacity:.7;font-size:11px;border-top:1px dashed var(--bdr);padding-top:3px;margin-top:3px;">≈ NT$${F(Math.round(cfg.realizedTwd))}${cfg.realizedRate?` / ${cfg.realizedRate}`:''}</div>
+        </div>
+        <!-- 未出場金額 -->
+        <div style="background:${cfg.bgColor};border-radius:8px;padding:8px 10px;">
+          <div style="color:var(--tx3);font-size:11px;margin-bottom:2px;">未出場金額</div>
+          <div style="font-family:var(--mono);color:var(--bl);">${cfg.activeLines}</div>
+          <div style="font-family:var(--mono);color:var(--bl);opacity:.7;font-size:11px;border-top:1px dashed var(--bdr);padding-top:3px;margin-top:3px;">≈ NT$${F(Math.round(cfg.activeTwd))}</div>
+          ${cfg.estRemainingLines?`<div style="margin-top:4px;color:var(--gd);font-size:11px;">預估未領利息 ${cfg.estRemainingLines}</div>`:''}
+        </div>
+      </div>
+    </div>`;
 
-  const fdFaceLine = `${fdFaceUSD?'$'+F(Math.round(fdFaceUSD)):''}` +
-    `${(fdFaceUSD&&fdFaceJPY)?' / ':''}${fdFaceJPY?'¥'+F(Math.round(fdFaceJPY)):''}` +
-    `${((fdFaceUSD||fdFaceJPY)&&fdFaceTWD)?' / ':''}${fdFaceTWD?'NT$'+F(Math.round(fdFaceTWD)):''}`;
-  const fdPaidLine = `${fdInterestUSD?'$'+F(Math.round(fdInterestUSD)):''}` +
-    `${(fdInterestUSD&&fdInterestJPY)?' / ':''}${fdInterestJPY?'¥'+F(Math.round(fdInterestJPY)):''}` +
-    `${((fdInterestUSD||fdInterestJPY)&&fdInterestTWD)?' / ':''}${fdInterestTWD?'NT$'+F(Math.round(fdInterestTWD)):''}`;
-  const fdRealizedRate = fdRealizedFaceTwd ? (fdRealizedPLTwd/fdRealizedFaceTwd*100).toFixed(2)+'%' : '—';
+  // FCN 卡
+  const fcnFaceLines = [
+    fcnFaceUSD?`<div>USD$${F(Math.round(fcnFaceUSD))}</div>`:'',
+    fcnFaceJPY?`<div>¥${F(Math.round(fcnFaceJPY))}</div>`:'',
+  ].filter(Boolean).join('') || '<div style="color:var(--tx3)">—</div>';
 
-  const bdFaceLine = `$${F(Math.round(bdFaceUSD))}`;
-  const bdPaidLine = `$${F(Math.round(bdInterestUSD))}`;
-  const bdRealizedRate = bdRealizedFaceUsd ? (bdRealizedPLUsd/bdRealizedFaceUsd*100).toFixed(2)+'%' : '—';
+  const fcnPaidLines = [
+    fcnPaidUSD?`<div>USD$${F(Math.round(fcnPaidUSD))}</div>`:'',
+    fcnPaidJPY?`<div>¥${F(Math.round(fcnPaidJPY))}</div>`:'',
+  ].filter(Boolean).join('') || '<div style="color:var(--tx3)">—</div>';
+
+  const fcnRealizedLines = [
+    fcnRealizedUSD?`<div>${fcnRealizedUSD>=0?'+':''}USD$${F(Math.round(fcnRealizedUSD))}</div>`:'',
+    fcnRealizedJPY?`<div>${fcnRealizedJPY>=0?'+':''}¥${F(Math.round(fcnRealizedJPY))}</div>`:'',
+  ].filter(Boolean).join('') || '<div style="color:var(--tx3)">—</div>';
+  const fcnRealizedRate = fcnRealizedFaceTwd ? (fcnRealizedTwd/fcnRealizedFaceTwd*100).toFixed(2)+'%' : '';
+
+  const fcnActiveLines = [
+    fcnActiveFaceUSD?`<div>USD$${F(Math.round(fcnActiveFaceUSD))}</div>`:'',
+    fcnActiveFaceJPY?`<div>¥${F(Math.round(fcnActiveFaceJPY))}</div>`:'',
+  ].filter(Boolean).join('') || '<div style="color:var(--tx3)">—</div>';
+
+  const fcnEstRemainingLines = [
+    fcnRemainingUSD?`USD$${F(Math.round(fcnRemainingUSD))}`:'',
+    fcnRemainingJPY?`¥${F(Math.round(fcnRemainingJPY))}`:'',
+  ].filter(Boolean).join(' / ');
+
+  // 基金卡
+  const fdFaceLines = [
+    fdFaceUSD?`<div>USD$${F(Math.round(fdFaceUSD))}</div>`:'',
+    fdFaceJPY?`<div>¥${F(Math.round(fdFaceJPY))}</div>`:'',
+    fdFaceTWD?`<div>NT$${F(Math.round(fdFaceTWD))}</div>`:'',
+  ].filter(Boolean).join('') || '<div style="color:var(--tx3)">—</div>';
+
+  const fdPaidLines = [
+    fdInterestUSD?`<div>USD$${F(Math.round(fdInterestUSD))}</div>`:'',
+    fdInterestJPY?`<div>¥${F(Math.round(fdInterestJPY))}</div>`:'',
+    fdInterestTWD?`<div>NT$${F(Math.round(fdInterestTWD))}</div>`:'',
+  ].filter(Boolean).join('') || '<div style="color:var(--tx3)">—</div>';
+
+  const fdRealizedLines = [
+    fdRealizedUSD?`<div>${fdRealizedUSD>=0?'+':''}USD$${F(Math.round(fdRealizedUSD))}</div>`:'',
+    fdRealizedJPY?`<div>${fdRealizedJPY>=0?'+':''}¥${F(Math.round(fdRealizedJPY))}</div>`:'',
+    fdRealizedTWD?`<div>${fdRealizedTWD>=0?'+':''}NT$${F(Math.round(fdRealizedTWD))}</div>`:'',
+  ].filter(Boolean).join('') || '<div style="color:var(--tx3)">—</div>';
+  const fdRealizedFaceTwd = fdExited.reduce((a, f) => a + (f.twd || (f.ccy==='USD'?f.face*fx:f.ccy==='JPY'?f.face*jpyFx:f.face)), 0);
+  const fdRealizedRate = fdRealizedFaceTwd ? (fdRealizedTwd/fdRealizedFaceTwd*100).toFixed(2)+'%' : '';
+
+  const fdActiveLines = [
+    fdHeldFaceUSD?`<div>USD$${F(Math.round(fdHeldFaceUSD))}</div>`:'',
+    fdHeldFaceJPY?`<div>¥${F(Math.round(fdHeldFaceJPY))}</div>`:'',
+    fdHeldFaceTWD?`<div>NT$${F(Math.round(fdHeldFaceTWD))}</div>`:'',
+  ].filter(Boolean).join('') || '<div style="color:var(--tx3)">—</div>';
+
+  // 債券卡
+  const bdFaceLines = bdFaceUSD?`<div>USD$${F(Math.round(bdFaceUSD))}</div>`:'<div style="color:var(--tx3)">—</div>';
+  const bdPaidLines = bdInterestUSD?`<div>USD$${F(Math.round(bdInterestUSD))}</div>`:'<div style="color:var(--tx3)">—</div>';
+  const bdRealizedLines = bdRealizedUSD?`<div>${bdRealizedUSD>=0?'+':''}USD$${F(Math.round(bdRealizedUSD))}</div>`:'<div style="color:var(--tx3)">—</div>';
+  const bdRealizedFaceUSD = bdExited.reduce((a, b) => a + b.face, 0);
+  const bdRealizedRate = bdRealizedFaceUSD ? (bdRealizedUSD/bdRealizedFaceUSD*100).toFixed(2)+'%' : '';
+  const bdActiveLines = bdHeldFaceUSD?`<div>USD$${F(Math.round(bdHeldFaceUSD))}</div>`:'<div style="color:var(--tx3)">—</div>';
 
   const typeCards = `
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px;min-width:980px;">
-      ${renderTypeCard('FCN', 'var(--ac)', 'var(--gnl)', {
-        activeCount: fcnActive.length, holdCount: fcnHold.length, exitCount: fcnRealized.length,
-        faceLine: fcnFaceLine, faceTwd: fcnTwdCost,
-        paidLine: fcnPaidLine || '—', paidTwd: fcnPaidTwd,
-        realizedPLTwd: fcnRealizedPLTwd, realizedRate: fcnRealizedRate,
-        activeCurTwd: fcnActiveTwd,
-        estRemainingLine: fcnEstRemainingLine,
-        unrealizedPLTwd: fcnUnrealizedPLTwd,
+      ${renderCard({
+        title: 'FCN', color: 'var(--ac)', bgColor: 'var(--gnl)',
+        statusLine: `進行中 ${fcnActive.length}${fcnHold.length?` / 承接 ${fcnHold.length}`:''} / 已出場 ${fcnClosed.length}`,
+        faceLines: fcnFaceLines, faceTwd: fcnTwdCost,
+        paidLines: fcnPaidLines, paidTwd: fcnPaidTwd,
+        realizedLines: fcnRealizedLines, realizedTwd: fcnRealizedTwd, realizedRate: fcnRealizedRate,
+        activeLines: fcnActiveLines, activeTwd: fcnActiveTwd,
+        estRemainingLines: fcnEstRemainingLines,
       })}
-      ${renderTypeCard('基金', 'var(--bl)', 'var(--bll)', {
-        activeCount: fdHeld.length, holdCount: 0, exitCount: fdExited.length,
-        faceLine: fdFaceLine || '—', faceTwd: fdTwdCost,
-        paidLine: fdPaidLine || '—', paidTwd: fdPaidTwd,
-        realizedPLTwd: fdRealizedPLTwd, realizedRate: fdRealizedRate,
-        activeCurTwd: fdHeldCurTwd,
-        estRemainingLine: '',
-        unrealizedPLTwd: fdUnrealizedPLTwd,
+      ${renderCard({
+        title: '基金', color: 'var(--bl)', bgColor: 'var(--bll)',
+        statusLine: `持有 ${fdHeld.length} / 已出場 ${fdExited.length}`,
+        faceLines: fdFaceLines, faceTwd: fdTwdCost,
+        paidLines: fdPaidLines, paidTwd: fdPaidTwd,
+        realizedLines: fdRealizedLines, realizedTwd: fdRealizedTwd, realizedRate: fdRealizedRate,
+        activeLines: fdActiveLines, activeTwd: fdHeldTwd,
+        estRemainingLines: '',
       })}
-      ${renderTypeCard('債券', 'var(--gd)', 'var(--gdl)', {
-        activeCount: bdHeld.length, holdCount: 0, exitCount: bdExited.length,
-        faceLine: bdFaceLine, faceTwd: bdTwdCost,
-        paidLine: bdPaidLine, paidTwd: bdPaidTwd,
-        realizedPLTwd: bdRealizedPLTwd, realizedRate: bdRealizedRate,
-        activeCurTwd: bdHeldCurTwd,
-        estRemainingLine: '',
-        unrealizedPLTwd: bdUnrealizedPLTwd,
+      ${renderCard({
+        title: '債券', color: 'var(--gd)', bgColor: 'var(--gdl)',
+        statusLine: `持有 ${bdHeld.length} / 已出場 ${bdExited.length}`,
+        faceLines: bdFaceLines, faceTwd: bdTwdCost,
+        paidLines: bdPaidLines, paidTwd: bdPaidTwd,
+        realizedLines: bdRealizedLines, realizedTwd: bdRealizedTwd, realizedRate: bdRealizedRate,
+        activeLines: bdActiveLines, activeTwd: bdHeldTwd,
+        estRemainingLines: '',
       })}
     </div>`;
 
-  // ── 本月待配息卡片 + 12 個月日曆 ──
-  const distLines = [];
-  if (monthDistFcn.USD || monthDistFD.USD || monthDistBD_USD) distLines.push(`$${F(Math.round(monthDistFcn.USD+monthDistFD.USD+monthDistBD_USD))}`);
-  if (monthDistFcn.JPY || monthDistFD.JPY) distLines.push(`¥${F(Math.round(monthDistFcn.JPY+monthDistFD.JPY))}`);
-  if (monthDistFD.TWD) distLines.push(`NT$${F(Math.round(monthDistFD.TWD))}`);
-
-  // 12 個月日曆
-  const months12 = [];
+  // ── 本月待配息（表格：月份 × FCN/基金/債券/總計）──
+  const today = new Date();
   const startMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const months12 = [];
   for (let i = 0; i < 12; i++) {
     const d = new Date(startMonth);
     d.setMonth(d.getMonth() + i);
     months12.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`);
   }
+
   const calcMonthDist = (ymKey) => {
     const [yy, mm] = ymKey.split('-').map(Number);
-    let usd = 0, jpy = 0, twdAmt = 0;
+    let fcn = { usd: 0, jpy: 0, twd: 0 };
+    let fund = { usd: 0, jpy: 0, twd: 0 };
+    let bond = { usd: 0, jpy: 0, twd: 0 };
     // FCN
     D.filter(d => d.status === 'active').forEach(d => {
       const buyDate = new Date(d.date);
@@ -4882,12 +4888,12 @@ function overviewRender() {
         if (k === ymKey && !(d.paidDates||[]).includes(dt)) {
           const ov = d.monthlyOverride || {};
           const amt = ov[dt] !== undefined ? ov[dt] : d.monthly;
-          if (d.ccy === 'USD') usd += amt;
-          else if (d.ccy === 'JPY') jpy += amt;
+          if (d.ccy === 'USD') fcn.usd += amt;
+          else if (d.ccy === 'JPY') fcn.jpy += amt;
         }
       });
     });
-    // 基金（簡單估：月配的話每月配，季配的話該月為買進月+3n）
+    // 基金
     fdHeld.forEach(f => {
       if (f.distType === '無配息' || f.distType === '定期定額') return;
       if (!f.distPerUnit || !f.units) return;
@@ -4895,15 +4901,15 @@ function overviewRender() {
       const ymStart = new Date(yy, mm - 1, 1);
       if (ymStart < buy) return;
       const monthsSince = (yy - buy.getFullYear()) * 12 + (mm - 1) - buy.getMonth();
-      let isPayMonth = false;
-      if (f.distType === '月配') isPayMonth = monthsSince >= 0;
-      else if (f.distType === '季配') isPayMonth = monthsSince >= 0 && monthsSince % 3 === 0;
-      else if (f.distType === '年配') isPayMonth = monthsSince >= 0 && monthsSince % 12 === 0;
-      if (isPayMonth) {
+      let isPay = false;
+      if (f.distType === '月配') isPay = monthsSince >= 0;
+      else if (f.distType === '季配') isPay = monthsSince >= 0 && monthsSince % 3 === 0;
+      else if (f.distType === '年配') isPay = monthsSince >= 0 && monthsSince % 12 === 0;
+      if (isPay) {
         const amt = f.distPerUnit * f.units;
-        if (f.ccy === 'USD') usd += amt;
-        else if (f.ccy === 'JPY') jpy += amt;
-        else twdAmt += amt;
+        if (f.ccy === 'USD') fund.usd += amt;
+        else if (f.ccy === 'JPY') fund.jpy += amt;
+        else fund.twd += amt;
       }
     });
     // 債券
@@ -4916,57 +4922,79 @@ function overviewRender() {
       const monthDays = b.distDates.split(/[,，]/).map(s => s.trim());
       monthDays.forEach(md => {
         const [m] = md.split('/').map(Number);
-        if (m === mm) usd += b.couponAmt;
+        if (m === mm) bond.usd += b.couponAmt;
       });
     });
-    return { usd, jpy, twd: twdAmt, total: usd * fx + jpy * jpyFx + twdAmt };
+    const totalUsd = fcn.usd + fund.usd + bond.usd;
+    const totalJpy = fcn.jpy + fund.jpy + bond.jpy;
+    const totalTwd = fcn.twd + fund.twd + bond.twd;
+    const totalAllTwd = totalUsd * fx + totalJpy * jpyFx + totalTwd;
+    return { fcn, fund, bond, total: { usd: totalUsd, jpy: totalJpy, twd: totalTwd, allTwd: totalAllTwd } };
   };
 
-  const monthCells = months12.map((ymKey, i) => {
-    const data = calcMonthDist(ymKey);
+  const cellHtml = (data) => {
+    const lines = [];
+    if (data.usd) lines.push(`<div class="mono" style="color:var(--rd)">USD$${F(Math.round(data.usd))}</div>`);
+    if (data.jpy) lines.push(`<div class="mono" style="color:var(--pu)">¥${F(Math.round(data.jpy))}</div>`);
+    if (data.twd) lines.push(`<div class="mono" style="color:var(--ac)">NT$${F(Math.round(data.twd))}</div>`);
+    if (!lines.length) return '<div style="color:var(--tx3);font-size:11px">—</div>';
+    const sumTwd = (data.usd||0)*fx + (data.jpy||0)*jpyFx + (data.twd||0);
+    return lines.join('') + (lines.length ? `<div class="mono" style="font-size:10px;color:var(--tx3);border-top:1px dashed var(--bdr);padding-top:2px;margin-top:2px;">≈ NT$${F(Math.round(sumTwd))}</div>` : '');
+  };
+
+  const monthRows = months12.map((ymKey, i) => {
     const [yy, mm] = ymKey.split('-');
     const isCurrent = i === 0;
-    return `<div style="border:1px solid var(--bdr);border-radius:8px;padding:8px 10px;background:${isCurrent?'var(--gnl)':'var(--sur)'};">
-      <div style="font-size:11px;color:var(--tx3);">${yy}/${parseInt(mm)}月${isCurrent?' <span style="color:var(--ac);font-weight:600;">本月</span>':''}</div>
-      ${data.total ? `
-        <div class="mono" style="font-size:11px;margin-top:3px;">
-          ${data.usd?`<div>$${F(Math.round(data.usd))}</div>`:''}
-          ${data.jpy?`<div>¥${F(Math.round(data.jpy))}</div>`:''}
-          ${data.twd?`<div>NT$${F(Math.round(data.twd))}</div>`:''}
-        </div>
-        <div class="mono" style="font-size:13px;font-weight:700;color:var(--gn);margin-top:4px;border-top:1px dashed var(--bdr);padding-top:3px;">NT$${F(Math.round(data.total))}</div>
-      ` : '<div style="color:var(--tx3);font-size:11px;margin-top:6px;">—</div>'}
-    </div>`;
+    const data = calcMonthDist(ymKey);
+    return `<tr style="background:${isCurrent?'var(--gnl)':''};">
+      <td style="padding:6px 8px;font-weight:600;font-size:13px;border:1px solid var(--bdr);white-space:nowrap;">
+        ${yy}/${parseInt(mm)}月${isCurrent?'<div style="font-size:10px;color:var(--ac);">本月</div>':''}
+      </td>
+      <td style="padding:6px;border:1px solid var(--bdr);font-size:11px;">${cellHtml(data.fcn)}</td>
+      <td style="padding:6px;border:1px solid var(--bdr);font-size:11px;">${cellHtml(data.fund)}</td>
+      <td style="padding:6px;border:1px solid var(--bdr);font-size:11px;">${cellHtml(data.bond)}</td>
+      <td style="padding:6px;border:1px solid var(--bdr);background:${data.total.allTwd?'var(--gnl)':''};font-size:11px;">
+        ${data.total.allTwd ? `
+          ${data.total.usd?`<div class="mono" style="color:var(--rd)">USD$${F(Math.round(data.total.usd))}</div>`:''}
+          ${data.total.jpy?`<div class="mono" style="color:var(--pu)">¥${F(Math.round(data.total.jpy))}</div>`:''}
+          ${data.total.twd?`<div class="mono" style="color:var(--ac)">NT$${F(Math.round(data.total.twd))}</div>`:''}
+          <div class="mono" style="font-size:13px;font-weight:700;color:var(--gn);border-top:1px solid var(--bdr);padding-top:3px;margin-top:3px;">NT$${F(Math.round(data.total.allTwd))}</div>
+        ` : '<div style="color:var(--tx3)">—</div>'}
+      </td>
+    </tr>`;
   }).join('');
 
-  const monthDist = `
+  const monthDistHtml = `
     <div class="card" style="padding:14px;margin-bottom:14px;">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
-        <div>
-          <div style="font-size:14px;font-weight:600;color:var(--gn);">📅 本月待配息金額</div>
-          <div style="font-size:11px;color:var(--tx3);">FCN ＋ 基金 ＋ 債券 加總</div>
-        </div>
-        <div style="text-align:right;">
-          <div class="mono" style="font-size:13px;color:var(--tx2);">${distLines.join(' / ')||'—'}</div>
-          <div class="mono" style="font-size:22px;font-weight:700;color:var(--gn);">NT$${F(Math.round(monthDistTotalTwd))}</div>
-        </div>
+      <div style="font-size:14px;font-weight:600;color:var(--gn);margin-bottom:8px;">📅 本月待配息金額</div>
+      <div style="font-size:11px;color:var(--tx3);margin-bottom:8px;">三個項目分開顯示，最右欄為加總並換算台幣</div>
+      <div style="overflow-x:auto;">
+        <table style="border-collapse:collapse;font-size:13px;width:100%;">
+          <thead><tr style="background:var(--sur2);">
+            <th style="padding:8px;border:1px solid var(--bdr);text-align:center;">月份</th>
+            <th style="padding:8px;border:1px solid var(--bdr);text-align:center;color:var(--ac);">FCN</th>
+            <th style="padding:8px;border:1px solid var(--bdr);text-align:center;color:var(--bl);">基金</th>
+            <th style="padding:8px;border:1px solid var(--bdr);text-align:center;color:var(--gd);">債券</th>
+            <th style="padding:8px;border:1px solid var(--bdr);text-align:center;color:var(--gn);">總計</th>
+          </tr></thead>
+          <tbody>${monthRows}</tbody>
+        </table>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;">${monthCells}</div>
     </div>`;
 
-  // ── 流動性卡 ──
+  // ── 流動性 ──
   const liquidityCards = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;min-width:600px;">
       <div class="card" style="padding:14px;">
         <div style="font-size:14px;font-weight:600;margin-bottom:10px;color:var(--bl);">🇺🇸 USD 目前剩餘可用金額</div>
         <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px 14px;font-size:13px;">
-          <div><span style="color:var(--tx3)">已換取</span></div><div class="mono right">+$${F(Math.round(usdAcquired))}</div>
-          <div><span style="color:var(--tx3)">已轉出</span></div><div class="mono right" style="color:var(--rd)">−$${F(Math.round(usdSpent))}</div>
-          <div><span style="color:var(--tx3)">FCN 進行中</span></div><div class="mono right" style="color:var(--rd)">−$${F(Math.round(usdInUseFCN))}</div>
-          <div><span style="color:var(--tx3)">基金持有</span></div><div class="mono right" style="color:var(--rd)">−$${F(Math.round(usdInUseFD))}</div>
-          <div><span style="color:var(--tx3)">債券持有</span></div><div class="mono right" style="color:var(--rd)">−$${F(Math.round(usdInUseBD))}</div>
+          <div><span style="color:var(--tx3)">已換取</span></div><div class="mono right">+USD$${F(Math.round(usdAcquired))}</div>
+          <div><span style="color:var(--tx3)">已轉出</span></div><div class="mono right" style="color:var(--rd)">−USD$${F(Math.round(usdSpent))}</div>
+          <div><span style="color:var(--tx3)">FCN 進行中</span></div><div class="mono right" style="color:var(--rd)">−USD$${F(Math.round(usdInUseFCN))}</div>
+          <div><span style="color:var(--tx3)">基金持有</span></div><div class="mono right" style="color:var(--rd)">−USD$${F(Math.round(usdInUseFD))}</div>
+          <div><span style="color:var(--tx3)">債券持有</span></div><div class="mono right" style="color:var(--rd)">−USD$${F(Math.round(usdInUseBD))}</div>
           <div style="grid-column:span 2;border-top:1px solid var(--bdr);margin:4px 0;"></div>
-          <div style="font-weight:600">剩餘可用</div><div class="mono right" style="color:${usdRemaining>=0?'var(--gn)':'var(--rd)'};font-weight:700;font-size:16px;">$${F(Math.round(usdRemaining))}</div>
+          <div style="font-weight:600">剩餘可用</div><div class="mono right" style="color:${usdRemaining>=0?'var(--gn)':'var(--rd)'};font-weight:700;font-size:16px;">USD$${F(Math.round(usdRemaining))}</div>
         </div>
       </div>
       <div class="card" style="padding:14px;">
@@ -4982,12 +5010,9 @@ function overviewRender() {
       </div>
     </div>`;
 
-  document.getElementById('overview-cards').innerHTML = topCards + typeCards + monthDist;
+  document.getElementById('overview-cards').innerHTML = topCards + typeCards + monthDistHtml;
   document.getElementById('overview-detail').innerHTML = liquidityCards;
 }
-
-// ── FUND REPORT ─────────────────────────────────────────────
-// ═══════════════════════════════════════════════════════════
 
 function initFundReport() { fundReportRender(); }
 
@@ -5174,8 +5199,8 @@ function bondReportRender() {
   el.innerHTML = `
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px;">
       <div class="card" style="padding:14px;"><div class="ml">債券總數</div><div style="font-size:24px;font-weight:700;color:var(--bl);font-family:var(--mono);">${total}</div><div class="ms">持有 ${held} / 出場 ${exited.length}</div></div>
-      <div class="card" style="padding:14px;"><div class="ml">已實現損益</div><div style="font-size:22px;font-weight:700;color:${realizedPL>=0?'var(--gn)':'var(--rd)'};font-family:var(--mono);">${realizedPL>=0?'+':''}$${F(Math.round(realizedPL))}</div></div>
-      <div class="card" style="padding:14px;"><div class="ml">未實現損益</div><div style="font-size:22px;font-weight:700;color:${unrealizedPL>=0?'var(--gn)':'var(--rd)'};font-family:var(--mono);">${unrealizedPL>=0?'+':''}$${F(Math.round(unrealizedPL))}</div></div>
+      <div class="card" style="padding:14px;"><div class="ml">已實現損益</div><div style="font-size:22px;font-weight:700;color:${realizedPL>=0?'var(--gn)':'var(--rd)'};font-family:var(--mono);">${realizedPL>=0?'+':''}USD$${F(Math.round(realizedPL))}</div></div>
+      <div class="card" style="padding:14px;"><div class="ml">未實現損益</div><div style="font-size:22px;font-weight:700;color:${unrealizedPL>=0?'var(--gn)':'var(--rd)'};font-family:var(--mono);">${unrealizedPL>=0?'+':''}USD$${F(Math.round(unrealizedPL))}</div></div>
       <div class="card" style="padding:14px;"><div class="ml">平均持有年限</div><div style="font-size:24px;font-weight:700;color:var(--gd);font-family:var(--mono);">${avgHold.toFixed(2)} 年</div><div class="ms">已出場債券</div></div>
     </div>
 
@@ -5187,7 +5212,7 @@ function bondReportRender() {
           const w = maxF ? (v.face / maxF * 100).toFixed(1) : 0;
           return `<div style="margin-bottom:8px;">
             <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px;">
-              <span style="font-weight:500">${y}</span><span class="mono">${v.count}筆 / $${F(Math.round(v.face))}</span>
+              <span style="font-weight:500">${y}</span><span class="mono">${v.count}筆 / USD$${F(Math.round(v.face))}</span>
             </div>
             <div style="height:6px;background:var(--sur2);border-radius:3px;overflow:hidden;">
               <div style="height:100%;width:${w}%;background:var(--bl);"></div>
@@ -5235,7 +5260,7 @@ function bondReportRender() {
             <td class="mono right" style="padding:6px 8px;">${Math.round(b.days)}</td>
             <td class="mono right" style="padding:6px 8px;color:${b.annualized>=0?'var(--gn)':'var(--rd)'};font-weight:600">${b.annualized.toFixed(2)}%</td>
             <td class="mono right" style="padding:6px 8px;color:var(--tx3)">${b.expectedAnnual.toFixed(2)}%</td>
-            <td class="mono right" style="padding:6px 8px;color:${b.actual>=0?'var(--gn)':'var(--rd)'};font-weight:600">${b.actual>=0?'+':''}$${F(Math.round(b.actual))}</td>
+            <td class="mono right" style="padding:6px 8px;color:${b.actual>=0?'var(--gn)':'var(--rd)'};font-weight:600">${b.actual>=0?'+':''}USD$${F(Math.round(b.actual))}</td>
           </tr>`).join('')}
         </tbody>
       </table>
@@ -5256,9 +5281,9 @@ function bondReportRender() {
         ${couponGap.sort((a, b) => a.pct - b.pct).map(g => `
           <tr style="border-bottom:1px solid var(--bdr);">
             <td style="padding:6px 8px;font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${g.name}">${g.name}</td>
-            <td class="mono right" style="padding:6px 8px;color:var(--tx3)">$${F(Math.round(g.expected))}</td>
-            <td class="mono right" style="padding:6px 8px;">$${F(Math.round(g.actual))}</td>
-            <td class="mono right" style="padding:6px 8px;color:${g.gap>=0?'var(--gn)':'var(--rd)'}">${g.gap>=0?'+':''}$${F(Math.round(g.gap))}</td>
+            <td class="mono right" style="padding:6px 8px;color:var(--tx3)">USD$${F(Math.round(g.expected))}</td>
+            <td class="mono right" style="padding:6px 8px;">USD$${F(Math.round(g.actual))}</td>
+            <td class="mono right" style="padding:6px 8px;color:${g.gap>=0?'var(--gn)':'var(--rd)'}">${g.gap>=0?'+':''}USD$${F(Math.round(g.gap))}</td>
             <td class="mono right" style="padding:6px 8px;color:${g.pct>=0?'var(--gn)':'var(--rd)'};font-weight:600">${g.pct>=0?'+':''}${g.pct.toFixed(1)}%</td>
           </tr>`).join('')}
         </tbody>

@@ -1444,7 +1444,15 @@ function getIntMonths(){
 }
 
 function rint(){
-  const rows=[...D].sort((a,b)=>b.date.localeCompare(a.date));
+  const rows=[...D].sort((a,b)=>{
+    // 1. 幣別優先：USD → JPY
+    const ccyOrder = { USD: 0, JPY: 1 };
+    const ca = ccyOrder[a.ccy] ?? 99;
+    const cb = ccyOrder[b.ccy] ?? 99;
+    if (ca !== cb) return ca - cb;
+    // 2. 同幣別依買進日新→舊
+    return b.date.localeCompare(a.date);
+  });
   const el=document.getElementById('int-list');
   if(!rows.length){el.innerHTML='<div style="text-align:center;padding:48px;color:var(--tx3)">尚無投資紀錄</div>';return;}
   if(!window._intExp){window._intExp=new Set(rows.map(d=>d.id));}
@@ -1535,14 +1543,19 @@ function rint(){
         const pc=(d.paidDates||[]).length,tc=d.payDates.length;
         const exp=window._intExp.has(d.id);
         const isClosed=!!(d.exitDate);
-        // 重排銀行名稱：「音－元大」→「元大－音」，「林－元大」→「元大－林」
         const bankShort=(()=>{
           const m=d.bank.match(/^(音|林)－(.+)$/);
           return m?`${m[2]}-${m[1]}`:d.bank;
         })();
-        return`<th style="position:sticky;top:0;z-index:3;background:var(--sur2);padding:0;width:${exp?CW:28}px;min-width:${exp?CW:28}px;cursor:pointer;border-right:1px solid var(--bdr);transition:width .2s;" onclick="intTog(${d.id})">
+        // 幣別配色
+        const ccyBg = d.ccy === 'JPY' ? 'rgba(168,85,247,.10)' : 'rgba(239,68,68,.08)';
+        const ccyBorder = d.ccy === 'JPY' ? 'var(--pu)' : 'var(--rd)';
+        const ccyBadge = d.ccy === 'JPY' ? '<span style="background:var(--pul);color:var(--pu);font-size:10px;padding:1px 4px;border-radius:4px;font-weight:600;">JPY</span>' :
+                        '<span style="background:var(--rdl);color:var(--rd);font-size:10px;padding:1px 4px;border-radius:4px;font-weight:600;">USD</span>';
+        return`<th style="position:sticky;top:0;z-index:3;background:${ccyBg};padding:0;width:${exp?CW:28}px;min-width:${exp?CW:28}px;cursor:pointer;border-right:1px solid var(--bdr);border-top:3px solid ${ccyBorder};transition:width .2s;" onclick="intTog(${d.id})">
           <div style="padding:4px 4px 3px;text-align:center;overflow:hidden;">
             ${exp?`
+            <div style="margin-bottom:2px;">${ccyBadge}</div>
             <div style="font-size:11px;font-weight:600;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:${CW-6}px;">${bankShort}</div>
             <div style="font-size:11px;color:var(--tx3)">${d.date.slice(5)}</div>
             <div style="font-family:var(--mono);font-size:11px;color:${pc===tc&&tc>0?'var(--gn)':'var(--gd)'};margin-top:1px">${pc}/${tc}</div>
@@ -3405,9 +3418,16 @@ function fundDistRender(targetId) {
   if(!el)return;
   const distFunds = FD.filter(r => r.distType && r.distType !== '無配息')
     .sort((a, b) => {
+      // 1. 幣別優先：USD → JPY → TWD
+      const ccyOrder = { USD: 0, JPY: 1, TWD: 2 };
+      const ca = ccyOrder[a.ccy] ?? 99;
+      const cb = ccyOrder[b.ccy] ?? 99;
+      if (ca !== cb) return ca - cb;
+      // 2. 持有中在前
       const aExit = !!a.exitDate;
       const bExit = !!b.exitDate;
       if (aExit !== bExit) return aExit ? 1 : -1;
+      // 3. 同組依序號
       return (+a.seq||9999) - (+b.seq||9999);
     });
   if (!distFunds.length) {
@@ -3481,11 +3501,20 @@ function fundDistRender(targetId) {
         const cnt=paidCount(r);
         const shortName=r.name.length>10?r.name.slice(0,10)+'…':r.name;
         const w=exp?CW:CW_COL;
-        return`<th style="position:sticky;top:0;z-index:3;background:var(--sur2);min-width:${w}px;width:${w}px;
-            border-right:1px solid var(--bdr);padding:0;cursor:pointer;" onclick="fdTogCol('${r.id}')">
+        // 幣別配色
+        const ccyBg = r.ccy === 'JPY' ? 'rgba(168,85,247,.10)' : r.ccy === 'USD' ? 'rgba(239,68,68,.08)' : 'rgba(34,197,94,.08)';
+        const ccyBorder = r.ccy === 'JPY' ? 'var(--pu)' : r.ccy === 'USD' ? 'var(--rd)' : 'var(--ac)';
+        const ccyBadge = r.ccy === 'JPY' ? '<span style="background:var(--pul);color:var(--pu);font-size:10px;padding:1px 4px;border-radius:4px;font-weight:600;">JPY</span>' :
+                        r.ccy === 'USD' ? '<span style="background:var(--rdl);color:var(--rd);font-size:10px;padding:1px 4px;border-radius:4px;font-weight:600;">USD</span>' :
+                        '<span style="background:var(--gnl);color:var(--gn);font-size:10px;padding:1px 4px;border-radius:4px;font-weight:600;">TWD</span>';
+        return`<th style="position:sticky;top:0;z-index:3;background:${ccyBg};min-width:${w}px;width:${w}px;
+            border-right:1px solid var(--bdr);border-top:3px solid ${ccyBorder};padding:0;cursor:pointer;" onclick="fdTogCol('${r.id}')">
           <div style="padding:4px 4px 3px;text-align:center;overflow:hidden;">
           ${exp?`
-            <div style="font-size:13px;font-weight:700;color:var(--ac);background:var(--gnl);border-radius:8px;padding:1px 4px;display:inline-block;margin-bottom:2px;">#${r.seq||idx+1}</div>
+            <div style="display:flex;justify-content:center;gap:3px;align-items:center;margin-bottom:2px;">
+              <div style="font-size:13px;font-weight:700;color:var(--ac);background:var(--gnl);border-radius:8px;padding:1px 4px;display:inline-block;">#${r.seq||idx+1}</div>
+              ${ccyBadge}
+            </div>
             <div style="font-size:11px;font-weight:600;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:${w-6}px;">${shortName}</div>
             <div style="font-size:11px;color:var(--tx3)">${r.bank}</div>
             <div style="font-size:11px;color:var(--tx3)">${r.date?r.date.replace(/-/g,'/'):''}</div>
@@ -4508,11 +4537,18 @@ function bondDistRender(targetId) {
         const cnt = bondPaidCount(b);
         const shortName = b.name.length > 8 ? b.name.slice(0, 8) + '…' : b.name;
         const w = exp ? CW : CW_COL;
-        return `<th style="position:sticky;top:0;z-index:3;background:var(--sur2);min-width:${w}px;width:${w}px;
-            border-right:1px solid var(--bdr);padding:0;cursor:pointer;" onclick="bdTogCol('${b.id}')">
+        // USD 配色（債券都是 USD）
+        const ccyBg = 'rgba(239,68,68,.08)';
+        const ccyBorder = 'var(--rd)';
+        const ccyBadge = '<span style="background:var(--rdl);color:var(--rd);font-size:10px;padding:1px 4px;border-radius:4px;font-weight:600;">USD</span>';
+        return `<th style="position:sticky;top:0;z-index:3;background:${ccyBg};min-width:${w}px;width:${w}px;
+            border-right:1px solid var(--bdr);border-top:3px solid ${ccyBorder};padding:0;cursor:pointer;" onclick="bdTogCol('${b.id}')">
           <div style="padding:4px 4px 3px;text-align:center;overflow:hidden;">
           ${exp?`
-            <div style="font-size:13px;font-weight:700;color:var(--bl);background:var(--bll);border-radius:8px;padding:1px 4px;display:inline-block;margin-bottom:2px;">#${b.seq||idx+1}</div>
+            <div style="display:flex;justify-content:center;gap:3px;align-items:center;margin-bottom:2px;">
+              <div style="font-size:13px;font-weight:700;color:var(--bl);background:var(--bll);border-radius:8px;padding:1px 4px;display:inline-block;">#${b.seq||idx+1}</div>
+              ${ccyBadge}
+            </div>
             <div style="font-size:11px;font-weight:600;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:${w-6}px;">${shortName}</div>
             <div style="font-size:11px;color:var(--tx3)">${b.bank}</div>
             <div style="font-size:11px;color:var(--tx3)">${b.date?b.date.replace(/-/g,'/'):''}</div>

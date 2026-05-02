@@ -3103,7 +3103,11 @@ function fundRender(){
 
   // tables per ccy (active first, then closed)
   const tableHtml=ccys.map(ccy=>{
-    const rows=FD.filter(r=>r.ccy===ccy).sort((a,b)=>b.date.localeCompare(a.date));
+    const rows=FD.filter(r=>r.ccy===ccy).sort((a,b)=>{
+      const aExit=!!a.exitDate; const bExit=!!b.exitDate;
+      if(aExit!==bExit)return aExit?1:-1;
+      return b.date.localeCompare(a.date);
+    });
     if(!rows.length)return'';
     const sym=ccy==='JPY'?'¥':ccy==='TWD'?'NT$':'$';
     const isJPY=ccy==='JPY';
@@ -3115,13 +3119,13 @@ function fundRender(){
       </div>
       <div class="tw"><table style="font-size:15px;border-collapse:collapse;">
         <thead><tr>
-          ${th('狀態')}${th('買進日')}${th('賣出日')}${th('銀行')}${th('基金名稱')}
+          ${th('#')}${th('狀態')}${th('買進日')}${th('賣出日')}${th('銀行')}${th('基金名稱')}
           ${th('目前淨值')}${th('買淨值')}${th('單位數')}${th('投資金額')}${th('贖回金額')}${th('目前金額')}${th('已領利息')}
           ${th('損益（含息）')}${th('報酬率（含息）')}${th('損益（不含息）')}
           ${th('配息類型')}${th('配息日')}${th('資料來源')}${th('備註')}${th('')}
         </tr></thead>
         <tbody>
-        ${rows.map(r=>{
+        ${rows.map((r,idx)=>{
           const isExit=!!r.exitDate;
           // 目前金額 = 目前淨值 × 單位數（未出場才顯示）
           const curAmt=(!isExit&&r.curNav&&r.units)?r.curNav*r.units:0;
@@ -3138,6 +3142,7 @@ function fundRender(){
           const badge=isExit?`<span class="badge" style="background:var(--sur2);color:var(--tx3);font-size:11px">已出場</span>`
                            :`<span class="badge" style="background:var(--gnl);color:var(--gn);font-size:11px">持有中</span>`;
           return`<tr style="${isExit?'opacity:.8':''}">
+            <td class="mono" style="text-align:center;font-weight:700;color:var(--ac);background:var(--gnl);font-size:14px;width:32px;">#${idx+1}</td>
             <td>${badge}</td>
             <td class="mono" style="white-space:nowrap">${r.date}</td>
             <td class="mono" style="white-space:nowrap;color:var(--tx3)">${r.exitDate||'—'}</td>
@@ -3217,7 +3222,13 @@ function fundDistRender(targetId) {
   const elId = targetId || 'fund-dist-wrap';
   const el = document.getElementById(elId);
   if(!el)return;
-  const distFunds = FD.filter(r => r.distType && r.distType !== '無配息');
+  const distFunds = FD.filter(r => r.distType && r.distType !== '無配息')
+    .sort((a, b) => {
+      const aExit = !!a.exitDate;
+      const bExit = !!b.exitDate;
+      if (aExit !== bExit) return aExit ? 1 : -1;
+      return b.date.localeCompare(a.date);
+    });
   if (!distFunds.length) {
     el.innerHTML = '<div style="text-align:center;padding:48px;color:var(--tx3)">尚無配息基金</div>';
     return;
@@ -3284,7 +3295,7 @@ function fundDistRender(targetId) {
     <tr>
       <th style="position:sticky;top:0;left:0;z-index:5;background:var(--sur2);width:${MW}px;min-width:${MW}px;
           padding:5px 6px;font-size:16px;text-align:center;border-right:3px solid var(--ac2);">月份</th>
-      ${distFunds.map(r=>{
+      ${distFunds.map((r,idx)=>{
         const exp=window._fdExp.has(r.id);
         const cnt=paidCount(r);
         const shortName=r.name.length>10?r.name.slice(0,10)+'…':r.name;
@@ -3293,14 +3304,15 @@ function fundDistRender(targetId) {
             border-right:1px solid var(--bdr);padding:0;cursor:pointer;" onclick="fdTogCol('${r.id}')">
           <div style="padding:4px 4px 3px;text-align:center;overflow:hidden;">
           ${exp?`
+            <div style="font-size:13px;font-weight:700;color:var(--ac);background:var(--gnl);border-radius:8px;padding:1px 4px;display:inline-block;margin-bottom:2px;">#${idx+1}</div>
             <div style="font-size:11px;font-weight:600;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:${w-6}px;">${shortName}</div>
             <div style="font-size:11px;color:var(--tx3)">${r.bank}</div>
-            <div style="font-size:11px;color:var(--tx3)">${r.date?r.date.replace(/-/g,'/'):''}}</div>
+            <div style="font-size:11px;color:var(--tx3)">${r.date?r.date.replace(/-/g,'/'):''}</div>
             <div style="font-size:11px;color:var(--gd);margin-top:1px">${cnt}期</div>
             <div style="display:flex;align-items:center;justify-content:center;gap:4px;margin-top:2px;">
               <span style="font-size:11px;color:var(--ac2)">◀</span>
             </div>
-          `:`<div style="font-size:16px;color:var(--ac2);writing-mode:vertical-rl;margin:4px auto;white-space:nowrap;overflow:hidden;max-height:80px;">▶ ${shortName}</div>`}
+          `:`<div style="font-size:13px;font-weight:700;color:var(--ac);margin:2px 0;">#${idx+1}</div><div style="font-size:14px;color:var(--ac2);writing-mode:vertical-rl;margin:4px auto;white-space:nowrap;overflow:hidden;max-height:80px;">▶ ${shortName}</div>`}
           </div>
         </th>`;
       }).join('')}
@@ -4053,21 +4065,26 @@ function bondRender() {
       </div>
     </div>`;
 
-  const rows = [...BD].sort((a,b) => b.date.localeCompare(a.date));
+  const rows = [...BD].sort((a, b) => {
+    const aExit = !!a.exitDate;
+    const bExit = !!b.exitDate;
+    if (aExit !== bExit) return aExit ? 1 : -1;
+    return b.date.localeCompare(a.date);
+  });
   const th = t => `<th style="white-space:nowrap;font-size:11px;padding:5px 8px">${t}</th>`;
 
   const html = `<div class="card">
     <div class="ch"><span class="ct">🇺🇸 美元公司債 <span style="font-size:13px;color:var(--tx3);font-weight:400">${rows.length} 筆</span></span></div>
     <div class="tw"><table style="font-size:13px;border-collapse:collapse;">
       <thead><tr>
-        ${th('狀態')}${th('買進日')}${th('賣出日')}${th('銀行')}${th('債券名稱')}${th('CUSIP')}
+        ${th('#')}${th('狀態')}${th('買進日')}${th('賣出日')}${th('銀行')}${th('債券名稱')}${th('CUSIP')}
         ${th('到期殖利率')}${th('到期日')}
         ${th('目前價格')}${th('買進價')}${th('面額')}${th('投資總額')}${th('目前/賣出金額')}${th('已領利息')}
         ${th('損益（含息）')}${th('報酬率（含息）')}${th('損益（不含息）')}
         ${th('利率')}${th('配息日')}${th('')}
       </tr></thead>
       <tbody>
-      ${rows.map(r => {
+      ${rows.map((r,idx) => {
         const isExit = !!r.exitDate;
         const sellAmt = isExit
           ? (r.sellAmt || (r.curPrice && r.units ? r.curPrice * r.units / 100 : 0))
@@ -4083,6 +4100,7 @@ function bondRender() {
         const isEstimate = !isExit && sellAmt > 0;
         // 「到期殖利率」原 yield 欄位、「利率」原 coupon 欄位 — 對調名稱顯示
         return `<tr style="${isExit?'opacity:.85':''}">
+          <td class="mono" style="text-align:center;font-weight:700;color:var(--bl);background:var(--bll);font-size:14px;width:32px;">#${idx+1}</td>
           <td>${badge}</td>
           <td class="mono" style="white-space:nowrap">${r.date}</td>
           <td class="mono" style="white-space:nowrap;color:var(--rd)">${r.exitDate||'—'}</td>
@@ -4166,7 +4184,15 @@ function bondDistRender(targetId) {
   if (!el) return;
   if (!BD.length) { el.innerHTML = '<div style="text-align:center;padding:48px;color:var(--tx3)">尚無債券紀錄</div>'; return; }
 
-  if (!window._bdExp) window._bdExp = new Set(BD.map(r => r.id));
+  // 排序：持有中在前，已出場在後，組內依買進日新→舊
+  const sortedBD = [...BD].sort((a, b) => {
+    const aExit = !!a.exitDate;
+    const bExit = !!b.exitDate;
+    if (aExit !== bExit) return aExit ? 1 : -1;
+    return b.date.localeCompare(a.date);
+  });
+
+  if (!window._bdExp) window._bdExp = new Set(sortedsortedBD.map(r => r.id));
 
   // 根據每個債券的 distDates 和買賣日期生成所有配息日
   function getBondPayDates(bond) {
@@ -4195,7 +4221,7 @@ function bondDistRender(targetId) {
 
   // 收集所有月份（取所有債券的配息月份聯集）
   const allYM = new Set();
-  BD.forEach(b => {
+  sortedBD.forEach(b => {
     getBondPayDates(b).forEach(d => allYM.add(d.slice(0,7)));
   });
   const months = [...allYM].sort();
@@ -4205,8 +4231,12 @@ function bondDistRender(targetId) {
   const HEADER_H = 64, INFO_ROW_H = 24;
 
   function bondTotalPaid(b) {
+    // 優先使用配息紀錄表手動輸入的金額
     const recs = Object.values(bdDist[b.id] || {});
-    return recs.reduce((a, d) => a + (d.total || 0), 0);
+    const distTotal = recs.reduce((a, d) => a + (d.total || 0), 0);
+    if (distTotal > 0) return distTotal;
+    // 沒有配息紀錄時，回傳債券管理表的「已領利息」欄位
+    return b.interest || 0;
   }
   function bondAvgRate(b) {
     if (!b.face) return null;
@@ -4237,7 +4267,7 @@ function bondDistRender(targetId) {
     ][li];
   }
 
-  const anyExp = BD.some(b => window._bdExp.has(b.id));
+  const anyExp = sortedBD.some(b => window._bdExp.has(b.id));
 
   let h = `<div class="int-wrap" style="max-height:calc(100vh - 180px);">
   <table class="int-table" style="border-collapse:collapse;">
@@ -4245,7 +4275,7 @@ function bondDistRender(targetId) {
     <tr>
       <th style="position:sticky;top:0;left:0;z-index:5;background:var(--sur2);width:${MW}px;min-width:${MW}px;
           padding:5px 6px;font-size:12px;text-align:center;border-right:3px solid var(--bl);">月份</th>
-      ${BD.map(b => {
+      ${sortedBD.map((b,idx) => {
         const exp = window._bdExp.has(b.id);
         const cnt = bondPaidCount(b);
         const shortName = b.name.length > 8 ? b.name.slice(0, 8) + '…' : b.name;
@@ -4254,12 +4284,13 @@ function bondDistRender(targetId) {
             border-right:1px solid var(--bdr);padding:0;cursor:pointer;" onclick="bdTogCol('${b.id}')">
           <div style="padding:4px 4px 3px;text-align:center;overflow:hidden;">
           ${exp?`
+            <div style="font-size:13px;font-weight:700;color:var(--bl);background:var(--bll);border-radius:8px;padding:1px 4px;display:inline-block;margin-bottom:2px;">#${idx+1}</div>
             <div style="font-size:11px;font-weight:600;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:${w-6}px;">${shortName}</div>
             <div style="font-size:11px;color:var(--tx3)">${b.bank}</div>
             <div style="font-size:11px;color:var(--tx3)">${b.date?b.date.replace(/-/g,'/'):''}</div>
             <div style="font-size:11px;color:var(--gd);margin-top:1px">${cnt}期</div>
             <div style="font-size:11px;color:var(--ac2);margin-top:2px">◀</div>
-          `:`<div style="font-size:12px;color:var(--ac2);writing-mode:vertical-rl;margin:4px auto;white-space:nowrap;overflow:hidden;max-height:80px;">▶ ${shortName}</div>`}
+          `:`<div style="font-size:13px;font-weight:700;color:var(--bl);margin:2px 0;">#${idx+1}</div><div style="font-size:12px;color:var(--ac2);writing-mode:vertical-rl;margin:4px auto;white-space:nowrap;overflow:hidden;max-height:80px;">▶ ${shortName}</div>`}
           </div>
         </th>`;
       }).join('')}
@@ -4271,7 +4302,7 @@ function bondDistRender(targetId) {
           font-size:11px;font-weight:600;color:var(--tx3);padding:3px 6px;white-space:nowrap;
           width:${MW}px;min-width:${MW}px;text-align:right;border-right:3px solid var(--bl);
           ${li===INFO_LABELS.length-1?'border-bottom:3px solid var(--bl);':''}">${lbl}</th>
-      ${BD.map(b => {
+      ${sortedBD.map(b => {
         const exp = window._bdExp.has(b.id);
         const w = exp ? CW : CW_COL;
         return `<th style="position:sticky;top:${HEADER_H+li*INFO_ROW_H}px;z-index:3;
@@ -4294,11 +4325,11 @@ function bondDistRender(targetId) {
     const [y, m] = ym.split('-');
     if (y !== prevY) {
       prevY = y;
-      h += `<tr style="background:var(--bl);"><td colspan="${BD.length + 2}"
+      h += `<tr style="background:var(--bl);"><td colspan="\${sortedBD.length + 2}"
         style="padding:3px 10px;font-size:12px;font-weight:700;color:rgba(255,255,255,.85)">${y} 年</td></tr>`;
     }
     let monthTotals = {};
-    BD.forEach(b => {
+    sortedBD.forEach(b => {
       const d = bdDist[b.id] && bdDist[b.id][ym];
       const payDates = getBondPayDates(b);
       const monthHasPay = payDates.some(dt => dt.startsWith(ym));
@@ -4318,7 +4349,7 @@ function bondDistRender(targetId) {
       <td style="position:sticky;left:0;z-index:2;background:var(--sur2);font-weight:700;font-size:14px;
           text-align:center;padding:5px 4px;border-right:3px solid var(--bl);border-bottom:1px solid var(--bdr);">
         ${parseInt(m)}月</td>
-      ${BD.map(b => {
+      ${sortedBD.map(b => {
         const exp = window._bdExp.has(b.id);
         const w = exp ? CW : CW_COL;
         const d = (bdDist[b.id]||{})[ym] || {};

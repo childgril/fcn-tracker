@@ -4788,42 +4788,62 @@ function overviewRender() {
   // ── 上方三張合併卡 ──
   const topCards = `
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px;min-width:980px;">
-      <div class="card" style="padding:16px;">
-        <div style="font-size:13px;color:var(--tx3);margin-bottom:8px;font-weight:600;">投資金額（合計）</div>
-        <div style="font-size:14px;font-family:var(--mono);line-height:1.7;">
-          ${fmtCcyLines(totalFaceUSD, totalFaceJPY, totalFaceTWD)}
+      <div class="card" style="padding:0;overflow:hidden;border-left:6px solid var(--bl);">
+        <div style="background:var(--bll);padding:12px 16px;">
+          <div style="font-size:18px;font-weight:700;color:var(--bl);">💰 投資金額</div>
+          <div style="font-size:11px;color:var(--tx3);margin-top:2px;">FCN ＋ 基金 ＋ 債券 合計</div>
         </div>
-        <div style="border-top:1px dashed var(--bdr);margin-top:8px;padding-top:8px;">
-          <div style="font-size:11px;color:var(--tx3)">換算台幣總計</div>
-          <div style="font-size:22px;font-weight:700;font-family:var(--mono);">NT$${F(Math.round(totalFaceTwd))}</div>
-        </div>
-      </div>
-      <div class="card" style="padding:16px;">
-        <div style="font-size:13px;color:var(--tx3);margin-bottom:8px;font-weight:600;">已領利息（合計）</div>
-        <div style="font-size:14px;font-family:var(--mono);line-height:1.7;color:var(--gn);">
-          ${fmtCcyLines(totalPaidUSD, totalPaidJPY, totalPaidTWD)}
-        </div>
-        <div style="border-top:1px dashed var(--bdr);margin-top:8px;padding-top:8px;">
-          <div style="font-size:11px;color:var(--tx3)">換算台幣總計</div>
-          <div style="font-size:22px;font-weight:700;font-family:var(--mono);color:var(--gn);">NT$${F(Math.round(totalPaidTwd))}</div>
-        </div>
-      </div>
-      <div class="card" style="padding:16px;">
-        <div style="font-size:13px;color:var(--tx3);margin-bottom:8px;font-weight:600;">已實現損益（合計）</div>
-        <div style="font-size:14px;font-family:var(--mono);line-height:1.7;color:${totalRealizedTwd>=0?'var(--gn)':'var(--rd)'};">
-          ${(totalRealizedUSD||totalRealizedJPY||totalRealizedTWD)?
-            [
-              totalRealizedUSD?`<div class="mono">${totalRealizedUSD>=0?'+':''}USD$${F(Math.round(totalRealizedUSD))}</div>`:'',
-              totalRealizedJPY?`<div class="mono">${totalRealizedJPY>=0?'+':''}¥${F(Math.round(totalRealizedJPY))}</div>`:'',
-              totalRealizedTWD?`<div class="mono">${totalRealizedTWD>=0?'+':''}NT$${F(Math.round(totalRealizedTWD))}</div>`:''
-            ].filter(Boolean).join('') : '<div style="color:var(--tx3)">—</div>'}
-        </div>
-        <div style="border-top:1px dashed var(--bdr);margin-top:8px;padding-top:8px;">
-          <div style="font-size:11px;color:var(--tx3)">換算台幣總計 / 報酬率</div>
-          <div style="font-size:22px;font-weight:700;font-family:var(--mono);color:${totalRealizedTwd>=0?'var(--gn)':'var(--rd)'};">
-            ${totalRealizedTwd>=0?'+':''}NT$${F(Math.round(totalRealizedTwd))}
+        <div style="padding:14px 16px;">
+          <div style="font-size:14px;font-family:var(--mono);line-height:1.7;">
+            ${fmtCcyLines(totalFaceUSD, totalFaceJPY, totalFaceTWD)}
           </div>
-          <div style="font-size:14px;font-weight:600;font-family:var(--mono);color:${totalRealizedTwd>=0?'var(--gn)':'var(--rd)'};">${totalRealizedTwd>=0?'+':''}${totalRealizedRate}%</div>
+          <div style="border-top:1px dashed var(--bdr);margin-top:8px;padding-top:8px;">
+            <div style="font-size:11px;color:var(--tx3)">換算台幣總計</div>
+            <div style="font-size:24px;font-weight:700;font-family:var(--mono);color:var(--bl);">NT$${F(Math.round(totalFaceTwd))}</div>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden;border-left:6px solid var(--gn);">
+        <div style="background:var(--gnl);padding:12px 16px;">
+          <div style="font-size:18px;font-weight:700;color:var(--gn);">💵 已領利息</div>
+          <div style="font-size:11px;color:var(--tx3);margin-top:2px;">FCN ＋ 基金 ＋ 債券 累計</div>
+        </div>
+        <div style="padding:14px 16px;">
+          <div style="font-size:14px;font-family:var(--mono);line-height:1.7;color:var(--gn);">
+            ${fmtCcyLines(totalPaidUSD, totalPaidJPY, totalPaidTWD)}
+          </div>
+          <div style="border-top:1px dashed var(--bdr);margin-top:8px;padding-top:8px;">
+            <div style="font-size:11px;color:var(--tx3)">換算台幣總計</div>
+            <div style="font-size:24px;font-weight:700;font-family:var(--mono);color:var(--gn);">NT$${F(Math.round(totalPaidTwd))}</div>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden;border-left:6px solid ${totalRealizedTwd>=0?'var(--gd)':'var(--rd)'};">
+        <div style="background:${totalRealizedTwd>=0?'var(--gdl)':'var(--rdl)'};padding:12px 16px;">
+          <div style="font-size:18px;font-weight:700;color:${totalRealizedTwd>=0?'var(--gd)':'var(--rd)'};">📊 已實現損益</div>
+          <div style="font-size:11px;color:var(--tx3);margin-top:2px;">已出場部位的盈虧（含息）</div>
+        </div>
+        <div style="padding:14px 16px;">
+          <div style="font-size:14px;font-family:var(--mono);line-height:1.7;color:${totalRealizedTwd>=0?'var(--gn)':'var(--rd)'};">
+            ${(totalRealizedUSD||totalRealizedJPY||totalRealizedTWD)?
+              [
+                totalRealizedUSD?`<div class="mono">${totalRealizedUSD>=0?'+':''}USD$${F(Math.round(totalRealizedUSD))}</div>`:'',
+                totalRealizedJPY?`<div class="mono">${totalRealizedJPY>=0?'+':''}¥${F(Math.round(totalRealizedJPY))}</div>`:'',
+                totalRealizedTWD?`<div class="mono">${totalRealizedTWD>=0?'+':''}NT$${F(Math.round(totalRealizedTWD))}</div>`:''
+              ].filter(Boolean).join('') : '<div style="color:var(--tx3)">—</div>'}
+          </div>
+          <div style="border-top:1px dashed var(--bdr);margin-top:8px;padding-top:8px;display:flex;justify-content:space-between;align-items:flex-end;">
+            <div>
+              <div style="font-size:11px;color:var(--tx3)">換算台幣總計</div>
+              <div style="font-size:24px;font-weight:700;font-family:var(--mono);color:${totalRealizedTwd>=0?'var(--gn)':'var(--rd)'};">
+                ${totalRealizedTwd>=0?'+':''}NT$${F(Math.round(totalRealizedTwd))}
+              </div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:11px;color:var(--tx3)">報酬率</div>
+              <div style="font-size:18px;font-weight:700;font-family:var(--mono);color:${totalRealizedTwd>=0?'var(--gn)':'var(--rd)'};">${totalRealizedTwd>=0?'+':''}${totalRealizedRate}${typeof totalRealizedRate==='string'&&totalRealizedRate==='—'?'':'%'}</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>`;
@@ -5030,12 +5050,12 @@ function overviewRender() {
 
   const cellHtml = (data) => {
     const lines = [];
-    if (data.usd) lines.push(`<div class="mono" style="color:var(--rd)">USD$${F(Math.round(data.usd))}</div>`);
-    if (data.jpy) lines.push(`<div class="mono" style="color:var(--pu)">¥${F(Math.round(data.jpy))}</div>`);
-    if (data.twd) lines.push(`<div class="mono" style="color:var(--ac)">NT$${F(Math.round(data.twd))}</div>`);
-    if (!lines.length) return '<div style="color:var(--tx3);font-size:11px">—</div>';
+    if (data.usd) lines.push(`<div class="mono" style="color:var(--rd);font-size:13px;line-height:1.3;">USD$${F(Math.round(data.usd))}</div>`);
+    if (data.jpy) lines.push(`<div class="mono" style="color:var(--pu);font-size:13px;line-height:1.3;">¥${F(Math.round(data.jpy))}</div>`);
+    if (data.twd) lines.push(`<div class="mono" style="color:var(--ac);font-size:13px;line-height:1.3;">NT$${F(Math.round(data.twd))}</div>`);
+    if (!lines.length) return '<div style="color:var(--tx3);font-size:12px">—</div>';
     const sumTwd = (data.usd||0)*fx + (data.jpy||0)*jpyFx + (data.twd||0);
-    return lines.join('') + (lines.length ? `<div class="mono" style="font-size:10px;color:var(--tx3);border-top:1px dashed var(--bdr);padding-top:2px;margin-top:2px;">≈ NT$${F(Math.round(sumTwd))}</div>` : '');
+    return lines.join('') + `<div class="mono" style="font-size:11px;color:var(--tx3);border-top:1px dashed var(--bdr);padding-top:1px;margin-top:1px;">≈ NT$${F(Math.round(sumTwd))}</div>`;
   };
 
   const monthRows = months12.map((ymKey, i) => {
@@ -5043,35 +5063,35 @@ function overviewRender() {
     const isCurrent = i === 0;
     const data = calcMonthDist(ymKey);
     return `<tr style="background:${isCurrent?'var(--gnl)':''};">
-      <td style="padding:6px 8px;font-weight:600;font-size:13px;border:1px solid var(--bdr);white-space:nowrap;">
-        ${yy}/${parseInt(mm)}月${isCurrent?'<div style="font-size:10px;color:var(--ac);">本月</div>':''}
+      <td style="padding:3px 6px;font-weight:600;font-size:13px;border:1px solid var(--bdr);white-space:nowrap;text-align:center;">
+        ${yy}/${parseInt(mm)}月${isCurrent?'<div style="font-size:10px;color:var(--ac);font-weight:700">本月</div>':''}
       </td>
-      <td style="padding:6px;border:1px solid var(--bdr);font-size:11px;">${cellHtml(data.fcn)}</td>
-      <td style="padding:6px;border:1px solid var(--bdr);font-size:11px;">${cellHtml(data.fund)}</td>
-      <td style="padding:6px;border:1px solid var(--bdr);font-size:11px;">${cellHtml(data.bond)}</td>
-      <td style="padding:6px;border:1px solid var(--bdr);background:${data.total.allTwd?'var(--gnl)':''};font-size:11px;">
+      <td style="padding:3px 6px;border:1px solid var(--bdr);">${cellHtml(data.fcn)}</td>
+      <td style="padding:3px 6px;border:1px solid var(--bdr);">${cellHtml(data.fund)}</td>
+      <td style="padding:3px 6px;border:1px solid var(--bdr);">${cellHtml(data.bond)}</td>
+      <td style="padding:3px 6px;border:1px solid var(--bdr);background:${data.total.allTwd?'var(--gnl)':''};">
         ${data.total.allTwd ? `
-          ${data.total.usd?`<div class="mono" style="color:var(--rd)">USD$${F(Math.round(data.total.usd))}</div>`:''}
-          ${data.total.jpy?`<div class="mono" style="color:var(--pu)">¥${F(Math.round(data.total.jpy))}</div>`:''}
-          ${data.total.twd?`<div class="mono" style="color:var(--ac)">NT$${F(Math.round(data.total.twd))}</div>`:''}
-          <div class="mono" style="font-size:13px;font-weight:700;color:var(--gn);border-top:1px solid var(--bdr);padding-top:3px;margin-top:3px;">NT$${F(Math.round(data.total.allTwd))}</div>
-        ` : '<div style="color:var(--tx3)">—</div>'}
+          ${data.total.usd?`<div class="mono" style="color:var(--rd);font-size:13px;line-height:1.3;">USD$${F(Math.round(data.total.usd))}</div>`:''}
+          ${data.total.jpy?`<div class="mono" style="color:var(--pu);font-size:13px;line-height:1.3;">¥${F(Math.round(data.total.jpy))}</div>`:''}
+          ${data.total.twd?`<div class="mono" style="color:var(--ac);font-size:13px;line-height:1.3;">NT$${F(Math.round(data.total.twd))}</div>`:''}
+          <div class="mono" style="font-size:14px;font-weight:700;color:var(--gn);border-top:1px solid var(--bdr);padding-top:2px;margin-top:2px;">NT$${F(Math.round(data.total.allTwd))}</div>
+        ` : '<div style="color:var(--tx3);font-size:12px">—</div>'}
       </td>
     </tr>`;
   }).join('');
 
   const monthDistHtml = `
     <div class="card" style="padding:14px;margin-bottom:14px;">
-      <div style="font-size:14px;font-weight:600;color:var(--gn);margin-bottom:8px;">📅 本月待配息金額</div>
-      <div style="font-size:11px;color:var(--tx3);margin-bottom:8px;">三個項目分開顯示，最右欄為加總並換算台幣</div>
+      <div style="font-size:18px;font-weight:700;color:var(--gn);margin-bottom:4px;">📅 本月待配息金額</div>
+      <div style="font-size:13px;color:var(--tx3);margin-bottom:10px;">三個項目分開顯示，最右欄為加總並換算台幣</div>
       <div style="overflow-x:auto;">
-        <table style="border-collapse:collapse;font-size:13px;width:100%;">
+        <table style="border-collapse:collapse;font-size:14px;width:auto;">
           <thead><tr style="background:var(--sur2);">
-            <th style="padding:8px;border:1px solid var(--bdr);text-align:center;">月份</th>
-            <th style="padding:8px;border:1px solid var(--bdr);text-align:center;color:var(--ac);">FCN</th>
-            <th style="padding:8px;border:1px solid var(--bdr);text-align:center;color:var(--bl);">基金</th>
-            <th style="padding:8px;border:1px solid var(--bdr);text-align:center;color:var(--gd);">債券</th>
-            <th style="padding:8px;border:1px solid var(--bdr);text-align:center;color:var(--gn);">總計</th>
+            <th style="padding:6px 10px;border:1px solid var(--bdr);text-align:center;font-size:14px;">月份</th>
+            <th style="padding:6px 10px;border:1px solid var(--bdr);text-align:center;color:var(--ac);font-size:14px;">FCN</th>
+            <th style="padding:6px 10px;border:1px solid var(--bdr);text-align:center;color:var(--bl);font-size:14px;">基金</th>
+            <th style="padding:6px 10px;border:1px solid var(--bdr);text-align:center;color:var(--gd);font-size:14px;">債券</th>
+            <th style="padding:6px 10px;border:1px solid var(--bdr);text-align:center;color:var(--gn);font-size:14px;">總計</th>
           </tr></thead>
           <tbody>${monthRows}</tbody>
         </table>
@@ -5079,29 +5099,81 @@ function overviewRender() {
     </div>`;
 
   // ── 流動性 ──
+  // 流動性需要的數據
+  const usdRowItem = (label, val, isPlus) => `
+    <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dotted var(--bdr);">
+      <span style="font-size:14px;color:var(--tx2)">${label}</span>
+      <span class="mono" style="font-size:14px;font-weight:500;color:${isPlus?'var(--gn)':'var(--rd)'};">${isPlus?'+':'−'}USD$${F(Math.round(val))}</span>
+    </div>`;
+  const jpyRowItem = (label, val, isPlus) => `
+    <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dotted var(--bdr);">
+      <span style="font-size:14px;color:var(--tx2)">${label}</span>
+      <span class="mono" style="font-size:14px;font-weight:500;color:${isPlus?'var(--gn)':'var(--rd)'};">${isPlus?'+':'−'}¥${F(Math.round(val))}</span>
+    </div>`;
+
+  // 重算：USD/JPY 各項數據
+  // 「原始換幣總額」= TWD 換到 USD/JPY 的金額（從台幣進來的）
+  const usdFromTwd = (FXL||[]).filter(f => f.fromCcy === 'TWD' && f.toCcy === 'USD').reduce((a, f) => a + f.foreign, 0);
+  const jpyFromTwd = (FXL||[]).filter(f => f.fromCcy === 'TWD' && f.toCcy === 'JPY').reduce((a, f) => a + f.foreign, 0);
+  // 「已換幣」= 從 USD/JPY 換出去的（USD→JPY 或 USD→TWD）
+  const usdSwappedOutToJpy = (FXL||[]).filter(f => f.fromCcy === 'USD' && f.toCcy === 'JPY').reduce((a, f) => a + f.twd, 0); // 這裡 twd 欄位實際存的是 fromAmount
+  const usdSwappedOutToTwd = (FXL||[]).filter(f => f.fromCcy === 'USD' && f.toCcy === 'TWD').reduce((a, f) => a + f.twd, 0);
+  const jpySwappedOutToUsd = (FXL||[]).filter(f => f.fromCcy === 'JPY' && f.toCcy === 'USD').reduce((a, f) => a + f.twd, 0);
+  const jpySwappedOutToTwd = (FXL||[]).filter(f => f.fromCcy === 'JPY' && f.toCcy === 'TWD').reduce((a, f) => a + f.twd, 0);
+
+  // 已配息（各幣別、各類別）
+  const fcnPaidUSDOnly = fcnPaidUSD;
+  const fcnPaidJPYOnly = fcnPaidJPY;
+  const fdPaidUSDOnly = fdInterestUSD;
+  const fdPaidJPYOnly = fdInterestJPY;
+  const bdPaidUSDOnly = bdInterestUSD;
+
+  // 剩餘可用 = 換幣進 + 配息 - 換幣出 - 進行中
+  const usdAvail = usdAcquired + (fcnPaidUSDOnly + fdPaidUSDOnly + bdPaidUSDOnly)
+                  - usdSwappedOutToJpy - usdSwappedOutToTwd
+                  - usdInUseFCN - usdInUseFD - usdInUseBD;
+  const jpyAvail = jpyAcquired + (fcnPaidJPYOnly + fdPaidJPYOnly)
+                  - jpySwappedOutToUsd - jpySwappedOutToTwd
+                  - jpyInUseFCN - jpyInUseFD;
+
   const liquidityCards = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;min-width:600px;">
-      <div class="card" style="padding:14px;">
-        <div style="font-size:14px;font-weight:600;margin-bottom:10px;color:var(--bl);">🇺🇸 USD 目前剩餘可用金額</div>
-        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px 14px;font-size:13px;">
-          <div><span style="color:var(--tx3)">已換取</span></div><div class="mono right">+USD$${F(Math.round(usdAcquired))}</div>
-          <div><span style="color:var(--tx3)">已轉出</span></div><div class="mono right" style="color:var(--rd)">−USD$${F(Math.round(usdSpent))}</div>
-          <div><span style="color:var(--tx3)">FCN 進行中</span></div><div class="mono right" style="color:var(--rd)">−USD$${F(Math.round(usdInUseFCN))}</div>
-          <div><span style="color:var(--tx3)">基金持有</span></div><div class="mono right" style="color:var(--rd)">−USD$${F(Math.round(usdInUseFD))}</div>
-          <div><span style="color:var(--tx3)">債券持有</span></div><div class="mono right" style="color:var(--rd)">−USD$${F(Math.round(usdInUseBD))}</div>
-          <div style="grid-column:span 2;border-top:1px solid var(--bdr);margin:4px 0;"></div>
-          <div style="font-weight:600">剩餘可用</div><div class="mono right" style="color:${usdRemaining>=0?'var(--gn)':'var(--rd)'};font-weight:700;font-size:16px;">USD$${F(Math.round(usdRemaining))}</div>
+      <div class="card" style="padding:0;overflow:hidden;border-left:6px solid var(--rd);">
+        <div style="background:var(--rdl);padding:12px 16px;">
+          <div style="font-size:18px;font-weight:700;color:var(--rd);">🇺🇸 USD 目前剩餘可用金額</div>
+        </div>
+        <div style="padding:14px 16px;">
+          ${usdRowItem('原始換幣總額', usdFromTwd, true)}
+          ${usdRowItem('已換幣（換到日幣／台幣）', usdSwappedOutToJpy + usdSwappedOutToTwd, false)}
+          ${usdRowItem('FCN 進行中', usdInUseFCN, false)}
+          ${usdRowItem('基金進行中', usdInUseFD, false)}
+          ${usdRowItem('債券進行中', usdInUseBD, false)}
+          ${usdRowItem('FCN 已配息', fcnPaidUSDOnly, true)}
+          ${usdRowItem('基金已配息', fdPaidUSDOnly, true)}
+          ${usdRowItem('債券已配息', bdPaidUSDOnly, true)}
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0 4px;border-top:2px solid var(--bdr);margin-top:6px;">
+            <span style="font-size:16px;font-weight:700;color:var(--tx);">剩餘可用金額</span>
+            <span class="mono" style="font-size:22px;font-weight:700;color:${usdAvail>=0?'var(--gn)':'var(--rd)'};">USD$${F(Math.round(usdAvail))}</span>
+          </div>
         </div>
       </div>
-      <div class="card" style="padding:14px;">
-        <div style="font-size:14px;font-weight:600;margin-bottom:10px;color:var(--pu);">🇯🇵 JPY 目前剩餘可用金額</div>
-        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px 14px;font-size:13px;">
-          <div><span style="color:var(--tx3)">已換取</span></div><div class="mono right">+¥${F(Math.round(jpyAcquired))}</div>
-          <div><span style="color:var(--tx3)">已轉出</span></div><div class="mono right" style="color:var(--rd)">−¥${F(Math.round(jpySpent))}</div>
-          <div><span style="color:var(--tx3)">FCN 進行中</span></div><div class="mono right" style="color:var(--rd)">−¥${F(Math.round(jpyInUseFCN))}</div>
-          <div><span style="color:var(--tx3)">基金持有</span></div><div class="mono right" style="color:var(--rd)">−¥${F(Math.round(jpyInUseFD))}</div>
-          <div style="grid-column:span 2;border-top:1px solid var(--bdr);margin:4px 0;"></div>
-          <div style="font-weight:600">剩餘可用</div><div class="mono right" style="color:${jpyRemaining>=0?'var(--gn)':'var(--rd)'};font-weight:700;font-size:16px;">¥${F(Math.round(jpyRemaining))}</div>
+      <div class="card" style="padding:0;overflow:hidden;border-left:6px solid var(--pu);">
+        <div style="background:var(--pul);padding:12px 16px;">
+          <div style="font-size:18px;font-weight:700;color:var(--pu);">🇯🇵 JPY 目前剩餘可用金額</div>
+        </div>
+        <div style="padding:14px 16px;">
+          ${jpyRowItem('原始換幣總額', jpyFromTwd, true)}
+          ${jpyRowItem('已換幣（換到美金／台幣）', jpySwappedOutToUsd + jpySwappedOutToTwd, false)}
+          ${jpyRowItem('FCN 進行中', jpyInUseFCN, false)}
+          ${jpyRowItem('基金進行中', jpyInUseFD, false)}
+          ${jpyRowItem('債券進行中', 0, false)}
+          ${jpyRowItem('FCN 已配息', fcnPaidJPYOnly, true)}
+          ${jpyRowItem('基金已配息', fdPaidJPYOnly, true)}
+          ${jpyRowItem('債券已配息', 0, true)}
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0 4px;border-top:2px solid var(--bdr);margin-top:6px;">
+            <span style="font-size:16px;font-weight:700;color:var(--tx);">剩餘可用金額</span>
+            <span class="mono" style="font-size:22px;font-weight:700;color:${jpyAvail>=0?'var(--gn)':'var(--rd)'};">¥${F(Math.round(jpyAvail))}</span>
+          </div>
         </div>
       </div>
     </div>`;

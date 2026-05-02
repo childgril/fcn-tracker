@@ -418,6 +418,7 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
   </div>
   <div class="card"><div class="tw"><table>
     <thead><tr>
+      <th>#</th>
       <th>狀態</th>
       <th>帳戶</th>
       <th>買進日</th>
@@ -1341,8 +1342,21 @@ function setPriceManual(sym, val){
 }
 
 function renderListTable(rows){
+  // 計算每筆的序號（依音/林分組，每組依買進日由舊到新）
+  const seqMap = {};
+  ['音','林'].forEach(grp => {
+    const g = D.filter(d => d.bank.includes(grp)).slice().sort((a,b) => a.date.localeCompare(b.date));
+    g.forEach((d, i) => { seqMap[d.id] = `${grp}#${i+1}`; });
+  });
+  D.filter(d => !d.bank.includes('音') && !d.bank.includes('林'))
+    .slice().sort((a,b) => a.date.localeCompare(b.date))
+    .forEach((d,i) => { seqMap[d.id] = `其#${i+1}`; });
+
   let html='';
   rows.forEach((d,di)=>{
+    const seq = seqMap[d.id] || '—';
+    const seqColor = seq.startsWith('音') ? 'var(--ac)' : seq.startsWith('林') ? 'var(--bl)' : 'var(--tx3)';
+    const seqBg = seq.startsWith('音') ? 'var(--gnl)' : seq.startsWith('林') ? 'var(--bll)' : 'var(--sur2)';
     const isJPY=d.ccy==='JPY';
     const bg=di%2===0?'':'background:#fafaf8';
     // compute per-investment AKI % thresholds for colour
@@ -1367,6 +1381,7 @@ function renderListTable(rows){
       const pctChg=cur&&s.buy?((cur-s.buy)/s.buy*100):null;
 
       html+=`<tr style="${bg}${rowAlert}">
+        <td class="mono" style="text-align:center;font-weight:700;color:${seqColor};background:${seqBg};font-size:13px;white-space:nowrap;">${i===0?seq:''}</td>
         <td style="white-space:nowrap">${i===0?bdg(d.status):''}</td>
         <td style="white-space:nowrap;font-size:15px">${i===0?d.bank:''}</td>
         <td class="mono" style="white-space:nowrap;font-size:15px">${i===0?d.date:''}</td>
@@ -1515,19 +1530,26 @@ function rint(){
   const INFO_LABELS=['狀態','帳戶','買進日','出場日','幣別・面額','利率・期限','月配息','已領利息'];
   const infoVal=(d,li)=>[
     `<span style="white-space:nowrap;display:inline-block">${bdg(d.status)}</span>`,
-    `<span style="font-size:12px">${d.bank}</span>`,
-    `<span class="mono" style="font-size:12px">${d.date}</span>`,
-    `<span class="mono" style="font-size:12px;color:${d.exitDate?'var(--rd)':'var(--tx3)'}">${d.exitDate||'—'}</span>`,
-    `<span style="font-size:12px">${d.ccy==='JPY'?'<span class="badge bj" style="font-size:11px">JPY</span> ':'<span class="badge bu" style="font-size:11px">USD</span> '}${SY(d.ccy)}${F(d.face)}</span>`,
-    `<span style="font-size:12px;color:var(--bl)">${d.coupon}% · ${d.term}</span>`,
-    `<span class="mono" style="font-size:12px;color:var(--gn)">${SY(d.ccy)}${F(d.monthly,0)}</span>`,
-    `<span class="mono" style="font-size:12px;color:var(--gn)">${SY(d.ccy)}${F((()=>{const ov=d.monthlyOverride||{};return(d.paidDates||[]).reduce((a,dt)=>a+(ov[dt]!==undefined?ov[dt]:d.monthly),0);})(),2)}</span>`,
+    `<span style="font-size:16px">${d.bank}</span>`,
+    `<span class="mono" style="font-size:16px">${d.date}</span>`,
+    `<span class="mono" style="font-size:16px;color:${d.exitDate?'var(--rd)':'var(--tx3)'}">${d.exitDate||'—'}</span>`,
+    `<span style="font-size:16px">${SY(d.ccy)}${F(d.face)}</span>`,
+    `<span style="font-size:16px;color:var(--bl)">${d.coupon}% · ${d.term}</span>`,
+    `<span class="mono" style="font-size:16px;color:var(--gn)">${SY(d.ccy)}${F(d.monthly,0)}</span>`,
+    `<span class="mono" style="font-size:16px;color:var(--gn)">${SY(d.ccy)}${F((()=>{const ov=d.monthlyOverride||{};return(d.paidDates||[]).reduce((a,dt)=>a+(ov[dt]!==undefined?ov[dt]:d.monthly),0);})(),2)}</span>`,
   ][li];
 
   const MW=62,CW=74,TOTAL_CW=82;
   // INFO row height per label row (approx) for sticky offset
   const INFO_ROW_H=24;
   const HEADER_H=52; // approx height of main header row
+
+  // 計算每筆的序號（依音/林分組，依買進日舊到新）
+  const fcnSeqMap = {};
+  ['音','林'].forEach(grp => {
+    const g = D.filter(d => d.bank.includes(grp)).slice().sort((a,b) => a.date.localeCompare(b.date));
+    g.forEach((d, i) => { fcnSeqMap[d.id] = `${grp}#${i+1}`; });
+  });
 
   // ── count info rows to show ──
   const anyExp=rows.some(d=>window._intExp.has(d.id));
@@ -1538,7 +1560,7 @@ function rint(){
   <thead>
     <!-- Main column header row — always sticky at top:0 -->
     <tr>
-      <th style="position:sticky;top:0;left:0;z-index:5;background:var(--sur2);width:${MW}px;min-width:${MW}px;padding:5px 6px;font-size:16px;text-align:center;border-right:3px solid var(--ac2);">月份</th>
+      <th style="position:sticky;top:0;left:0;z-index:5;background:var(--sur2);width:${MW}px;min-width:${MW}px;padding:5px 6px;font-size:13px;text-align:center;border-right:3px solid var(--ac2);">月份</th>
       ${rows.map(d=>{
         const pc=(d.paidDates||[]).length,tc=d.payDates.length;
         const exp=window._intExp.has(d.id);
@@ -1547,6 +1569,9 @@ function rint(){
           const m=d.bank.match(/^(音|林)－(.+)$/);
           return m?`${m[2]}-${m[1]}`:d.bank;
         })();
+        const seq = fcnSeqMap[d.id] || '—';
+        const seqColor = seq.startsWith('音') ? 'var(--ac)' : seq.startsWith('林') ? 'var(--bl)' : 'var(--tx3)';
+        const seqBg2 = seq.startsWith('音') ? 'var(--gnl)' : seq.startsWith('林') ? 'var(--bll)' : 'var(--sur2)';
         // 幣別配色
         const ccyBg = d.ccy === 'JPY' ? 'var(--pul)' : 'var(--rdl)';
         const ccyBorder = d.ccy === 'JPY' ? 'var(--pu)' : 'var(--rd)';
@@ -1555,7 +1580,10 @@ function rint(){
         return`<th style="position:sticky;top:0;z-index:3;background:${ccyBg};padding:0;width:${exp?CW:28}px;min-width:${exp?CW:28}px;cursor:pointer;border-right:1px solid var(--bdr);border-top:3px solid ${ccyBorder};transition:width .2s;" onclick="intTog(${d.id})">
           <div style="padding:4px 4px 3px;text-align:center;overflow:hidden;">
             ${exp?`
-            <div style="margin-bottom:2px;">${ccyBadge}</div>
+            <div style="display:flex;justify-content:center;gap:3px;align-items:center;margin-bottom:2px;">
+              <div style="font-size:13px;font-weight:700;color:${seqColor};background:${seqBg2};border-radius:8px;padding:1px 4px;display:inline-block;">${seq}</div>
+              ${ccyBadge}
+            </div>
             <div style="font-size:11px;font-weight:600;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:${CW-6}px;">${bankShort}</div>
             <div style="font-size:11px;color:var(--tx3)">${d.date.slice(5)}</div>
             <div style="font-family:var(--mono);font-size:11px;color:${pc===tc&&tc>0?'var(--gn)':'var(--gd)'};margin-top:1px">${pc}/${tc}</div>
@@ -1563,8 +1591,8 @@ function rint(){
               <span style="font-size:11px;color:var(--ac2)">◀</span>
               <span style="font-size:11px;color:var(--tx3);cursor:pointer;" onclick="event.stopPropagation();editPayDates(${d.id})" title="編輯配息日">✎</span>
             </div>
-            ${isClosed?'<div style="font-size:8px;color:var(--tx3);margin-top:1px">🔒已出場</div>':''}
-            `:`<div style="font-size:16px;color:var(--ac2);writing-mode:vertical-rl;text-orientation:mixed;margin:4px auto;white-space:nowrap;overflow:hidden;max-height:60px;">▶ ${bankShort}</div>`}
+            ${isClosed?'<div style="font-size:11px;color:var(--tx3);margin-top:1px">🔒已出場</div>':''}
+            `:`<div style="font-size:13px;font-weight:700;color:${seqColor};margin:2px 0;">${seq}</div><div style="font-size:14px;color:var(--ac2);writing-mode:vertical-rl;text-orientation:mixed;margin:4px auto;white-space:nowrap;overflow:hidden;max-height:60px;">▶ ${bankShort}</div>`}
           </div>
         </th>`;
       }).join('')}
@@ -1599,25 +1627,21 @@ function rint(){
         // 取得這個月的實際金額（可能有覆寫）
         const overrides=d.monthlyOverride||{};
         const monthAmt=overrides[dt]!==undefined?overrides[dt]:d.monthly;
-        // 已出場：鎖住，不能點擊
-        if(isClosed){
-          return`<td class="int-cell ${paid?'paid':'pend'}" onclick="togPaidForce(${d.id},'${dt}')" oncontextmenu="editMonthAmt(event,${d.id},'${dt}',${monthAmt})" title="左鍵切換已收；右鍵修改金額（已出場仍可修改）" style="border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);min-width:${exp?CW:28}px;width:${exp?CW:28}px;vertical-align:middle;opacity:.75;">
-            <div class="int-cell-inner">
-              ${exp?`
-              <div style="font-size:11px;color:${paid?'var(--gn)':'var(--tx3)'};margin-bottom:1px">${dt}</div>
-              <div class="ia" style="font-family:var(--mono);font-size:13px">${SY(d.ccy)}${F(monthAmt,2)}</div>
-              <div style="font-size:11px;margin-top:1px;color:${paid?'var(--gn)':'var(--tx3)'}">🔒${paid?'已收':'—'}</div>
-              `:`<div style="font-size:14px;color:${paid?'var(--gn)':'var(--tx3)'}">${paid?'✓':'—'}</div>`}
-            </div>
-          </td>`;
-        }
-        return`<td class="int-cell ${paid?'paid':'pend'}" onclick="togPaid(${d.id},'${dt}')" oncontextmenu="editMonthAmt(event,${d.id},'${dt}',${monthAmt})" title="左鍵切換已收；右鍵修改金額" style="border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);min-width:${exp?CW:28}px;width:${exp?CW:28}px;vertical-align:middle;">
-          <div class="int-cell-inner">
-            ${exp?`
-            <div style="font-size:11px;color:${paid?'var(--gn)':'var(--tx3)'};margin-bottom:1px">${dt}</div>
-            <div class="ia" style="font-family:var(--mono);font-size:13px">${SY(d.ccy)}${F(monthAmt,2)}</div>
-            <div style="font-size:11px;margin-top:1px;color:${paid?'var(--gn)':'var(--gd)'}">${paid?'✓ 已收':'待收'}${overrides[dt]!==undefined?' ✎':''}</div>
-            `:`<div style="font-size:14px;color:${paid?'var(--gn)':'var(--gd)'}">${paid?'✓':'●'}</div>`}
+        // 已收 = 綠底 + 金額 + 已確認
+        // 待收 = 淡色預估金額 + 預估標記
+        return`<td onclick="fcnDistEdit(${d.id},'${dt}')" 
+          style="border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);
+          min-width:${exp?CW:28}px;width:${exp?CW:28}px;cursor:pointer;vertical-align:middle;
+          background:${paid?'var(--gnl)':'rgba(34,197,94,.05)'};${isClosed?'opacity:.75;':''}">
+          <div style="padding:4px 5px;font-size:12px;text-align:${exp?'left':'center'};">
+          ${paid?(exp?`
+            <div class="mono" style="font-weight:600;color:var(--gn)">${SY(d.ccy)}${F(monthAmt,2)}</div>
+            <div style="color:var(--gn);font-size:11px">${overrides[dt]!==undefined?'✓ 已確認 ✎':'✓ 已確認'}</div>
+          `:`<div style="color:var(--gn);font-size:12px">✓</div>`)
+          :(exp?`
+            <div class="mono" style="color:var(--ac2);font-weight:500">${SY(d.ccy)}${F(monthAmt,2)}</div>
+            <div style="color:var(--tx3);font-size:11px">預估${overrides[dt]!==undefined?' ✎':''}</div>
+          `:`<div style="color:var(--ac2);font-size:11px">~</div>`)}
           </div>
         </td>`;
       }).join('')}
@@ -1649,6 +1673,72 @@ function togPaid(id,dt){
 // 已出場投資也可以修改（左鍵切換）
 function togPaidForce(id,dt){
   togPaid(id,dt);
+}
+
+// FCN 配息紀錄：點擊格子開啟 Modal（類似債券配息）
+function fcnDistEdit(id, dt) {
+  const d = D.find(x => x.id === id);
+  if (!d) return;
+  const ov = d.monthlyOverride || {};
+  const isPaid = (d.paidDates || []).includes(dt);
+  const defaultAmt = d.monthly || 0;
+  const currentAmt = ov[dt] !== undefined ? ov[dt] : defaultAmt;
+
+  const html = `
+    <div style="font-size:15px;font-weight:600;margin-bottom:12px;">
+      ${d.bank}<br>
+      <span style="font-size:13px;color:var(--tx3);font-weight:400">配息日 ${dt}</span>
+    </div>
+    <div class="fg" style="margin-bottom:10px;">
+      <div class="fgrp">
+        <label>系統預設配息</label>
+        <input type="text" value="${SY(d.ccy)}${F(defaultAmt,2)}" readonly style="background:var(--sur2);font-family:var(--mono);">
+        <div class="hint" style="color:var(--bl)">月配 / 季配等預設</div>
+      </div>
+      <div class="fgrp">
+        <label style="color:var(--gn)">實際配息金額（可修改）</label>
+        <input type="number" id="fcn-dist-amt" value="${currentAmt}" step="0.01">
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;padding:8px;background:var(--gnl);border-radius:6px;">
+      <input type="checkbox" id="fcn-dist-paid" ${isPaid?'checked':''} style="width:18px;height:18px;cursor:pointer;">
+      <label for="fcn-dist-paid" style="cursor:pointer;font-size:14px;font-weight:600;color:var(--gn);">已收到配息</label>
+    </div>`;
+
+  const modal = document.createElement('div');
+  modal.className = 'mo open';
+  modal.innerHTML = `<div class="mb2" style="width:520px;">
+    ${html}
+    <div class="mba">
+      <button class="btn" onclick="this.closest('.mo').remove()">取消</button>
+      <button class="btn btnp" onclick="fcnDistSave(${id},'${dt}',this)">儲存</button>
+    </div>
+  </div>`;
+  modal.onclick = e => { if (e.target === modal) modal.remove(); };
+  document.body.appendChild(modal);
+}
+
+function fcnDistSave(id, dt, btn) {
+  const d = D.find(x => x.id === id);
+  if (!d) return;
+  const amt = parseFloat(document.getElementById('fcn-dist-amt').value) || 0;
+  const isPaid = document.getElementById('fcn-dist-paid').checked;
+
+  if (!d.monthlyOverride) d.monthlyOverride = {};
+  if (!d.paidDates) d.paidDates = [];
+
+  // 金額：如果跟預設一致，刪除覆寫；否則記入
+  if (amt === d.monthly) delete d.monthlyOverride[dt];
+  else d.monthlyOverride[dt] = amt;
+
+  // 已收狀態
+  const wasPaid = d.paidDates.includes(dt);
+  if (isPaid && !wasPaid) d.paidDates.push(dt);
+  else if (!isPaid && wasPaid) d.paidDates = d.paidDates.filter(x => x !== dt);
+
+  save();
+  btn.closest('.mo').remove();
+  rint();
 }
 
 function editMonthAmt(e,id,dt,cur){
@@ -4559,7 +4649,7 @@ function bondDistRender(targetId) {
         </th>`;
       }).join('')}
       <th style="position:sticky;top:0;z-index:3;background:var(--sur2);
-          padding:4px 8px;white-space:nowrap;
+          padding:4px 6px;white-space:nowrap;
           border-left:3px solid var(--bl);font-size:11px;font-weight:600;color:var(--tx3);text-align:center;">當月合計</th>
     </tr>
     ${INFO_LABELS.map((lbl,li) => `<tr class="int-info-row" style="${anyExp?'':'display:none'}">
@@ -4644,7 +4734,7 @@ function bondDistRender(targetId) {
         </td>`;
       }).join('')}
       <td style="border-left:3px solid var(--bl);border-bottom:1px solid var(--bdr);
-          text-align:center;padding:4px 8px;white-space:nowrap;
+          text-align:center;padding:4px 6px;white-space:nowrap;
           background:${Object.keys(monthTotals).length?'var(--gnl)':'var(--bg)'};">
         ${totHtml}
       </td>

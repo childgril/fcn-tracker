@@ -4785,9 +4785,14 @@ function overviewRender() {
     return lines.length ? lines.join('') : '<div style="color:var(--tx3)">—</div>';
   };
 
-  // ── 上方三張合併卡 ──
+  // ── 上方三張合併卡（整體框起來） ──
   const topCards = `
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px;min-width:980px;">
+    <div style="border:2px solid var(--ac);border-radius:12px;padding:14px;margin-bottom:14px;background:linear-gradient(180deg, rgba(34,197,94,.04) 0%, transparent 100%);min-width:980px;">
+      <div style="font-size:14px;font-weight:700;color:var(--ac);margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+        <span style="display:inline-block;width:4px;height:18px;background:var(--ac);border-radius:2px;"></span>
+        FCN ＋ 基金 ＋ 債券 整體合計
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;">
       <div class="card" style="padding:0;overflow:hidden;border-left:6px solid var(--bl);">
         <div style="background:var(--bll);padding:12px 16px;">
           <div style="font-size:18px;font-weight:700;color:var(--bl);">💰 投資金額</div>
@@ -4846,40 +4851,41 @@ function overviewRender() {
           </div>
         </div>
       </div>
+      </div>
     </div>`;
 
   // ── 三類分開卡片 ──
   const renderCard = (cfg) => `
-    <div class="card" style="padding:14px;border-left:4px solid ${cfg.color};">
-      <div style="font-size:16px;font-weight:700;color:${cfg.color};margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
-        <span>${cfg.title}</span>
-        <span style="font-size:12px;color:var(--tx3);font-weight:400;">${cfg.statusLine}</span>
+    <div class="card" style="padding:0;overflow:hidden;border:2px solid ${cfg.color};">
+      <div style="background:${cfg.bgColor};padding:12px 16px;display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:20px;font-weight:800;color:${cfg.color};">${cfg.title}</span>
+        <span style="font-size:12px;color:var(--tx2);">${cfg.statusLine}</span>
       </div>
-      <div style="font-size:12px;">
+      <div style="padding:12px;">
         <!-- 投資金額 -->
-        <div style="margin-bottom:10px;">
-          <div style="color:var(--tx3);font-size:11px;margin-bottom:2px;">投資金額</div>
-          <div style="font-family:var(--mono);">${cfg.faceLines}</div>
-          <div style="font-family:var(--mono);color:var(--tx3);font-size:11px;border-top:1px dashed var(--bdr);padding-top:3px;margin-top:3px;">≈ NT$${F(Math.round(cfg.faceTwd))}</div>
+        <div style="border-left:4px solid var(--bl);background:var(--bll);padding:8px 10px;border-radius:6px;margin-bottom:10px;">
+          <div style="font-size:14px;font-weight:700;color:var(--bl);margin-bottom:4px;">💰 投資金額</div>
+          <div style="font-family:var(--mono);font-size:13px;line-height:1.5;">${cfg.faceLines}</div>
+          <div style="font-family:var(--mono);color:var(--bl);font-size:13px;font-weight:600;border-top:1px dashed var(--bdr);padding-top:3px;margin-top:3px;">≈ NT$${F(Math.round(cfg.faceTwd))}</div>
         </div>
         <!-- 已領利息 -->
-        <div style="margin-bottom:10px;">
-          <div style="color:var(--tx3);font-size:11px;margin-bottom:2px;">已領利息</div>
-          <div style="font-family:var(--mono);color:var(--gn);">${cfg.paidLines}</div>
-          <div style="font-family:var(--mono);color:var(--gn);opacity:.7;font-size:11px;border-top:1px dashed var(--bdr);padding-top:3px;margin-top:3px;">≈ NT$${F(Math.round(cfg.paidTwd))}</div>
+        <div style="border-left:4px solid var(--gn);background:var(--gnl);padding:8px 10px;border-radius:6px;margin-bottom:10px;">
+          <div style="font-size:14px;font-weight:700;color:var(--gn);margin-bottom:4px;">💵 已領利息</div>
+          <div style="font-family:var(--mono);font-size:13px;line-height:1.5;color:var(--gn);">${cfg.paidLines}</div>
+          <div style="font-family:var(--mono);color:var(--gn);font-size:13px;font-weight:600;border-top:1px dashed var(--bdr);padding-top:3px;margin-top:3px;">≈ NT$${F(Math.round(cfg.paidTwd))}</div>
         </div>
         <!-- 已實現損益 -->
-        <div style="margin-bottom:10px;">
-          <div style="color:var(--tx3);font-size:11px;margin-bottom:2px;">已實現損益</div>
-          <div style="font-family:var(--mono);color:${cfg.realizedTwd>=0?'var(--gn)':'var(--rd)'};">${cfg.realizedLines}</div>
-          <div style="font-family:var(--mono);color:${cfg.realizedTwd>=0?'var(--gn)':'var(--rd)'};opacity:.7;font-size:11px;border-top:1px dashed var(--bdr);padding-top:3px;margin-top:3px;">≈ NT$${F(Math.round(cfg.realizedTwd))}${cfg.realizedRate?` / ${cfg.realizedRate}`:''}</div>
+        <div style="border-left:4px solid ${cfg.realizedTwd>=0?'var(--gd)':'var(--rd)'};background:${cfg.realizedTwd>=0?'var(--gdl)':'var(--rdl)'};padding:8px 10px;border-radius:6px;margin-bottom:10px;">
+          <div style="font-size:14px;font-weight:700;color:${cfg.realizedTwd>=0?'var(--gd)':'var(--rd)'};margin-bottom:4px;">📊 已實現損益</div>
+          <div style="font-family:var(--mono);font-size:13px;line-height:1.5;color:${cfg.realizedTwd>=0?'var(--gn)':'var(--rd)'};">${cfg.realizedLines}</div>
+          <div style="font-family:var(--mono);color:${cfg.realizedTwd>=0?'var(--gn)':'var(--rd)'};font-size:13px;font-weight:600;border-top:1px dashed var(--bdr);padding-top:3px;margin-top:3px;">≈ NT$${F(Math.round(cfg.realizedTwd))}${cfg.realizedRate?` / ${cfg.realizedRate}`:''}</div>
         </div>
         <!-- 未出場金額 -->
-        <div style="background:${cfg.bgColor};border-radius:8px;padding:8px 10px;">
-          <div style="color:var(--tx3);font-size:11px;margin-bottom:2px;">未出場金額</div>
-          <div style="font-family:var(--mono);color:var(--bl);">${cfg.activeLines}</div>
-          <div style="font-family:var(--mono);color:var(--bl);opacity:.7;font-size:11px;border-top:1px dashed var(--bdr);padding-top:3px;margin-top:3px;">≈ NT$${F(Math.round(cfg.activeTwd))}</div>
-          ${cfg.estRemainingLines?`<div style="margin-top:4px;color:var(--gd);font-size:11px;">預估未領利息 ${cfg.estRemainingLines}</div>`:''}
+        <div style="border-left:4px solid var(--ac);background:rgba(34,197,94,.08);padding:8px 10px;border-radius:6px;">
+          <div style="font-size:14px;font-weight:700;color:var(--ac);margin-bottom:4px;">📦 未出場金額</div>
+          <div style="font-family:var(--mono);font-size:13px;line-height:1.5;color:var(--bl);">${cfg.activeLines}</div>
+          <div style="font-family:var(--mono);color:var(--bl);font-size:13px;font-weight:600;border-top:1px dashed var(--bdr);padding-top:3px;margin-top:3px;">≈ NT$${F(Math.round(cfg.activeTwd))}</div>
+          ${cfg.estRemainingLines?`<div style="margin-top:4px;color:var(--gd);font-size:12px;font-weight:500;">預估未領利息 ${cfg.estRemainingLines}</div>`:''}
         </div>
       </div>
     </div>`;
@@ -4947,7 +4953,12 @@ function overviewRender() {
   const bdActiveLines = bdHeldFaceUSD?`<div>USD$${F(Math.round(bdHeldFaceUSD))}</div>`:'<div style="color:var(--tx3)">—</div>';
 
   const typeCards = `
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px;min-width:980px;">
+    <div style="margin-bottom:14px;min-width:980px;">
+      <div style="font-size:14px;font-weight:700;color:var(--tx2);margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+        <span style="display:inline-block;width:4px;height:18px;background:var(--tx2);border-radius:2px;"></span>
+        各項目細部分析
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;">
       ${renderCard({
         title: 'FCN', color: 'var(--ac)', bgColor: 'var(--gnl)',
         statusLine: `進行中 ${fcnActive.length}${fcnHold.length?` / 承接 ${fcnHold.length}`:''} / 已出場 ${fcnClosed.length}`,
@@ -4975,6 +4986,7 @@ function overviewRender() {
         activeLines: bdActiveLines, activeTwd: bdHeldTwd,
         estRemainingLines: '',
       })}
+      </div>
     </div>`;
 
   // ── 本月待配息（表格：月份 × FCN/基金/債券/總計）──
@@ -5048,52 +5060,64 @@ function overviewRender() {
     return { fcn, fund, bond, total: { usd: totalUsd, jpy: totalJpy, twd: totalTwd, allTwd: totalAllTwd } };
   };
 
-  const cellHtml = (data) => {
+  // 預先計算所有月份資料
+  const monthsData = months12.map(ymKey => calcMonthDist(ymKey));
+
+  // 共用 cell 渲染：橫向版本（內容單行 / 多幣別）
+  const cellHorizontal = (data, type) => {
     const lines = [];
-    if (data.usd) lines.push(`<div class="mono" style="color:var(--rd);font-size:13px;line-height:1.3;">USD$${F(Math.round(data.usd))}</div>`);
-    if (data.jpy) lines.push(`<div class="mono" style="color:var(--pu);font-size:13px;line-height:1.3;">¥${F(Math.round(data.jpy))}</div>`);
-    if (data.twd) lines.push(`<div class="mono" style="color:var(--ac);font-size:13px;line-height:1.3;">NT$${F(Math.round(data.twd))}</div>`);
+    if (data.usd) lines.push(`<div class="mono" style="color:var(--rd);font-size:12px;line-height:1.2;">USD$${F(Math.round(data.usd))}</div>`);
+    if (data.jpy) lines.push(`<div class="mono" style="color:var(--pu);font-size:12px;line-height:1.2;">¥${F(Math.round(data.jpy))}</div>`);
+    if (data.twd) lines.push(`<div class="mono" style="color:var(--ac);font-size:12px;line-height:1.2;">NT$${F(Math.round(data.twd))}</div>`);
     if (!lines.length) return '<div style="color:var(--tx3);font-size:12px">—</div>';
     const sumTwd = (data.usd||0)*fx + (data.jpy||0)*jpyFx + (data.twd||0);
-    return lines.join('') + `<div class="mono" style="font-size:11px;color:var(--tx3);border-top:1px dashed var(--bdr);padding-top:1px;margin-top:1px;">≈ NT$${F(Math.round(sumTwd))}</div>`;
+    return lines.join('') + `<div class="mono" style="font-size:11px;color:var(--tx3);border-top:1px dashed var(--bdr);padding-top:1px;margin-top:1px;">≈NT$${F(Math.round(sumTwd))}</div>`;
   };
 
-  const monthRows = months12.map((ymKey, i) => {
-    const [yy, mm] = ymKey.split('-');
-    const isCurrent = i === 0;
-    const data = calcMonthDist(ymKey);
-    return `<tr style="background:${isCurrent?'var(--gnl)':''};">
-      <td style="padding:3px 6px;font-weight:600;font-size:13px;border:1px solid var(--bdr);white-space:nowrap;text-align:center;">
-        ${yy}/${parseInt(mm)}月${isCurrent?'<div style="font-size:10px;color:var(--ac);font-weight:700">本月</div>':''}
-      </td>
-      <td style="padding:3px 6px;border:1px solid var(--bdr);">${cellHtml(data.fcn)}</td>
-      <td style="padding:3px 6px;border:1px solid var(--bdr);">${cellHtml(data.fund)}</td>
-      <td style="padding:3px 6px;border:1px solid var(--bdr);">${cellHtml(data.bond)}</td>
-      <td style="padding:3px 6px;border:1px solid var(--bdr);background:${data.total.allTwd?'var(--gnl)':''};">
-        ${data.total.allTwd ? `
-          ${data.total.usd?`<div class="mono" style="color:var(--rd);font-size:13px;line-height:1.3;">USD$${F(Math.round(data.total.usd))}</div>`:''}
-          ${data.total.jpy?`<div class="mono" style="color:var(--pu);font-size:13px;line-height:1.3;">¥${F(Math.round(data.total.jpy))}</div>`:''}
-          ${data.total.twd?`<div class="mono" style="color:var(--ac);font-size:13px;line-height:1.3;">NT$${F(Math.round(data.total.twd))}</div>`:''}
-          <div class="mono" style="font-size:14px;font-weight:700;color:var(--gn);border-top:1px solid var(--bdr);padding-top:2px;margin-top:2px;">NT$${F(Math.round(data.total.allTwd))}</div>
-        ` : '<div style="color:var(--tx3);font-size:12px">—</div>'}
-      </td>
-    </tr>`;
-  }).join('');
+  const cellTotal = (data) => {
+    if (!data.total.allTwd) return '<div style="color:var(--tx3);font-size:12px">—</div>';
+    let html = '';
+    if (data.total.usd) html += `<div class="mono" style="color:var(--rd);font-size:12px;line-height:1.2;">USD$${F(Math.round(data.total.usd))}</div>`;
+    if (data.total.jpy) html += `<div class="mono" style="color:var(--pu);font-size:12px;line-height:1.2;">¥${F(Math.round(data.total.jpy))}</div>`;
+    if (data.total.twd) html += `<div class="mono" style="color:var(--ac);font-size:12px;line-height:1.2;">NT$${F(Math.round(data.total.twd))}</div>`;
+    html += `<div class="mono" style="font-size:13px;font-weight:700;color:var(--gn);border-top:1px solid var(--bdr);padding-top:2px;margin-top:2px;">NT$${F(Math.round(data.total.allTwd))}</div>`;
+    return html;
+  };
 
   const monthDistHtml = `
     <div class="card" style="padding:14px;margin-bottom:14px;">
       <div style="font-size:18px;font-weight:700;color:var(--gn);margin-bottom:4px;">📅 本月待配息金額</div>
-      <div style="font-size:13px;color:var(--tx3);margin-bottom:10px;">三個項目分開顯示，最右欄為加總並換算台幣</div>
+      <div style="font-size:13px;color:var(--tx3);margin-bottom:10px;">每列為一個項目（FCN ／ 基金 ／ 債券 ／ 總計），每欄為一個月</div>
       <div style="overflow-x:auto;">
         <table style="border-collapse:collapse;font-size:14px;width:auto;">
           <thead><tr style="background:var(--sur2);">
-            <th style="padding:6px 10px;border:1px solid var(--bdr);text-align:center;font-size:14px;">月份</th>
-            <th style="padding:6px 10px;border:1px solid var(--bdr);text-align:center;color:var(--ac);font-size:14px;">FCN</th>
-            <th style="padding:6px 10px;border:1px solid var(--bdr);text-align:center;color:var(--bl);font-size:14px;">基金</th>
-            <th style="padding:6px 10px;border:1px solid var(--bdr);text-align:center;color:var(--gd);font-size:14px;">債券</th>
-            <th style="padding:6px 10px;border:1px solid var(--bdr);text-align:center;color:var(--gn);font-size:14px;">總計</th>
+            <th style="padding:6px 10px;border:1px solid var(--bdr);text-align:center;font-size:14px;position:sticky;left:0;background:var(--sur2);z-index:2;">項目</th>
+            ${months12.map((ymKey, i) => {
+              const [yy, mm] = ymKey.split('-');
+              const isCurrent = i === 0;
+              return `<th style="padding:6px 8px;border:1px solid var(--bdr);text-align:center;font-size:13px;white-space:nowrap;${isCurrent?'background:var(--gnl);color:var(--ac);':''}">
+                ${yy}/${parseInt(mm)}月${isCurrent?'<div style="font-size:10px;color:var(--ac);font-weight:700;">本月</div>':''}
+              </th>`;
+            }).join('')}
           </tr></thead>
-          <tbody>${monthRows}</tbody>
+          <tbody>
+            <tr>
+              <td style="padding:4px 10px;border:1px solid var(--bdr);font-weight:700;color:var(--ac);position:sticky;left:0;background:var(--bg);font-size:14px;">FCN</td>
+              ${monthsData.map(d => `<td style="padding:3px 6px;border:1px solid var(--bdr);min-width:80px;">${cellHorizontal(d.fcn)}</td>`).join('')}
+            </tr>
+            <tr>
+              <td style="padding:4px 10px;border:1px solid var(--bdr);font-weight:700;color:var(--bl);position:sticky;left:0;background:var(--bg);font-size:14px;">基金</td>
+              ${monthsData.map(d => `<td style="padding:3px 6px;border:1px solid var(--bdr);min-width:80px;">${cellHorizontal(d.fund)}</td>`).join('')}
+            </tr>
+            <tr>
+              <td style="padding:4px 10px;border:1px solid var(--bdr);font-weight:700;color:var(--gd);position:sticky;left:0;background:var(--bg);font-size:14px;">債券</td>
+              ${monthsData.map(d => `<td style="padding:3px 6px;border:1px solid var(--bdr);min-width:80px;">${cellHorizontal(d.bond)}</td>`).join('')}
+            </tr>
+            <tr style="background:var(--gnl);">
+              <td style="padding:4px 10px;border:1px solid var(--bdr);font-weight:700;color:var(--gn);position:sticky;left:0;background:var(--gnl);font-size:14px;">總計</td>
+              ${monthsData.map(d => `<td style="padding:3px 6px;border:1px solid var(--bdr);min-width:80px;background:${d.total.allTwd?'var(--gnl)':''};">${cellTotal(d)}</td>`).join('')}
+            </tr>
+          </tbody>
         </table>
       </div>
     </div>`;
@@ -5155,6 +5179,9 @@ function overviewRender() {
             <span style="font-size:16px;font-weight:700;color:var(--tx);">剩餘可用金額</span>
             <span class="mono" style="font-size:22px;font-weight:700;color:${usdAvail>=0?'var(--gn)':'var(--rd)'};">USD$${F(Math.round(usdAvail))}</span>
           </div>
+          <div style="text-align:right;font-size:13px;color:var(--tx3);margin-top:2px;">
+            ≈ <span class="mono" style="color:${usdAvail>=0?'var(--gn)':'var(--rd)'};font-weight:600;">NT$${F(Math.round(usdAvail*fx))}</span>
+          </div>
         </div>
       </div>
       <div class="card" style="padding:0;overflow:hidden;border-left:6px solid var(--pu);">
@@ -5173,6 +5200,9 @@ function overviewRender() {
           <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0 4px;border-top:2px solid var(--bdr);margin-top:6px;">
             <span style="font-size:16px;font-weight:700;color:var(--tx);">剩餘可用金額</span>
             <span class="mono" style="font-size:22px;font-weight:700;color:${jpyAvail>=0?'var(--gn)':'var(--rd)'};">¥${F(Math.round(jpyAvail))}</span>
+          </div>
+          <div style="text-align:right;font-size:13px;color:var(--tx3);margin-top:2px;">
+            ≈ <span class="mono" style="color:${jpyAvail>=0?'var(--gn)':'var(--rd)'};font-weight:600;">NT$${F(Math.round(jpyAvail*jpyFx))}</span>
           </div>
         </div>
       </div>

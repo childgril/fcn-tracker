@@ -3704,13 +3704,13 @@ function fundDistRender(targetId) {
         return`<td onclick="fundDistEdit('${r.id}','${ym}')"
           style="border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);
           min-width:${w}px;width:${w}px;cursor:pointer;vertical-align:middle;
-          background:${hasData?'var(--gnl)':'var(--bg)'};">
+          background:${hasData?'var(--gdl)':'var(--bg)'};">
           <div style="padding:4px 5px;font-size:16px;text-align:${exp?'left':'center'};">
           ${hasData?(exp?`
-            <div class="mono" style="font-weight:600;color:var(--gn)">${sym}${F(d.total,2)}</div>
+            <div class="mono" style="font-weight:600;color:var(--gd)">${sym}${F(d.total,2)}</div>
             ${d.units?`<div style="color:var(--tx3);font-size:11px">${F(d.units,0)}u × ${d.perUnit||'—'}</div>`:''}
             ${d.rate?`<div style="color:var(--bl);font-size:11px">${d.rate}%</div>`:''}
-          `:`<div style="color:var(--gn);font-size:16px">✓</div>`)
+          `:`<div style="color:var(--gd);font-size:16px">✓</div>`)
           :(exp?`<div style="color:var(--tx3);text-align:center">＋</div>`
                :`<div style="color:var(--tx3)">+</div>`)}
           </div>
@@ -4757,12 +4757,12 @@ function bondDistRender(targetId) {
         return `<td onclick="bondDistEdit('${b.id}','${ym}')"
           style="border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);
           min-width:${w}px;width:${w}px;cursor:pointer;vertical-align:middle;
-          background:${hasData?'var(--gnl)':(estAmt?'rgba(34,197,94,.05)':'var(--bg)')};">
+          background:${hasData?'var(--gdl)':(estAmt?'rgba(34,197,94,.05)':'var(--bg)')};">
           <div style="padding:4px 5px;font-size:12px;text-align:${exp?'left':'center'};">
           ${hasData?(exp?`
-            <div class="mono" style="font-weight:600;color:var(--gn)">USD$${F(d.total,2)}</div>
-            ${d.note?`<div style="color:var(--tx3);font-size:11px">${d.note}</div>`:'<div style="color:var(--gn);font-size:11px">已確認</div>'}
-          `:`<div style="color:var(--gn);font-size:12px">✓</div>`)
+            <div class="mono" style="font-weight:600;color:var(--gd)">USD$${F(d.total,2)}</div>
+            ${d.note?`<div style="color:var(--tx3);font-size:11px">${d.note}</div>`:'<div style="color:var(--gd);font-size:11px">✓ 已確認</div>'}
+          `:`<div style="color:var(--gd);font-size:12px">✓</div>`)
           :(estAmt?(exp?`
             <div class="mono" style="color:var(--ac2);font-weight:500">USD$${F(estAmt,2)}</div>
             <div style="color:var(--tx3);font-size:11px">預估</div>

@@ -1026,6 +1026,11 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
       <div class="fgrp"><label>損益（自動）</label><input type="text" id="bm-pl" readonly style="background:var(--sur2);font-family:var(--mono)"></div>
       <div class="fgrp"><label>報酬率（自動）</label><input type="text" id="bm-plPct" readonly style="background:var(--sur2);font-family:var(--mono)"></div>
     </div>
+    <div class="fgrp" style="margin-bottom:10px;">
+      <label>查價網址（如 TradingView、FINRA）</label>
+      <input type="url" id="bm-url" placeholder="https://tw.tradingview.com/symbols/SWB-US...">
+      <div class="hint">貼上方便手動查詢目前價格的網址</div>
+    </div>
     <div class="fgrp" style="margin-bottom:14px;"><label>備註</label><input type="text" id="bm-note" placeholder=""></div>
     <div class="mba">
       <button class="btn" onclick="bondCloseForm()">取消</button>
@@ -4147,7 +4152,7 @@ const BD_DEFAULT = [
   {id:'bd10',date:'2024-09-16',exitDate:'',bank:'達-國泰',ccy:'USD',name:'英特爾 INTC 5.9 2063/2/10',isin:'US458140CK47',cusip:'458140CK4',
    buyPrice:102.15,units:50000,face:153225,fx:31.88,twd:4884813,curPrice:95.39,interest:0,
    coupon:'5.90%',yield:'',maturity:'2063-02-10',distFreq:'半年',distDates:'2/10, 8/10',
-   couponAmt:4410,holdYears:38,note:''},
+   couponAmt:4410,holdYears:38,url:'https://tw.tradingview.com/symbols/SWB-US458140CK47/',note:''},
 ];
 
 let BD = JSON.parse(localStorage.getItem('fcnBD') || 'null');
@@ -4236,7 +4241,7 @@ function bondOpenForm(id) {
     const r = BD.find(x => x.id === id);
     if (r) {
       document.getElementById('bm-seq').value = r.seq || '';
-      ['date','exitDate','bank','isin','cusip','name','coupon','yield','maturity','distFreq','distDates','note']
+      ['date','exitDate','bank','isin','cusip','name','coupon','yield','maturity','distFreq','distDates','url','note']
         .forEach(f => { const el=document.getElementById('bm-'+f); if(el) el.value=r[f]||''; });
       ['buyPrice','units','face','fx','twd','curPrice','interest','couponAmt','holdYears']
         .forEach(f => { const el=document.getElementById('bm-'+f); if(el) el.value=r[f]||''; });
@@ -4244,7 +4249,7 @@ function bondOpenForm(id) {
     }
   } else {
     document.getElementById('bm-date').value = new Date().toISOString().slice(0,10);
-    ['bm-seq','bm-exitDate','bm-bank','bm-isin','bm-cusip','bm-name','bm-coupon','bm-yield','bm-maturity','bm-distDates','bm-note',
+    ['bm-seq','bm-exitDate','bm-bank','bm-isin','bm-cusip','bm-name','bm-coupon','bm-yield','bm-maturity','bm-distDates','bm-url','bm-note',
      'bm-buyPrice','bm-units','bm-face','bm-curPrice','bm-interest','bm-couponAmt','bm-holdYears']
       .forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
     document.getElementById('bm-fx').value = getFX().toFixed(2);
@@ -4284,6 +4289,7 @@ function bondSave() {
     distDates: document.getElementById('bm-distDates').value.trim(),
     couponAmt: parseFloat(document.getElementById('bm-couponAmt').value) || 0,
     holdYears: parseFloat(document.getElementById('bm-holdYears').value) || 0,
+    url: document.getElementById('bm-url').value.trim(),
     note: document.getElementById('bm-note').value.trim(),
   };
   r.twd = r.face * r.fx;
@@ -4306,8 +4312,18 @@ function bondDelete(id) {
 function bondEditPrice(id) {
   const r = BD.find(x => x.id === id);
   if (!r) return;
-  if (r.cusip && confirm('開啟 FINRA 頁面查詢價格？\n'+r.name)) {
-    window.open(`https://www.finra.org/finra-data/fixed-income/bond?cusip=${r.cusip}&bondType=CA`, '_blank');
+  // 優先使用使用者設定的網址，沒有再用 FINRA
+  let openUrl = '';
+  let urlLabel = '';
+  if (r.url) {
+    openUrl = r.url;
+    urlLabel = '自訂查價網址';
+  } else if (r.cusip) {
+    openUrl = `https://www.finra.org/finra-data/fixed-income/bond?cusip=${r.cusip}&bondType=CA`;
+    urlLabel = 'FINRA 頁面';
+  }
+  if (openUrl && confirm(`開啟${urlLabel}查詢價格？\n\n${r.name}\n\n${openUrl}`)) {
+    window.open(openUrl, '_blank');
   }
   const v = prompt(`${r.name}\n請輸入目前價格：`, r.curPrice || '');
   if (v === null) return;

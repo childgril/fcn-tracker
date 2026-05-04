@@ -1635,12 +1635,12 @@ function rint(){
         return`<td onclick="fcnDistEdit(${d.id},'${dt}')" 
           style="border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);
           min-width:${exp?CW:28}px;width:${exp?CW:28}px;cursor:pointer;vertical-align:middle;
-          background:${paid?'var(--gnl)':'rgba(34,197,94,.05)'};${isClosed?'opacity:.75;':''}">
+          background:${paid?'var(--gdl)':'rgba(34,197,94,.05)'};${isClosed?'opacity:.75;':''}">
           <div style="padding:4px 5px;font-size:12px;text-align:${exp?'left':'center'};">
           ${paid?(exp?`
-            <div class="mono" style="font-weight:600;color:var(--gn)">${SY(d.ccy)}${F(monthAmt,2)}</div>
-            ${note?`<div style="color:var(--tx3);font-size:11px">${note}</div>`:'<div style="color:var(--gn);font-size:11px">已確認</div>'}
-          `:`<div style="color:var(--gn);font-size:12px">✓</div>`)
+            <div class="mono" style="font-weight:600;color:var(--gd)">${SY(d.ccy)}${F(monthAmt,2)}</div>
+            ${note?`<div style="color:var(--tx3);font-size:11px">${note}</div>`:'<div style="color:var(--gd);font-size:11px">✓ 已確認</div>'}
+          `:`<div style="color:var(--gd);font-size:12px">✓</div>`)
           :(exp?`
             <div class="mono" style="color:var(--ac2);font-weight:500">${SY(d.ccy)}${F(monthAmt,2)}</div>
             <div style="color:var(--tx3);font-size:11px">預估</div>

@@ -1741,20 +1741,23 @@ function fcnDistSave(id, dt, btn) {
   if (!d.monthNote) d.monthNote = {};
   if (!d.paidDates) d.paidDates = [];
 
-  // 金額：跟預設一致就刪除覆寫，否則記入
   if (amt === d.monthly) delete d.monthlyOverride[dt];
   else d.monthlyOverride[dt] = amt;
 
-  // 備註
   if (note) d.monthNote[dt] = note;
   else delete d.monthNote[dt];
 
-  // 自動標記為已收（儲存等於確認）
   if (!d.paidDates.includes(dt)) d.paidDates.push(dt);
 
   save();
   btn.closest('.mo').remove();
+  const wrap = document.querySelector('.int-wrap');
+  const st = wrap?.scrollTop || 0, sl = wrap?.scrollLeft || 0;
   rint();
+  setTimeout(() => {
+    const nw = document.querySelector('.int-wrap');
+    if (nw) { nw.scrollTop = st; nw.scrollLeft = sl; }
+  }, 0);
 }
 
 function fcnDistDelete(id, dt, btn) {
@@ -1766,7 +1769,13 @@ function fcnDistDelete(id, dt, btn) {
   if (d.monthNote) delete d.monthNote[dt];
   save();
   btn.closest('.mo').remove();
+  const wrap = document.querySelector('.int-wrap');
+  const st = wrap?.scrollTop || 0, sl = wrap?.scrollLeft || 0;
   rint();
+  setTimeout(() => {
+    const nw = document.querySelector('.int-wrap');
+    if (nw) { nw.scrollTop = st; nw.scrollLeft = sl; }
+  }, 0);
 }
 
 function editMonthAmt(e,id,dt,cur){
@@ -3560,9 +3569,23 @@ function fundDistRender(targetId) {
   const allDates = distFunds.map(r => new Date(r.date)).filter(d => !isNaN(d));
   const minDate = new Date(Math.min(...allDates));
   const maxDate = new Date(); maxDate.setMonth(maxDate.getMonth() + 2);
+  // 收集所有有手動填寫資料的月份，擴展範圍
+  const extraMonths = new Set();
+  distFunds.forEach(r => {
+    Object.keys(fdDist[r.id] || {}).forEach(ym => {
+      if (ym && /^\d{4}-\d{2}$/.test(ym)) extraMonths.add(ym);
+    });
+  });
+  let extendedMin = minDate, extendedMax = maxDate;
+  extraMonths.forEach(ym => {
+    const [y, m] = ym.split('-').map(Number);
+    const d = new Date(y, m - 1, 1);
+    if (d < extendedMin) extendedMin = d;
+    if (d > extendedMax) extendedMax = d;
+  });
   const months = [];
-  let cur = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
-  while (cur <= maxDate) {
+  let cur = new Date(extendedMin.getFullYear(), extendedMin.getMonth(), 1);
+  while (cur <= extendedMax) {
     months.push(`${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,'0')}`);
     cur.setMonth(cur.getMonth() + 1);
   }
@@ -3700,7 +3723,8 @@ function fundDistRender(targetId) {
         const exitYM=r.exitDate&&/^\d{4}-\d{2}/.test(r.exitDate)?r.exitDate.slice(0,7):'9999-12';
         const inRange=ym>=buyYM&&ym<=exitYM;
         if(!inRange)return`<td style="border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);
-          background:var(--bg);min-width:${w}px;width:${w}px;"></td>`;
+          background:#3a3530;min-width:${w}px;width:${w}px;color:#7a7570;text-align:center;font-size:12px;vertical-align:middle;">
+          <span style="opacity:.5">—</span></td>`;
         return`<td onclick="fundDistEdit('${r.id}','${ym}')"
           style="border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);
           min-width:${w}px;width:${w}px;cursor:pointer;vertical-align:middle;
@@ -3853,7 +3877,16 @@ function fdDistSave(fundId, ym, face, btn) {
   fdDist[fundId][ym] = { units, perUnit, total, rate, note, updatedAt: new Date().toISOString() };
   saveFdDist();
   btn.closest('.mo').remove();
+  // 保留 scroll 位置
+  const wrap = document.querySelector('.int-wrap');
+  const scrollTop = wrap?.scrollTop || 0;
+  const scrollLeft = wrap?.scrollLeft || 0;
   ['fund-dist-wrap','funddist-wrap'].forEach(id=>{if(document.getElementById(id))fundDistRender(id);});
+  // 還原 scroll
+  setTimeout(() => {
+    const newWrap = document.querySelector('.int-wrap');
+    if (newWrap) { newWrap.scrollTop = scrollTop; newWrap.scrollLeft = scrollLeft; }
+  }, 0);
 }
 
 function fdDistDelete(fundId, ym, btn) {
@@ -3861,7 +3894,15 @@ function fdDistDelete(fundId, ym, btn) {
   if (fdDist[fundId]) delete fdDist[fundId][ym];
   saveFdDist();
   btn.closest('.mo').remove();
+  // 保留 scroll 位置
+  const wrap = document.querySelector('.int-wrap');
+  const scrollTop = wrap?.scrollTop || 0;
+  const scrollLeft = wrap?.scrollLeft || 0;
   ['fund-dist-wrap','funddist-wrap'].forEach(id=>{if(document.getElementById(id))fundDistRender(id);});
+  setTimeout(() => {
+    const newWrap = document.querySelector('.int-wrap');
+    if (newWrap) { newWrap.scrollTop = scrollTop; newWrap.scrollLeft = scrollLeft; }
+  }, 0);
 }
 function exportData(){
   const data={
@@ -4844,7 +4885,13 @@ function bdDistSave(bondId, ym, btn) {
   bdDist[bondId][ym] = { total, note, updatedAt: new Date().toISOString() };
   saveBdDist();
   btn.closest('.mo').remove();
+  const wrap = document.querySelector('.int-wrap');
+  const st = wrap?.scrollTop || 0, sl = wrap?.scrollLeft || 0;
   ['bonddist-wrap'].forEach(id => { if (document.getElementById(id)) bondDistRender(id); });
+  setTimeout(() => {
+    const nw = document.querySelector('.int-wrap');
+    if (nw) { nw.scrollTop = st; nw.scrollLeft = sl; }
+  }, 0);
 }
 
 function bdDistDelete(bondId, ym, btn) {
@@ -4852,7 +4899,13 @@ function bdDistDelete(bondId, ym, btn) {
   if (bdDist[bondId]) delete bdDist[bondId][ym];
   saveBdDist();
   btn.closest('.mo').remove();
+  const wrap = document.querySelector('.int-wrap');
+  const st = wrap?.scrollTop || 0, sl = wrap?.scrollLeft || 0;
   ['bonddist-wrap'].forEach(id => { if (document.getElementById(id)) bondDistRender(id); });
+  setTimeout(() => {
+    const nw = document.querySelector('.int-wrap');
+    if (nw) { nw.scrollTop = st; nw.scrollLeft = sl; }
+  }, 0);
 }
 
 

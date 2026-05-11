@@ -3722,7 +3722,7 @@ function fundDistRender(targetId) {
         const buyYM=r.date?r.date.slice(0,7):'9999-99';
         const exitYM=r.exitDate&&/^\d{4}-\d{2}/.test(r.exitDate)?r.exitDate.slice(0,7):'9999-12';
         const inRange=ym>=buyYM&&ym<=exitYM;
-        if(!inRange)return`<td onclick="fundDistEdit('${r.id}','${ym}')"
+        if(!inRange && !hasData)return`<td onclick="fundDistEdit('${r.id}','${ym}')"
           style="border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);
           background:var(--sur2);min-width:${w}px;width:${w}px;cursor:pointer;vertical-align:middle;opacity:.6;">
           <div style="padding:4px 5px;font-size:14px;text-align:center;color:var(--tx3);">＋</div>

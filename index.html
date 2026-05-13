@@ -463,6 +463,7 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
     <div><div class="pt">報價 FCN</div><div class="ps">記錄每日銀行報價，自動帶出股價並計算保護價／承購價／出場價</div></div>
     <div style="display:flex;gap:8px;">
       <button class="btn btnsm" onclick="quoteFetchAll()">↻ 更新全部股價</button>
+      <button class="btn btnsm" onclick="quoteImportOpen()" style="background:var(--bll);border-color:var(--bl);color:var(--bl);">📋 匯入文字/圖片</button>
       <button class="btn btnp btnsm" onclick="quoteOpenForm()">＋ 新增報價</button>
     </div>
   </div>
@@ -471,6 +472,46 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
   <div id="qt-us-wrap" style="margin-bottom:16px;"></div>
   <!-- ── 日股表格 ── -->
   <div id="qt-jp-wrap"></div>
+</div>
+
+<!-- 匯入文字/圖片 Modal -->
+<div class="mo" id="quote-import-modal" onclick="if(event.target===this)quoteImportClose()">
+  <div class="mb2" style="width:680px;max-height:90vh;overflow-y:auto;">
+    <h3 style="margin-bottom:14px;">📋 匯入報價（自動解析）</h3>
+    <div style="background:var(--bll);border-radius:8px;padding:12px;margin-bottom:14px;font-size:13px;color:var(--tx2);">
+      <div style="font-weight:600;margin-bottom:6px;color:var(--bl);">支援格式</div>
+      <div style="margin-bottom:6px;">
+        <strong>文字</strong>：貼上 LINE 訊息（含表情符號或純文字），自動解析日期、銀行、發行、標的、Strike、EKI、KO、Coupon、天期
+      </div>
+      <div>
+        <strong>圖片</strong>：上傳截圖，自動 OCR 辨識欄位（需網路）
+      </div>
+    </div>
+    <div class="fgrp" style="margin-bottom:10px;">
+      <label>📝 貼上文字</label>
+      <textarea id="qm-import-text" rows="10" placeholder="🌟5/13 FCN
+🌟UBS（T+7)
+🌟20萬美金成單
+✅連結標的
+AMD
+LITE
+MU
+✅3M
+✅Strike：70%
+✅EKI：55%
+✅KO：90%
+✅Coupon：35.96%" style="width:100%;font-family:var(--mono);font-size:13px;padding:8px;"></textarea>
+    </div>
+    <div class="fgrp" style="margin-bottom:14px;">
+      <label>🖼 或上傳圖片（OCR 辨識）</label>
+      <input type="file" id="qm-import-img" accept="image/*" onchange="quoteImportImage(this)">
+      <div class="hint" id="qm-ocr-status" style="color:var(--bl)"></div>
+    </div>
+    <div class="mba">
+      <button class="btn" onclick="quoteImportClose()">取消</button>
+      <button class="btn btnp" onclick="quoteImportParse()">解析並開啟新增表單</button>
+    </div>
+  </div>
 </div>
 
 <!-- 報價輸入 Modal -->
@@ -2560,6 +2601,202 @@ function qmGetTerm(){
 function qmGetKoType(){
   const v=document.getElementById('qm-kotype').value;
   return v==='__'?document.getElementById('qm-kotype-txt').value.trim():v;
+}
+
+// ─── 匯入文字／圖片 解析 ──────────────────────────────
+function quoteImportOpen() {
+  document.getElementById('qm-import-text').value = '';
+  document.getElementById('qm-import-img').value = '';
+  document.getElementById('qm-ocr-status').textContent = '';
+  document.getElementById('quote-import-modal').classList.add('open');
+}
+function quoteImportClose() {
+  document.getElementById('quote-import-modal').classList.remove('open');
+}
+
+async function quoteImportImage(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const status = document.getElementById('qm-ocr-status');
+  status.textContent = '⏳ 載入 OCR 引擎中...';
+  try {
+    // 動態載入 Tesseract.js
+    if (!window.Tesseract) {
+      await new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+        s.onload = resolve;
+        s.onerror = reject;
+        document.head.appendChild(s);
+      });
+    }
+    status.textContent = '⏳ OCR 辨識中...請稍候 10-30 秒';
+    const { data: { text } } = await window.Tesseract.recognize(file, 'chi_tra+eng', {
+      logger: m => {
+        if (m.status === 'recognizing text') {
+          status.textContent = `⏳ OCR 辨識中... ${Math.round(m.progress * 100)}%`;
+        }
+      }
+    });
+    status.textContent = '✓ 辨識完成，請檢查並修正下方文字';
+    document.getElementById('qm-import-text').value = text;
+  } catch (e) {
+    status.textContent = '✗ OCR 失敗：' + e.message;
+  }
+}
+
+function quoteImportParse() {
+  const text = document.getElementById('qm-import-text').value.trim();
+  if (!text) { alert('請貼上文字或上傳圖片'); return; }
+
+  const parsed = parseQuoteText(text);
+
+  // 關閉匯入 modal，開啟新增 modal 並預填
+  quoteImportClose();
+  quoteOpenForm();
+
+  // 預填欄位
+  setTimeout(() => {
+    if (parsed.date) document.getElementById('qm-date').value = parsed.date;
+    if (parsed.issuer) document.getElementById('qm-issuer').value = parsed.issuer;
+    if (parsed.term) {
+      const sel = document.getElementById('qm-term-sel');
+      const opts = [...sel.options].map(o => o.value);
+      if (opts.includes(parsed.term)) {
+        sel.value = parsed.term;
+      } else {
+        sel.value = '__';
+        document.getElementById('qm-term-txt').style.display = 'block';
+        document.getElementById('qm-term-txt').value = parsed.term;
+      }
+    }
+    if (parsed.coupon !== null) document.getElementById('qm-coupon').value = parsed.coupon;
+    if (parsed.strike !== null) document.getElementById('qm-strike').value = parsed.strike;
+    if (parsed.eki !== null) document.getElementById('qm-aki').value = parsed.eki;
+    if (parsed.ko !== null) document.getElementById('qm-ko').value = parsed.ko;
+    if (parsed.market) document.getElementById('qm-market').value = parsed.market;
+    if (parsed.koType) {
+      const koSel = document.getElementById('qm-kotype');
+      if ([...koSel.options].some(o=>o.value===parsed.koType)) koSel.value = parsed.koType;
+    }
+    if (parsed.aktMonths !== null) {
+      const el = document.getElementById('qm-guaranteed');
+      if (el) el.value = parsed.aktMonths;
+    }
+    // 連結標的：填入 qm-syms 用空格分隔
+    if (parsed.stocks && parsed.stocks.length) {
+      const symsEl = document.getElementById('qm-syms');
+      if (symsEl) symsEl.value = parsed.stocks.map(s => s.name).join(' ');
+    }
+    alert(`✓ 已自動填入 ${Object.keys(parsed).filter(k=>parsed[k]!==null&&parsed[k]!==undefined).length} 個欄位\n請檢查並調整其他欄位後儲存`);
+  }, 100);
+}
+
+function parseQuoteText(text) {
+  const result = {
+    date: null, issuer: null, term: null,
+    coupon: null, strike: null, eki: null, ko: null,
+    market: 'US', koType: null, aktMonths: null,
+    stocks: []
+  };
+
+  // 日期：5/13 或 5月12日 或 2025/5/13
+  let dm = text.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+  if (dm) {
+    result.date = `${dm[1]}-${String(dm[2]).padStart(2,'0')}-${String(dm[3]).padStart(2,'0')}`;
+  } else {
+    dm = text.match(/(\d{1,2})\s*[\/月]\s*(\d{1,2})\s*[日號]?/);
+    if (dm) {
+      const y = new Date().getFullYear();
+      result.date = `${y}-${String(dm[1]).padStart(2,'0')}-${String(dm[2]).padStart(2,'0')}`;
+    }
+  }
+
+  // 發行機構
+  const issuerMatch = text.match(/(UBS|瑞銀|野村|Nomura|JPM|花旗|Citi|高盛|GS|Morgan|MS|HSBC|匯豐|MSCI|BNP|Barclays|巴克萊|SocGen|興業|RBC|Deutsche|德銀)[^\n]*?(?=[\n\r]|$)/i);
+  if (issuerMatch) result.issuer = issuerMatch[0].split(/[（(\n]/)[0].trim();
+
+  // 天期：3M / 6M / 12M
+  const termMatch = text.match(/(\d{1,2})\s*M(?![a-zA-Z])/);
+  if (termMatch) result.term = termMatch[1] + 'M';
+  else {
+    // 天期(月)：6
+    const tm2 = text.match(/天期[（(]?月[）)]?[\s\S]{0,10}?(\d{1,2})/);
+    if (tm2) result.term = tm2[1] + 'M';
+  }
+
+  // Coupon / 年息
+  const couponMatch = text.match(/(?:Coupon|年息|配息率)[：:\s]*(\d+(?:\.\d+)?)\s*%?/i);
+  if (couponMatch) result.coupon = parseFloat(couponMatch[1]);
+
+  // Strike / 執行價
+  const strikeMatch = text.match(/(?:Strike|執行價)[：:\s]*(\d+(?:\.\d+)?)\s*%?/i);
+  if (strikeMatch) result.strike = parseFloat(strikeMatch[1]);
+
+  // EKI / 下限價 / KI
+  const ekiMatch = text.match(/(?:EKI|KI|下限價|Knock\s*In)[：:\s]*(\d+(?:\.\d+)?)\s*%?/i);
+  if (ekiMatch) result.eki = parseFloat(ekiMatch[1]);
+
+  // KO / 自動提前出場價 / Knock Out
+  const koMatch = text.match(/(?:KO|自動提前出場價|Knock\s*Out)[：:\s]*(\d+(?:\.\d+)?)\s*%?/i);
+  if (koMatch) result.ko = parseFloat(koMatch[1]);
+
+  // 提前出場類型：Daily / Monthly / Memory
+  if (/Daily\s*Memory/i.test(text)) result.koType = 'Daily Memory';
+  else if (/Monthly\s*Memory/i.test(text)) result.koType = 'Monthly Memory';
+  else if (/Daily/i.test(text)) result.koType = 'Daily';
+  else if (/Monthly/i.test(text)) result.koType = 'Monthly';
+
+  // 保證領息月數
+  const aktM = text.match(/保證領息(?:月數)?[：:\s]*(\d+)/);
+  if (aktM) result.aktMonths = parseInt(aktM[1]);
+
+  // 連結標的：抓出常見的股票代號
+  // 美股代號（2-5 字母大寫）；日股 7203/9984 等 4 位數
+  const stockPatterns = [
+    /\b([A-Z]{2,5})\s+UN\b/g,  // TSM UN
+    /\b([A-Z]{2,5})\s+UW\b/g,  // NVDA UW
+    /\b([A-Z]{2,5})\s+UR\b/g,
+    /\b([A-Z]{2,5})\s+UQ\b/g,
+  ];
+
+  const stockSet = new Set();
+  // 從表情符號 / 標題後找股票
+  const lines = text.split(/[\n\r]+/);
+  let inStockSection = false;
+  for (const line of lines) {
+    const t = line.trim();
+    if (/連結標的|標的|股票|underlying/i.test(t)) { inStockSection = true; continue; }
+    if (inStockSection) {
+      // 抓出每行的股票代號
+      const cleanLine = t.replace(/[✅✓🌟⭐■□●○◆◇★☆▪️·•·]+/g, '').trim();
+      if (!cleanLine) { continue; }
+      // 跳到下一個區段
+      if (/[：:]/.test(cleanLine) && !/^[A-Z]+\s*[:：]/.test(cleanLine)) { inStockSection = false; continue; }
+      // 抓「TSM UN」或「TSM」或「7203」
+      const stockMatch = cleanLine.match(/^([A-Z]{1,5}|\d{4})(?:\s+(?:UN|UW|UR|UQ|JT|US))?(?:\s+台積電|\s+輝達|.+)?$/);
+      if (stockMatch) {
+        stockSet.add(stockMatch[1]);
+      } else if (/^[A-Z]{1,5}$/.test(cleanLine)) {
+        stockSet.add(cleanLine);
+      }
+    }
+  }
+
+  // 用 patterns 補抓
+  stockPatterns.forEach(p => {
+    let m;
+    while ((m = p.exec(text)) !== null) stockSet.add(m[1]);
+  });
+
+  result.stocks = [...stockSet].slice(0, 6).map(name => ({ name }));
+
+  // 判斷市場
+  if (result.stocks.some(s => /^\d{4}$/.test(s.name)) || /日股|JPY|JT/.test(text)) {
+    result.market = 'JP';
+  }
+
+  return result;
 }
 
 function quoteOpenForm(id){

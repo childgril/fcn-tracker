@@ -4054,15 +4054,15 @@ function fundDistRender(targetId) {
   if(!el)return;
   const distFunds = FD.filter(r => r.distType && r.distType !== '無配息')
     .sort((a, b) => {
-      // 1. 幣別優先：USD → JPY → TWD
+      // 1. 持有中在前，已出場在後
+      const aExit = !!a.exitDate;
+      const bExit = !!b.exitDate;
+      if (aExit !== bExit) return aExit ? 1 : -1;
+      // 2. 幣別優先：USD → JPY → TWD
       const ccyOrder = { USD: 0, JPY: 1, TWD: 2 };
       const ca = ccyOrder[a.ccy] ?? 99;
       const cb = ccyOrder[b.ccy] ?? 99;
       if (ca !== cb) return ca - cb;
-      // 2. 持有中在前
-      const aExit = !!a.exitDate;
-      const bExit = !!b.exitDate;
-      if (aExit !== bExit) return aExit ? 1 : -1;
       // 3. 同組依序號
       return (+a.seq||9999) - (+b.seq||9999);
     });
@@ -4201,14 +4201,90 @@ function fundDistRender(targetId) {
   </thead>
   <tbody>`;
 
+  // ── 計算未來 6 個月預估配息 ──
+  const today = new Date();
+  const forecastMonths = [];
+  for (let i = 0; i < 6; i++) {
+    const d = new Date(today.getFullYear(), today.getMonth() + i, 1);
+    forecastMonths.push({ y: d.getFullYear(), m: d.getMonth() + 1, key: `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}` });
+  }
+  const forecastByMonth = forecastMonths.map(fm => {
+    let usd = 0, jpy = 0, twd = 0;
+    distFunds.forEach(r => {
+      if (r.exitDate) return;
+      // 已收過的不算
+      const existing = fdDist[r.id] && fdDist[r.id][fm.key];
+      if (existing && existing.total) return;
+      // 用每單位配息 × 單位數估算
+      if (!r.distPerUnit || !r.units) return;
+      // 判斷該月是否為配息月（簡單估：月配每月、季配每3月、年配每12月）
+      const buy = new Date(r.date);
+      const ymStart = new Date(fm.y, fm.m - 1, 1);
+      if (ymStart < buy) return;
+      const monthsSince = (fm.y - buy.getFullYear()) * 12 + (fm.m - 1) - buy.getMonth();
+      let isPay = false;
+      if (r.distType === '月配') isPay = monthsSince >= 0;
+      else if (r.distType === '季配') isPay = monthsSince >= 0 && monthsSince % 3 === 0;
+      else if (r.distType === '年配') isPay = monthsSince >= 0 && monthsSince % 12 === 0;
+      if (isPay) {
+        const amt = r.distPerUnit * r.units;
+        if (r.ccy === 'USD') usd += amt;
+        else if (r.ccy === 'JPY') jpy += amt;
+        else twd += amt;
+      }
+    });
+    return { ...fm, usd, jpy, twd };
+  });
+  const totalForecastUsd = forecastByMonth.reduce((a, m) => a + m.usd, 0);
+  const totalForecastJpy = forecastByMonth.reduce((a, m) => a + m.jpy, 0);
+  const totalForecastTwd = forecastByMonth.reduce((a, m) => a + m.twd, 0);
+
+  // 預估配息 banner
+  const forecastBanner = `<div style="background:linear-gradient(90deg, var(--gdl) 0%, var(--bll) 100%);border:1px solid var(--bl);border-radius:8px;padding:10px 14px;margin-bottom:10px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+      <div>
+        <div style="font-size:14px;font-weight:700;color:var(--bl);">💰 未來 6 個月預估配息</div>
+        <div style="font-size:11px;color:var(--tx3);">持有中（未收）的預估金額</div>
+      </div>
+      <div style="display:flex;gap:14px;font-family:var(--mono);">
+        ${totalForecastUsd?`<div><span style="font-size:11px;color:var(--tx3);">合計</span> <span style="font-size:18px;font-weight:700;color:var(--rd);">USD$${F(Math.round(totalForecastUsd))}</span></div>`:''}
+        ${totalForecastJpy?`<div><span style="font-size:11px;color:var(--tx3);">合計</span> <span style="font-size:18px;font-weight:700;color:var(--pu);">¥${F(Math.round(totalForecastJpy))}</span></div>`:''}
+        ${totalForecastTwd?`<div><span style="font-size:11px;color:var(--tx3);">合計</span> <span style="font-size:18px;font-weight:700;color:var(--ac);">NT$${F(Math.round(totalForecastTwd))}</span></div>`:''}
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:8px;">
+      ${forecastByMonth.map((m,i)=>`
+        <div style="background:rgba(255,255,255,.6);border-radius:6px;padding:6px;text-align:center;${i===0?'border:2px solid var(--bl);':''}">
+          <div style="font-size:11px;color:var(--tx3);">${m.y}/${m.m}月${i===0?' <span style="color:var(--bl);font-weight:700;">本月</span>':''}</div>
+          ${m.usd?`<div class="mono" style="font-size:12px;color:var(--rd);">USD$${F(Math.round(m.usd))}</div>`:''}
+          ${m.jpy?`<div class="mono" style="font-size:12px;color:var(--pu);">¥${F(Math.round(m.jpy))}</div>`:''}
+          ${m.twd?`<div class="mono" style="font-size:12px;color:var(--ac);">NT$${F(Math.round(m.twd))}</div>`:''}
+          ${!m.usd&&!m.jpy&&!m.twd?'<div style="color:var(--tx3);font-size:11px;">—</div>':''}
+        </div>`).join('')}
+    </div>
+  </div>`;
+
+  // 年份收合狀態（預設展開今年和明年）
+  if (!window._fdYearExp) {
+    const cy = today.getFullYear();
+    window._fdYearExp = new Set([cy, cy + 1]);
+  }
+
   let prevY = null;
   months.forEach(ym => {
     const [y, m] = ym.split('-');
     if (y !== prevY) {
       prevY = y;
-      h += `<tr style="background:var(--ac);"><td colspan="${distFunds.length + 2}"
-        style="padding:3px 10px;font-size:16px;font-weight:700;color:rgba(255,255,255,.8)">${y} 年</td></tr>`;
+      const yrExpanded = window._fdYearExp.has(parseInt(y));
+      h += `<tr style="background:var(--ac);cursor:pointer;" onclick="fdYearTog(${y})">
+        <td colspan="${distFunds.length + 2}" style="padding:5px 10px;font-size:14px;font-weight:700;color:rgba(255,255,255,.95);">
+          <span style="margin-right:8px;">${yrExpanded?'▼':'▶'}</span>${y} 年
+          <span style="margin-left:10px;font-size:11px;opacity:.7;">(點擊${yrExpanded?'收合':'展開'})</span>
+        </td>
+      </tr>`;
     }
+    // 收合時跳過月份列
+    if (!window._fdYearExp.has(parseInt(y))) return;
     let monthTotals = {};
     distFunds.forEach(r => {
       const d = fdDist[r.id] && fdDist[r.id][ym];
@@ -4260,7 +4336,22 @@ function fundDistRender(targetId) {
   });
 
   h += '</tbody></table></div>';
-  el.innerHTML = h;
+  el.innerHTML = forecastBanner + h;
+}
+
+function fdYearTog(year) {
+  if (!window._fdYearExp) window._fdYearExp = new Set();
+  const y = parseInt(year);
+  if (window._fdYearExp.has(y)) window._fdYearExp.delete(y);
+  else window._fdYearExp.add(y);
+  // 重新渲染保留 scroll
+  const wrap = document.querySelector('.int-wrap');
+  const st = wrap?.scrollTop || 0, sl = wrap?.scrollLeft || 0;
+  ['fund-dist-wrap','funddist-wrap'].forEach(id=>{if(document.getElementById(id))fundDistRender(id);});
+  setTimeout(() => {
+    const nw = document.querySelector('.int-wrap');
+    if (nw) { nw.scrollTop = st; nw.scrollLeft = sl; }
+  }, 0);
 }
 
 function fdTogCol(id){

@@ -1521,12 +1521,16 @@ function getIntMonths(){
 
 function rint(){
   const rows=[...D].sort((a,b)=>{
-    // 1. 幣別優先：USD → JPY
+    // 1. 持有中（active/hold）在前，已出場在後
+    const aClosed = a.status === 'closed' || !!a.exitDate;
+    const bClosed = b.status === 'closed' || !!b.exitDate;
+    if (aClosed !== bClosed) return aClosed ? 1 : -1;
+    // 2. 幣別優先：USD → JPY
     const ccyOrder = { USD: 0, JPY: 1 };
     const ca = ccyOrder[a.ccy] ?? 99;
     const cb = ccyOrder[b.ccy] ?? 99;
     if (ca !== cb) return ca - cb;
-    // 2. 同幣別依買進日新→舊
+    // 3. 同幣別依買進日新→舊
     return b.date.localeCompare(a.date);
   });
   const el=document.getElementById('int-list');
@@ -1597,7 +1601,7 @@ function rint(){
     `<span style="font-size:16px">${SY(d.ccy)}${F(d.face)}</span>`,
     `<span style="font-size:16px;color:var(--bl)">${d.coupon}% · ${d.term}</span>`,
     `<span class="mono" style="font-size:16px;color:var(--gn)">${SY(d.ccy)}${F(d.monthly,0)}</span>`,
-    `<span class="mono" style="font-size:16px;color:var(--gn)">${SY(d.ccy)}${F((()=>{const ov=d.monthlyOverride||{};return(d.paidDates||[]).reduce((a,dt)=>a+(ov[dt]!==undefined?ov[dt]:d.monthly),0);})(),2)}</span>`,
+    `<span class="mono" style="font-size:16px;color:var(--gd);font-weight:700;">${SY(d.ccy)}${F((()=>{const ov=d.monthlyOverride||{};return(d.paidDates||[]).reduce((a,dt)=>a+(ov[dt]!==undefined?ov[dt]:d.monthly),0);})(),2)}</span>`,
   ][li];
 
   const MW=62,CW=74,TOTAL_CW=82;
@@ -1670,12 +1674,74 @@ function rint(){
   </thead>
   <tbody>`;
 
+  // ── 計算未來 6 個月預估配息 ──
+  const today = new Date();
+  const forecastMonths = [];
+  for (let i = 0; i < 6; i++) {
+    const d = new Date(today.getFullYear(), today.getMonth() + i, 1);
+    forecastMonths.push({ y: d.getFullYear(), m: d.getMonth() + 1, key: `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}` });
+  }
+  const forecastByMonth = forecastMonths.map(fm => {
+    let usd = 0, jpy = 0;
+    rows.forEach(d => {
+      if (d.status === 'closed' || d.exitDate) return;
+      const dt = dtForYM(d, fm);
+      if (!dt) return;
+      const paid = (d.paidDates || []).includes(dt);
+      if (paid) return;
+      const overrides = d.monthlyOverride || {};
+      const amt = overrides[dt] !== undefined ? overrides[dt] : d.monthly;
+      if (d.ccy === 'USD') usd += amt;
+      else if (d.ccy === 'JPY') jpy += amt;
+    });
+    return { ...fm, usd, jpy };
+  });
+  const totalForecastUsd = forecastByMonth.reduce((a, m) => a + m.usd, 0);
+  const totalForecastJpy = forecastByMonth.reduce((a, m) => a + m.jpy, 0);
+
+  // 預估配息 banner（顯示在表格上方）
+  h = `<div style="background:linear-gradient(90deg, var(--gdl) 0%, var(--gnl) 100%);border:1px solid var(--gd);border-radius:8px;padding:10px 14px;margin-bottom:10px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+      <div>
+        <div style="font-size:14px;font-weight:700;color:var(--gd);">💰 未來 6 個月預估配息</div>
+        <div style="font-size:11px;color:var(--tx3);">持有中（未收）的預估金額</div>
+      </div>
+      <div style="display:flex;gap:14px;font-family:var(--mono);">
+        ${totalForecastUsd?`<div><span style="font-size:11px;color:var(--tx3);">合計</span> <span style="font-size:18px;font-weight:700;color:var(--rd);">USD$${F(Math.round(totalForecastUsd))}</span></div>`:''}
+        ${totalForecastJpy?`<div><span style="font-size:11px;color:var(--tx3);">合計</span> <span style="font-size:18px;font-weight:700;color:var(--pu);">¥${F(Math.round(totalForecastJpy))}</span></div>`:''}
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:8px;">
+      ${forecastByMonth.map((m,i)=>`
+        <div style="background:rgba(255,255,255,.6);border-radius:6px;padding:6px;text-align:center;${i===0?'border:2px solid var(--gd);':''}">
+          <div style="font-size:11px;color:var(--tx3);">${m.y}/${m.m}月${i===0?' <span style="color:var(--gd);font-weight:700;">本月</span>':''}</div>
+          ${m.usd?`<div class="mono" style="font-size:12px;color:var(--rd);">USD$${F(Math.round(m.usd))}</div>`:''}
+          ${m.jpy?`<div class="mono" style="font-size:12px;color:var(--pu);">¥${F(Math.round(m.jpy))}</div>`:''}
+          ${!m.usd&&!m.jpy?'<div style="color:var(--tx3);font-size:11px;">—</div>':''}
+        </div>`).join('')}
+    </div>
+  </div>` + h;
+
+  // ── 年份收合狀態：預設展開今年和明年 ──
+  if (!window._intYearExp) {
+    const cy = today.getFullYear();
+    window._intYearExp = new Set([cy, cy + 1]);
+  }
+
   let prevY=null;
   INT_MONTHS.forEach(ym=>{
     if(ym.y!==prevY){
       prevY=ym.y;
-      h+=`<tr style="background:var(--ac);"><td colspan="${rows.length+2}" style="padding:3px 10px;font-size:12px;font-weight:700;color:rgba(255,255,255,.85);">${ym.y} 年</td></tr>`;
+      const yrExpanded = window._intYearExp.has(ym.y);
+      h+=`<tr style="background:var(--ac);cursor:pointer;" onclick="intYearTog(${ym.y})">
+        <td colspan="${rows.length+2}" style="padding:5px 10px;font-size:13px;font-weight:700;color:rgba(255,255,255,.95);">
+          <span style="margin-right:8px;">${yrExpanded?'▼':'▶'}</span>${ym.y} 年
+          <span style="margin-left:10px;font-size:11px;opacity:.7;">(點擊${yrExpanded?'收合':'展開'})</span>
+        </td>
+      </tr>`;
     }
+    // 若該年份收起來，不渲染月份列
+    if (!window._intYearExp.has(ym.y)) return;
     const tot=monthTotal(ym);
     h+=`<tr>
       <td style="position:sticky;left:0;z-index:2;background:var(--sur2);font-weight:700;font-size:14px;text-align:center;padding:5px 4px;white-space:nowrap;width:${MW}px;min-width:${MW}px;border-right:3px solid var(--ac2);border-bottom:1px solid var(--bdr);">${ym.m}月</td>
@@ -1718,6 +1784,13 @@ function intTog(id){
   if(!window._intExp)window._intExp=new Set();
   if(window._intExp.has(id))window._intExp.delete(id);
   else window._intExp.add(id);
+  rint();
+}
+
+function intYearTog(year) {
+  if (!window._intYearExp) window._intYearExp = new Set();
+  if (window._intYearExp.has(year)) window._intYearExp.delete(year);
+  else window._intYearExp.add(year);
   rint();
 }
 
@@ -1888,23 +1961,43 @@ function addSR(s){
 
 // 當買進價輸入時，自動依票券條件的 AKI/Strike/KO 比例計算下限/執行/出場價
 function srAutoCalc(buyInput) {
-  const buy = parseFloat(buyInput.value);
+  const rawValue = buyInput.value;
+  const buy = parseFloat(rawValue);
+  console.log('[srAutoCalc] raw:', rawValue, 'parsed buy:', buy);
   if (!buy || buy <= 0) return;
   const row = buyInput.closest('.sr');
   if (!row) return;
   const akiPct = parseFloat(document.getElementById('f-aki').value) || 0;
   const strikePct = parseFloat(document.getElementById('f-strike').value) || 0;
   const koPct = parseFloat(document.getElementById('f-ko').value) || 0;
+  console.log('[srAutoCalc] pcts:', { akiPct, strikePct, koPct });
 
   const akiEl = row.querySelector('.sr-a');
   const strikeEl = row.querySelector('.sr-s');
   const exitEl = row.querySelector('.sr-e');
 
+  // 防呆：百分比應為 0-200 之間，超過範圍可能輸錯
+  if (akiPct > 200 || strikePct > 200 || koPct > 200) {
+    console.warn('[srAutoCalc] 百分比超過 200，可能輸錯了？', { akiPct, strikePct, koPct });
+  }
+
   // 只在欄位為空或 0 時自動填入（避免覆蓋使用者輸入）
   const empty = v => !v || parseFloat(v) === 0;
-  if (empty(akiEl.value) && akiPct) akiEl.value = (buy * akiPct / 100).toFixed(4);
-  if (empty(strikeEl.value) && strikePct) strikeEl.value = (buy * strikePct / 100).toFixed(4);
-  if (empty(exitEl.value) && koPct) exitEl.value = (buy * koPct / 100).toFixed(4);
+  const akiVal = buy * akiPct / 100;
+  const strikeVal = buy * strikePct / 100;
+  const exitVal = buy * koPct / 100;
+  console.log('[srAutoCalc] computed:', { akiVal, strikeVal, exitVal });
+
+  // 保留適當小數位數：股價大則少小數，股價小則多小數
+  const fmtPrice = (n) => {
+    if (n >= 100) return n.toFixed(2);
+    if (n >= 10) return n.toFixed(3);
+    return n.toFixed(4);
+  };
+
+  if (empty(akiEl.value) && akiPct) akiEl.value = fmtPrice(akiVal);
+  if (empty(strikeEl.value) && strikePct) strikeEl.value = fmtPrice(strikeVal);
+  if (empty(exitEl.value) && koPct) exitEl.value = fmtPrice(exitVal);
 }
 
 function getStocks(){return Array.from(document.querySelectorAll('.sr')).map(r=>({name:r.querySelector('.sr-n').value.trim(),buy:parseFloat(r.querySelector('.sr-b').value)||0,aki:parseFloat(r.querySelector('.sr-a').value)||0,strike:parseFloat(r.querySelector('.sr-s').value)||0,exit:parseFloat(r.querySelector('.sr-e').value)||0})).filter(s=>s.name);}

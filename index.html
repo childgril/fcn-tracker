@@ -1868,9 +1868,30 @@ function calcTot(){
 function addSR(s){
   sc++;const id='sr-'+sc;const div=document.createElement('div');
   div.className='sr';div.id=id;
-  div.innerHTML=`<input type="text" placeholder="股票名稱" value="${s?s.name:''}" class="sr-n"><input type="number" placeholder="買進價" step="0.01" value="${s?s.buy:''}" class="sr-b"><input type="number" placeholder="下限價" step="0.01" value="${s&&s.aki?s.aki:''}" class="sr-a"><input type="number" placeholder="執行價" step="0.01" value="${s?s.strike:''}" class="sr-s"><input type="number" placeholder="出場價" step="0.01" value="${s&&s.exit?s.exit:''}" class="sr-e"><button class="rmb" onclick="document.getElementById('${id}').remove()">✕</button>`;
+  div.innerHTML=`<input type="text" placeholder="股票名稱" value="${s?s.name:''}" class="sr-n"><input type="number" placeholder="買進價" step="0.01" value="${s?s.buy:''}" class="sr-b" oninput="srAutoCalc(this)"><input type="number" placeholder="下限價" step="0.01" value="${s&&s.aki?s.aki:''}" class="sr-a"><input type="number" placeholder="執行價" step="0.01" value="${s?s.strike:''}" class="sr-s"><input type="number" placeholder="出場價" step="0.01" value="${s&&s.exit?s.exit:''}" class="sr-e"><button class="rmb" onclick="document.getElementById('${id}').remove()">✕</button>`;
   document.getElementById('stocks-con').appendChild(div);
 }
+
+// 當買進價輸入時，自動依票券條件的 AKI/Strike/KO 比例計算下限/執行/出場價
+function srAutoCalc(buyInput) {
+  const buy = parseFloat(buyInput.value);
+  if (!buy || buy <= 0) return;
+  const row = buyInput.closest('.sr');
+  if (!row) return;
+  const akiPct = parseFloat(document.getElementById('f-aki').value) || 0;
+  const strikePct = parseFloat(document.getElementById('f-strike').value) || 0;
+  const koPct = parseFloat(document.getElementById('f-ko').value) || 0;
+
+  const akiEl = row.querySelector('.sr-a');
+  const strikeEl = row.querySelector('.sr-s');
+  const exitEl = row.querySelector('.sr-e');
+
+  // 只在欄位為空時自動填入（避免覆蓋使用者輸入）
+  if (!akiEl.value && akiPct) akiEl.value = (buy * akiPct / 100).toFixed(4);
+  if (!strikeEl.value && strikePct) strikeEl.value = (buy * strikePct / 100).toFixed(4);
+  if (!exitEl.value && koPct) exitEl.value = (buy * koPct / 100).toFixed(4);
+}
+
 function getStocks(){return Array.from(document.querySelectorAll('.sr')).map(r=>({name:r.querySelector('.sr-n').value.trim(),buy:parseFloat(r.querySelector('.sr-b').value)||0,aki:parseFloat(r.querySelector('.sr-a').value)||0,strike:parseFloat(r.querySelector('.sr-s').value)||0,exit:parseFloat(r.querySelector('.sr-e').value)||0})).filter(s=>s.name);}
 // 選換匯紀錄 - 開啟 Modal 讓使用者挑選或計算平均匯率
 function openFxPicker() {

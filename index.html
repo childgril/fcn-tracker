@@ -639,14 +639,24 @@ MU
       <div class="fst">票券條件</div>
       <div class="fg4">
         <div class="fgrp"><label>Coupon 年化 (%)</label><input type="number" id="f-coupon" placeholder="12" step="0.01"></div>
-        <div class="fgrp"><label>保護價 AKI (%)</label><input type="number" id="f-aki" placeholder="65" step="0.01"></div>
+        <div class="fgrp">
+          <label>保護價類型 / 數值 (%)</label>
+          <div style="display:flex;gap:6px;">
+            <select id="f-kitype" style="flex:0 0 90px;">
+              <option value="AKI">AKI</option>
+              <option value="EKI">EKI</option>
+              <option value="無">無</option>
+            </select>
+            <input type="number" id="f-aki" placeholder="65" step="0.01" style="flex:1;">
+          </div>
+        </div>
         <div class="fgrp"><label>承購價 Strike (%)</label><input type="number" id="f-strike" placeholder="75" step="0.01"></div>
         <div class="fgrp"><label>KO 比價 (%)</label><input type="number" id="f-ko" placeholder="105" step="0.01"></div>
       </div>
     </div>
     <div class="fs">
       <div class="fst">連結股票</div>
-      <div class="srh"><span>股票名稱</span><span>買進價</span><span>下限價 AKI</span><span>執行價 Strike</span><span>出廠價</span><span></span></div>
+      <div class="srh"><span>股票名稱</span><span>買進價</span><span>下限價 AKI</span><span>執行價 Strike</span><span>出場價</span><span></span></div>
       <div id="stocks-con"></div>
       <button class="btn btnsm" onclick="addSR()">＋ 新增股票</button>
     </div>
@@ -1858,14 +1868,88 @@ function calcTot(){
 function addSR(s){
   sc++;const id='sr-'+sc;const div=document.createElement('div');
   div.className='sr';div.id=id;
-  div.innerHTML=`<input type="text" placeholder="股票名稱" value="${s?s.name:''}" class="sr-n"><input type="number" placeholder="買進價" step="0.01" value="${s?s.buy:''}" class="sr-b"><input type="number" placeholder="下限價" step="0.01" value="${s&&s.aki?s.aki:''}" class="sr-a"><input type="number" placeholder="執行價" step="0.01" value="${s?s.strike:''}" class="sr-s"><input type="number" placeholder="出廠價" step="0.01" value="${s&&s.exit?s.exit:''}" class="sr-e"><button class="rmb" onclick="document.getElementById('${id}').remove()">✕</button>`;
+  div.innerHTML=`<input type="text" placeholder="股票名稱" value="${s?s.name:''}" class="sr-n"><input type="number" placeholder="買進價" step="0.01" value="${s?s.buy:''}" class="sr-b"><input type="number" placeholder="下限價" step="0.01" value="${s&&s.aki?s.aki:''}" class="sr-a"><input type="number" placeholder="執行價" step="0.01" value="${s?s.strike:''}" class="sr-s"><input type="number" placeholder="出場價" step="0.01" value="${s&&s.exit?s.exit:''}" class="sr-e"><button class="rmb" onclick="document.getElementById('${id}').remove()">✕</button>`;
   document.getElementById('stocks-con').appendChild(div);
 }
 function getStocks(){return Array.from(document.querySelectorAll('.sr')).map(r=>({name:r.querySelector('.sr-n').value.trim(),buy:parseFloat(r.querySelector('.sr-b').value)||0,aki:parseFloat(r.querySelector('.sr-a').value)||0,strike:parseFloat(r.querySelector('.sr-s').value)||0,exit:parseFloat(r.querySelector('.sr-e').value)||0})).filter(s=>s.name);}
+// 選換匯紀錄 - 開啟 Modal 讓使用者挑選或計算平均匯率
+function openFxPicker() {
+  const ccy = document.getElementById('f-ccy').value;
+  // 從 FXL 中找出取得對應幣別的紀錄
+  const relevant = (FXL || []).filter(f => f.toCcy === ccy).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  if (!relevant.length) { alert(`目前沒有 ${ccy} 的換匯紀錄\n請先到「換外幣紀錄」頁面新增`); return; }
+
+  // 建立 Modal
+  const m = document.createElement('div');
+  m.className = 'mo open';
+  m.innerHTML = `<div class="mb2" style="width:680px;max-height:85vh;overflow-y:auto;">
+    <h3 style="margin-bottom:10px;">📋 選擇換匯紀錄</h3>
+    <div style="font-size:13px;color:var(--tx3);margin-bottom:12px;">勾選多筆紀錄會自動計算加權平均匯率（依金額）</div>
+    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+      <thead><tr style="background:var(--sur2);">
+        <th style="padding:6px;border:1px solid var(--bdr);width:30px;text-align:center;"><input type="checkbox" id="fx-pick-all" onchange="document.querySelectorAll('.fx-pick-row').forEach(c=>c.checked=this.checked);fxPickUpdate();"></th>
+        <th style="padding:6px;border:1px solid var(--bdr);">日期</th>
+        <th style="padding:6px;border:1px solid var(--bdr);text-align:right;">支出 TWD</th>
+        <th style="padding:6px;border:1px solid var(--bdr);text-align:right;">取得 ${ccy}</th>
+        <th style="padding:6px;border:1px solid var(--bdr);text-align:right;">匯率</th>
+      </tr></thead>
+      <tbody>
+        ${relevant.map((r, i) => {
+          const rate = r.foreign ? (r.twd / r.foreign).toFixed(4) : '—';
+          return `<tr>
+            <td style="padding:5px;border:1px solid var(--bdr);text-align:center;"><input type="checkbox" class="fx-pick-row" data-twd="${r.twd}" data-foreign="${r.foreign}" data-rate="${rate}" onchange="fxPickUpdate()"></td>
+            <td style="padding:5px;border:1px solid var(--bdr);">${r.date||'—'}</td>
+            <td style="padding:5px;border:1px solid var(--bdr);text-align:right;font-family:var(--mono);">NT$${F(Math.round(r.twd))}</td>
+            <td style="padding:5px;border:1px solid var(--bdr);text-align:right;font-family:var(--mono);">${ccy==='JPY'?'¥':'USD$'}${F(Math.round(r.foreign))}</td>
+            <td style="padding:5px;border:1px solid var(--bdr);text-align:right;font-family:var(--mono);color:var(--bl);">${rate}</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+    <div id="fx-pick-result" style="margin-top:12px;padding:10px;background:var(--gnl);border-radius:6px;font-size:14px;color:var(--tx3);">尚未選取</div>
+    <div class="mba" style="margin-top:14px;">
+      <button class="btn" onclick="this.closest('.mo').remove()">取消</button>
+      <button class="btn btnp" id="fx-pick-apply" onclick="fxPickApply(this)" disabled>套用為換匯匯率</button>
+    </div>
+  </div>`;
+  m.onclick = e => { if (e.target === m) m.remove(); };
+  document.body.appendChild(m);
+}
+
+function fxPickUpdate() {
+  const checked = document.querySelectorAll('.fx-pick-row:checked');
+  const resEl = document.getElementById('fx-pick-result');
+  const applyBtn = document.getElementById('fx-pick-apply');
+  if (!checked.length) {
+    resEl.innerHTML = '尚未選取';
+    applyBtn.disabled = true;
+    applyBtn.dataset.rate = '';
+    return;
+  }
+  let totTwd = 0, totForeign = 0;
+  checked.forEach(c => {
+    totTwd += parseFloat(c.dataset.twd) || 0;
+    totForeign += parseFloat(c.dataset.foreign) || 0;
+  });
+  const avgRate = totForeign ? (totTwd / totForeign).toFixed(4) : '—';
+  resEl.innerHTML = `已選 <strong>${checked.length}</strong> 筆　總計 NT$${F(Math.round(totTwd))} → ${F(Math.round(totForeign))} 外幣　<strong style="color:var(--gn);font-size:16px;">加權平均匯率 = ${avgRate}</strong>`;
+  applyBtn.disabled = false;
+  applyBtn.dataset.rate = avgRate;
+}
+
+function fxPickApply(btn) {
+  const rate = btn.dataset.rate;
+  if (!rate || rate === '—') return;
+  document.getElementById('f-fx').value = rate;
+  updTWD();
+  btn.closest('.mo').remove();
+}
+
 function resetF(){
   document.getElementById('eid').value='';
   document.getElementById('add-title').textContent='新增投資';
   ['f-date','f-bank','f-face','f-fx','f-twd','f-coupon','f-aki','f-strike','f-ko','f-isin','f-note','f-mat','f-exit','f-kos','f-eval','f-mo','f-pd','f-paid','f-tot','f-tottwd','f-rate'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  if(document.getElementById('f-kitype')) document.getElementById('f-kitype').value='AKI';
   document.getElementById('f-ccy').value='USD';document.getElementById('f-term').value='6M';document.getElementById('f-status').value='active';document.getElementById('f-freq').value='monthly';document.getElementById('twd-pv').textContent='';document.getElementById('stocks-con').innerHTML='';sc=0;addSR();
 }
 function editRec(id){
@@ -1876,6 +1960,7 @@ function editRec(id){
   document.getElementById('f-ccy').value=d.ccy||'USD';document.getElementById('f-face').value=d.face;
   document.getElementById('f-fx').value=d.fx||'';document.getElementById('f-coupon').value=d.coupon;
   document.getElementById('f-aki').value=d.aki||'';document.getElementById('f-strike').value=d.strike||'';
+  if(document.getElementById('f-kitype')) document.getElementById('f-kitype').value=d.kitype||'AKI';
   document.getElementById('f-ko').value=d.ko||'';document.getElementById('f-isin').value=d.isin||'';
   document.getElementById('f-term').value=d.term;document.getElementById('f-status').value=d.status;
   document.getElementById('f-mat').value=d.maturity||'';document.getElementById('f-exit').value=d.exitDate||'';
@@ -1891,6 +1976,7 @@ function saveRec(){
   if(!date||!bank||!face){alert('請填寫買進日期、帳戶及投資面額');return;}
   const ccy=document.getElementById('f-ccy').value;const fx=parseFloat(document.getElementById('f-fx').value)||0;
   const coupon=parseFloat(document.getElementById('f-coupon').value)||0;const aki=parseFloat(document.getElementById('f-aki').value)||0;
+  const kitype=document.getElementById('f-kitype')?.value||'AKI';
   const strike=parseFloat(document.getElementById('f-strike').value)||0;const ko=parseFloat(document.getElementById('f-ko').value)||0;
   const isin=document.getElementById('f-isin').value.trim();const term=document.getElementById('f-term').value;
   const status=document.getElementById('f-status').value;const maturity=document.getElementById('f-mat').value;
@@ -1902,8 +1988,8 @@ function saveRec(){
   const totalUSD=paidDates.length*monthly;const totalTWD=fx?totalUSD*fx:0;
   const rate=face?parseFloat((totalUSD/face*100).toFixed(2)):0;const stocks=getStocks();
   const eid=document.getElementById('eid').value;
-  if(eid){const idx=D.findIndex(x=>x.id===parseInt(eid));if(idx>=0)D[idx]={...D[idx],date,bank,ccy,face,fx,coupon,aki,strike,ko,isin,term,status,maturity,exitDate,koStart,evalDate,note,monthly,freq,payDates,paidDates,totalUSD,totalTWD,rate,stocks};}
-  else{const nid=Math.max(0,...D.map(d=>d.id))+1;D.push({id:nid,date,bank,ccy,face,fx,coupon,aki,strike,ko,isin,term,status,maturity,exitDate,koStart,evalDate,note,monthly,freq,payDates,paidDates,totalUSD,totalTWD,rate,stocks});}
+  if(eid){const idx=D.findIndex(x=>x.id===parseInt(eid));if(idx>=0)D[idx]={...D[idx],date,bank,ccy,face,fx,coupon,aki,kitype,strike,ko,isin,term,status,maturity,exitDate,koStart,evalDate,note,monthly,freq,payDates,paidDates,totalUSD,totalTWD,rate,stocks};}
+  else{const nid=Math.max(0,...D.map(d=>d.id))+1;D.push({id:nid,date,bank,ccy,face,fx,coupon,aki,kitype,strike,ko,isin,term,status,maturity,exitDate,koStart,evalDate,note,monthly,freq,payDates,paidDates,totalUSD,totalTWD,rate,stocks});}
   save();showSec('list');
 }
 function cancelEdit(){showSec('list');}

@@ -609,7 +609,7 @@ MU
             <option value="TWD">TWD 台幣</option>
           </select>
         </div>
-        <div class="fgrp"><label>投資面額 *</label><input type="number" id="f-face" placeholder="10000" oninput="updTWD()"></div>
+        <div class="fgrp"><label>投資面額 *</label><input type="number" id="f-face" placeholder="10000" oninput="updTWD();autoMonthly()"></div>
         <div class="fgrp"><label>換匯匯率</label>
           <div style="display:flex;gap:6px;align-items:center;">
             <input type="number" id="f-fx" placeholder="32.75" step="0.0001" oninput="updTWD()" style="flex:1;">
@@ -638,7 +638,7 @@ MU
     <div class="fs">
       <div class="fst">票券條件</div>
       <div class="fg4">
-        <div class="fgrp"><label>Coupon 年化 (%)</label><input type="number" id="f-coupon" placeholder="12" step="0.01"></div>
+        <div class="fgrp"><label>Coupon 年化 (%)</label><input type="number" id="f-coupon" placeholder="12" step="0.01" oninput="autoMonthly()"></div>
         <div class="fgrp">
           <label>保護價類型 / 數值 (%)</label>
           <div style="display:flex;gap:6px;">
@@ -663,7 +663,7 @@ MU
     <div class="fs">
       <div class="fst">配息設定</div>
       <div class="fg">
-        <div class="fgrp"><label>月配息金額（原幣）</label><input type="number" id="f-mo" placeholder="100" step="0.01" oninput="calcTot()"></div>
+        <div class="fgrp"><label>月配息金額（原幣）</label><input type="number" id="f-mo" placeholder="自動 = 面額 × Coupon%/12" step="0.01" oninput="calcTot()"></div>
         <div class="fgrp"><label>配息頻率</label>
           <select id="f-freq"><option value="monthly">月配</option><option value="quarterly">季配</option><option value="maturity">到期一次</option></select>
         </div>
@@ -1938,7 +1938,6 @@ function calcTot(){
   document.getElementById('f-tottwd').value=totTWD?'NT$' + F(totTWD):'';
   document.getElementById('f-rate').value=rate>0?rate+'%':'';
 }
-// 出場日 → 自動判別狀態
 function autoStatusFromExit() {
   const exitVal = document.getElementById('f-exit').value;
   const statusEl = document.getElementById('f-status');
@@ -1952,6 +1951,21 @@ function autoStatusFromExit() {
   }
 }
 
+// 月配息自動計算：面額 × Coupon% / 12
+function autoMonthly() {
+  const face = parseFloat(document.getElementById('f-face').value) || 0;
+  const coupon = parseFloat(document.getElementById('f-coupon').value) || 0;
+  const moEl = document.getElementById('f-mo');
+  if (!moEl) return;
+  // 只在欄位為空時自動填入（避免覆蓋使用者輸入）
+  if (moEl.value && parseFloat(moEl.value) !== 0) return;
+  if (face && coupon) {
+    const monthly = face * coupon / 100 / 12;
+    moEl.value = monthly.toFixed(2);
+    if (typeof calcTot === 'function') calcTot();
+  }
+}
+
 function addSR(s){
   sc++;const id='sr-'+sc;const div=document.createElement('div');
   div.className='sr';div.id=id;
@@ -1960,45 +1974,63 @@ function addSR(s){
 }
 
 // 當買進價輸入時，自動依票券條件的 AKI/Strike/KO 比例計算下限/執行/出場價
+// 使用 debounce 避免邊打字邊計算（每打一個字觸發一次）
 function srAutoCalc(buyInput) {
-  const rawValue = buyInput.value;
-  const buy = parseFloat(rawValue);
-  console.log('[srAutoCalc] raw:', rawValue, 'parsed buy:', buy);
+  // 清除舊的 timer
+  if (buyInput._calcTimer) clearTimeout(buyInput._calcTimer);
+  // 等使用者停止輸入 500ms 後才計算
+  buyInput._calcTimer = setTimeout(() => srAutoCalcDo(buyInput), 500);
+}
+
+function srAutoCalcDo(buyInput) {
+  const buy = parseFloat(buyInput.value);
   if (!buy || buy <= 0) return;
   const row = buyInput.closest('.sr');
   if (!row) return;
   const akiPct = parseFloat(document.getElementById('f-aki').value) || 0;
   const strikePct = parseFloat(document.getElementById('f-strike').value) || 0;
   const koPct = parseFloat(document.getElementById('f-ko').value) || 0;
-  console.log('[srAutoCalc] pcts:', { akiPct, strikePct, koPct });
 
   const akiEl = row.querySelector('.sr-a');
   const strikeEl = row.querySelector('.sr-s');
   const exitEl = row.querySelector('.sr-e');
 
-  // 防呆：百分比應為 0-200 之間，超過範圍可能輸錯
-  if (akiPct > 200 || strikePct > 200 || koPct > 200) {
-    console.warn('[srAutoCalc] 百分比超過 200，可能輸錯了？', { akiPct, strikePct, koPct });
-  }
+  // 標記欄位是否為「使用者手動修改」，自動填入的可以覆寫
+  // 規則：如果欄位 data-auto="1" 表示是自動填的，可以重算
+  const empty = (el) => !el.value || parseFloat(el.value) === 0 || el.dataset.auto === '1';
 
-  // 只在欄位為空或 0 時自動填入（避免覆蓋使用者輸入）
-  const empty = v => !v || parseFloat(v) === 0;
-  const akiVal = buy * akiPct / 100;
-  const strikeVal = buy * strikePct / 100;
-  const exitVal = buy * koPct / 100;
-  console.log('[srAutoCalc] computed:', { akiVal, strikeVal, exitVal });
-
-  // 保留適當小數位數：股價大則少小數，股價小則多小數
+  // 保留適當小數位數
   const fmtPrice = (n) => {
+    if (n >= 1000) return n.toFixed(0);
     if (n >= 100) return n.toFixed(2);
     if (n >= 10) return n.toFixed(3);
     return n.toFixed(4);
   };
 
-  if (empty(akiEl.value) && akiPct) akiEl.value = fmtPrice(akiVal);
-  if (empty(strikeEl.value) && strikePct) strikeEl.value = fmtPrice(strikeVal);
-  if (empty(exitEl.value) && koPct) exitEl.value = fmtPrice(exitVal);
+  if (empty(akiEl) && akiPct) {
+    akiEl.value = fmtPrice(buy * akiPct / 100);
+    akiEl.dataset.auto = '1';
+  }
+  if (empty(strikeEl) && strikePct) {
+    strikeEl.value = fmtPrice(buy * strikePct / 100);
+    strikeEl.dataset.auto = '1';
+  }
+  if (empty(exitEl) && koPct) {
+    exitEl.value = fmtPrice(buy * koPct / 100);
+    exitEl.dataset.auto = '1';
+  }
 }
+
+// 監聽手動修改：使用者改動時清除 auto 標記，避免被覆寫
+document.addEventListener('input', (e) => {
+  if (e.target.classList && (e.target.classList.contains('sr-a') || e.target.classList.contains('sr-s') || e.target.classList.contains('sr-e'))) {
+    if (e.target.dataset.auto === '1') {
+      // 如果是自動觸發的就不清；只有真正使用者打字才清
+      // 用 isTrusted 判斷是否來自使用者
+      if (e.isTrusted) delete e.target.dataset.auto;
+    }
+  }
+});
 
 function getStocks(){return Array.from(document.querySelectorAll('.sr')).map(r=>({name:r.querySelector('.sr-n').value.trim(),buy:parseFloat(r.querySelector('.sr-b').value)||0,aki:parseFloat(r.querySelector('.sr-a').value)||0,strike:parseFloat(r.querySelector('.sr-s').value)||0,exit:parseFloat(r.querySelector('.sr-e').value)||0})).filter(s=>s.name);}
 // 選換匯紀錄 - 開啟 Modal 讓使用者挑選或計算平均匯率

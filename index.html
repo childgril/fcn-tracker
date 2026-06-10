@@ -630,7 +630,17 @@ MU
         <div class="fgrp"><label>合約到期日</label><input type="date" id="f-mat"></div>
         <div class="fgrp"><label>實際出場日（提早 KO 等）</label><input type="date" id="f-exit" oninput="autoStatusFromExit()"></div>
         <div class="fgrp"><label>KO 比價開始日</label><input type="date" id="f-kos"></div>
-        <div class="fgrp"><label>評價日</label><input type="date" id="f-eval"></div>
+        <div class="fgrp"><label>保息月份</label>
+          <select id="f-guaranteed">
+            <option value="0">無</option>
+            <option value="1">1 個月</option>
+            <option value="2" selected>2 個月</option>
+            <option value="3">3 個月</option>
+            <option value="4">4 個月</option>
+            <option value="6">6 個月</option>
+            <option value="12">12 個月</option>
+          </select>
+        </div>
         <div class="fgrp s2"><label>備註</label><input type="text" id="f-note" placeholder="例：保息2個月、7/2開始比價"></div>
         <div class="fgrp"><label>ISIN</label><input type="text" id="f-isin" placeholder="XS..."></div>
       </div>
@@ -1578,6 +1588,14 @@ function rint(){
     return pm&&pm.y===ym.y&&pm.m===ym.m;
   });
 
+  // 取得月配息：優先用 d.monthly；如果是 0/空，從 face × coupon / 12 推算
+  const getMonthly = (d) => {
+    if (d.monthly && d.monthly > 0) return d.monthly;
+    const coupon = parseFloat(d.coupon) || 0;
+    if (d.face && coupon) return d.face * coupon / 100 / 12;
+    return 0;
+  };
+
   const monthTotal=(ym)=>{
     let usd=0,jpy=0;
     rows.forEach(d=>{
@@ -1585,7 +1603,7 @@ function rint(){
       if(!dt)return;
       if((d.paidDates||[]).includes(dt)){
         const overrides=d.monthlyOverride||{};
-        const amt=overrides[dt]!==undefined?overrides[dt]:d.monthly;
+        const amt=overrides[dt]!==undefined?overrides[dt]:getMonthly(d);
         if(d.ccy==='JPY')jpy+=amt; else usd+=amt;
       }
     });
@@ -1600,8 +1618,8 @@ function rint(){
     `<span class="mono" style="font-size:16px;color:${d.exitDate?'var(--rd)':'var(--tx3)'}">${d.exitDate||'—'}</span>`,
     `<span style="font-size:16px">${SY(d.ccy)}${F(d.face)}</span>`,
     `<span style="font-size:16px;color:var(--bl)">${d.coupon}% · ${d.term}</span>`,
-    `<span class="mono" style="font-size:16px;color:var(--gn)">${SY(d.ccy)}${F(d.monthly,0)}</span>`,
-    `<span class="mono" style="font-size:16px;color:var(--gd);font-weight:700;">${SY(d.ccy)}${F((()=>{const ov=d.monthlyOverride||{};return(d.paidDates||[]).reduce((a,dt)=>a+(ov[dt]!==undefined?ov[dt]:d.monthly),0);})(),2)}</span>`,
+    `<span class="mono" style="font-size:16px;color:var(--gn)">${SY(d.ccy)}${F(getMonthly(d),0)}</span>`,
+    `<span class="mono" style="font-size:16px;color:var(--gd);font-weight:700;">${SY(d.ccy)}${F((()=>{const ov=d.monthlyOverride||{};const mo=getMonthly(d);return(d.paidDates||[]).reduce((a,dt)=>a+(ov[dt]!==undefined?ov[dt]:mo),0);})(),2)}</span>`,
   ][li];
 
   const MW=62,CW=74,TOTAL_CW=82;
@@ -1690,7 +1708,7 @@ function rint(){
       const paid = (d.paidDates || []).includes(dt);
       if (paid) return;
       const overrides = d.monthlyOverride || {};
-      const amt = overrides[dt] !== undefined ? overrides[dt] : d.monthly;
+      const amt = overrides[dt] !== undefined ? overrides[dt] : getMonthly(d);
       if (d.ccy === 'USD') usd += amt;
       else if (d.ccy === 'JPY') jpy += amt;
     });
@@ -1752,7 +1770,7 @@ function rint(){
         if(!dt)return`<td style="border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);background:var(--bg);text-align:center;color:var(--tx3);font-size:13px;min-width:${exp?CW:28}px;width:${exp?CW:28}px;">—</td>`;
         const paid=(d.paidDates||[]).includes(dt);
         const overrides=d.monthlyOverride||{};
-        const monthAmt=overrides[dt]!==undefined?overrides[dt]:d.monthly;
+        const monthAmt=overrides[dt]!==undefined?overrides[dt]:getMonthly(d);
         const note=(d.monthNote||{})[dt]||'';
         return`<td onclick="fcnDistEdit(${d.id},'${dt}')" 
           style="border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);
@@ -1814,7 +1832,12 @@ function fcnDistEdit(id, dt) {
   if (!d.monthlyOverride) d.monthlyOverride = {};
   if (!d.monthNote) d.monthNote = {};
   const ov = d.monthlyOverride;
-  const defaultAmt = d.monthly || 0;
+  // 自動推算月配息（若 d.monthly 為 0/空，用 face × coupon / 12）
+  let defaultAmt = d.monthly || 0;
+  if (!defaultAmt) {
+    const cp = parseFloat(d.coupon) || 0;
+    if (d.face && cp) defaultAmt = d.face * cp / 100 / 12;
+  }
   const currentAmt = ov[dt] !== undefined ? ov[dt] : defaultAmt;
   const currentNote = d.monthNote[dt] || '';
   const isPaid = (d.paidDates || []).includes(dt);
@@ -2109,7 +2132,8 @@ function fxPickApply(btn) {
 function resetF(){
   document.getElementById('eid').value='';
   document.getElementById('add-title').textContent='新增投資';
-  ['f-date','f-bank','f-face','f-fx','f-twd','f-coupon','f-aki','f-strike','f-ko','f-isin','f-note','f-mat','f-exit','f-kos','f-eval','f-mo','f-pd','f-paid','f-tot','f-tottwd','f-rate'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['f-date','f-bank','f-face','f-fx','f-twd','f-coupon','f-aki','f-strike','f-ko','f-isin','f-note','f-mat','f-exit','f-kos','f-mo','f-pd','f-paid','f-tot','f-tottwd','f-rate'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  if(document.getElementById('f-guaranteed')) document.getElementById('f-guaranteed').value='2';
   if(document.getElementById('f-kitype')) document.getElementById('f-kitype').value='AKI';
   document.getElementById('f-ccy').value='USD';document.getElementById('f-term').value='6M';document.getElementById('f-status').value='active';document.getElementById('f-freq').value='monthly';document.getElementById('twd-pv').textContent='';document.getElementById('stocks-con').innerHTML='';sc=0;addSR();
 }
@@ -2125,7 +2149,8 @@ function editRec(id){
   document.getElementById('f-ko').value=d.ko||'';document.getElementById('f-isin').value=d.isin||'';
   document.getElementById('f-term').value=d.term;document.getElementById('f-status').value=d.status;
   document.getElementById('f-mat').value=d.maturity||'';document.getElementById('f-exit').value=d.exitDate||'';
-  document.getElementById('f-kos').value=d.koStart||'';document.getElementById('f-eval').value=d.evalDate||'';
+  document.getElementById('f-kos').value=d.koStart||'';
+  if(document.getElementById('f-guaranteed')) document.getElementById('f-guaranteed').value=String(d.guaranteed!==undefined?d.guaranteed:2);
   document.getElementById('f-note').value=d.note||'';document.getElementById('f-mo').value=d.monthly||'';
   document.getElementById('f-freq').value=d.freq||'monthly';
   document.getElementById('f-pd').value=(d.payDates||[]).join(', ');
@@ -2142,15 +2167,15 @@ function saveRec(){
   const isin=document.getElementById('f-isin').value.trim();const term=document.getElementById('f-term').value;
   const status=document.getElementById('f-status').value;const maturity=document.getElementById('f-mat').value;
   const exitDate=document.getElementById('f-exit').value;const koStart=document.getElementById('f-kos').value;
-  const evalDate=document.getElementById('f-eval').value;const note=document.getElementById('f-note').value.trim();
+  const evalDate='';const guaranteed=parseInt(document.getElementById('f-guaranteed')?.value)||0;const note=document.getElementById('f-note').value.trim();
   const monthly=parseFloat(document.getElementById('f-mo').value)||0;const freq=document.getElementById('f-freq').value;
   const payDates=document.getElementById('f-pd').value.split(',').map(s=>s.trim()).filter(Boolean);
   const paidDates=document.getElementById('f-paid').value.split(',').map(s=>s.trim()).filter(Boolean);
   const totalUSD=paidDates.length*monthly;const totalTWD=fx?totalUSD*fx:0;
   const rate=face?parseFloat((totalUSD/face*100).toFixed(2)):0;const stocks=getStocks();
   const eid=document.getElementById('eid').value;
-  if(eid){const idx=D.findIndex(x=>x.id===parseInt(eid));if(idx>=0)D[idx]={...D[idx],date,bank,ccy,face,fx,coupon,aki,kitype,strike,ko,isin,term,status,maturity,exitDate,koStart,evalDate,note,monthly,freq,payDates,paidDates,totalUSD,totalTWD,rate,stocks};}
-  else{const nid=Math.max(0,...D.map(d=>d.id))+1;D.push({id:nid,date,bank,ccy,face,fx,coupon,aki,kitype,strike,ko,isin,term,status,maturity,exitDate,koStart,evalDate,note,monthly,freq,payDates,paidDates,totalUSD,totalTWD,rate,stocks});}
+  if(eid){const idx=D.findIndex(x=>x.id===parseInt(eid));if(idx>=0)D[idx]={...D[idx],date,bank,ccy,face,fx,coupon,aki,kitype,strike,ko,isin,term,status,maturity,exitDate,koStart,evalDate,guaranteed,note,monthly,freq,payDates,paidDates,totalUSD,totalTWD,rate,stocks};}
+  else{const nid=Math.max(0,...D.map(d=>d.id))+1;D.push({id:nid,date,bank,ccy,face,fx,coupon,aki,kitype,strike,ko,isin,term,status,maturity,exitDate,koStart,evalDate,guaranteed,note,monthly,freq,payDates,paidDates,totalUSD,totalTWD,rate,stocks});}
   save();showSec('list');
 }
 function cancelEdit(){showSec('list');}

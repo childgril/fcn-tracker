@@ -628,7 +628,7 @@ MU
           <select id="f-status"><option value="active">持有中</option><option value="closed">已出場</option><option value="hold">承接股票</option></select>
         </div>
         <div class="fgrp"><label>合約到期日</label><input type="date" id="f-mat"></div>
-        <div class="fgrp"><label>實際出場日（提早 KO 等）</label><input type="date" id="f-exit"></div>
+        <div class="fgrp"><label>實際出場日（提早 KO 等）</label><input type="date" id="f-exit" oninput="autoStatusFromExit()"></div>
         <div class="fgrp"><label>KO 比價開始日</label><input type="date" id="f-kos"></div>
         <div class="fgrp"><label>評價日</label><input type="date" id="f-eval"></div>
         <div class="fgrp s2"><label>備註</label><input type="text" id="f-note" placeholder="例：保息2個月、7/2開始比價"></div>
@@ -1865,6 +1865,20 @@ function calcTot(){
   document.getElementById('f-tottwd').value=totTWD?'NT$' + F(totTWD):'';
   document.getElementById('f-rate').value=rate>0?rate+'%':'';
 }
+// 出場日 → 自動判別狀態
+function autoStatusFromExit() {
+  const exitVal = document.getElementById('f-exit').value;
+  const statusEl = document.getElementById('f-status');
+  if (!statusEl) return;
+  if (exitVal) {
+    // 有填出場日 → 自動設為已出場
+    statusEl.value = 'closed';
+  } else {
+    // 清空出場日 → 還原為持有中
+    if (statusEl.value === 'closed') statusEl.value = 'active';
+  }
+}
+
 function addSR(s){
   sc++;const id='sr-'+sc;const div=document.createElement('div');
   div.className='sr';div.id=id;

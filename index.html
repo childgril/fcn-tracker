@@ -322,6 +322,16 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
       <div class="hint" style="margin-top:6px;">不使用雲端時也可用 JSON 檔交換資料</div>
     </div>
 
+    <!-- 危險區：清空所有資料（給家人開新帳用） -->
+    <div style="border:1px solid var(--rd);border-radius:8px;padding:12px;margin-top:16px;background:var(--rdl);">
+      <div style="font-size:14px;font-weight:700;margin-bottom:6px;color:var(--rd);">⚠️ 危險區：清空並留白</div>
+      <div class="hint" style="margin-bottom:8px;color:var(--tx2);">
+        清空<strong>這台裝置</strong>上所有投資資料（FCN、基金、債券、配息、匯率、報價），回到完全空白狀態。<br>
+        適合給家人開新帳用。<strong>此動作無法復原</strong>，建議先匯出 JSON 備份！
+      </div>
+      <button class="btn btnsm" onclick="wipeAllData()" style="width:100%;background:var(--rd);color:#fff;border-color:var(--rd);">🗑 清空所有資料（開新帳）</button>
+    </div>
+
     <div class="mba" style="margin-top:18px;">
       <button class="btn" onclick="closeSettingsModal()">取消</button>
       <button class="btn btnp" onclick="saveSettings()">儲存設定</button>
@@ -1136,7 +1146,9 @@ const DEF=[
   {id:18,date:'2025-10-15',bank:'林－元大',ccy:'USD',face:250000,fx:32.46,coupon:31.65,aki:0,strike:82,ko:105,term:'6M',status:'hold',maturity:'2026-04-22',exitDate:'2026-04-22',koStart:'2025-11-24',evalDate:'',note:'2026/4/22接股票，KO比價開始2025/11/24',isin:'',monthly:6593.75,freq:'monthly',payDates:['11/28','12/26','1/27','2/26','3/26','4/27'],paidDates:['11/28','12/26','1/27','2/26','3/26','4/27'],totalUSD:39563,totalTWD:1284023,rate:0,stocks:[{name:'TSM',buy:304.71,aki:0,strike:249.862,exit:0},{name:'NVDA',buy:179.83,aki:0,strike:147.461,exit:0},{name:'TSLA',buy:435.15,aki:0,strike:356.823,exit:0},{name:'PLTR',buy:179.62,aki:0,strike:147.288,exit:0},{name:'ORCL',buy:303.62,aki:0,strike:248.968,exit:0}]},
 ];
 
-let D=JSON.parse(localStorage.getItem('fcnv3')||'null')||DEF;
+// 若使用者曾經「清空並留白」，就不要再回填 DEF 預設資料
+const WIPED = localStorage.getItem('fcnWiped')==='1';
+let D=JSON.parse(localStorage.getItem('fcnv3')||'null') || (WIPED?[]:DEF);
 if(!localStorage.getItem('fcnv3'))localStorage.setItem('fcnv3',JSON.stringify(D));
 let delId=null,cf='all',sc=0;
 
@@ -3545,7 +3557,7 @@ const FD_DEFAULT=[
    note:'風險高 配息好',pl:-61881,plPct:-6.2},
 ];
 let FD=JSON.parse(localStorage.getItem('fcnFD')||'null');
-if(!FD){FD=FD_DEFAULT;localStorage.setItem('fcnFD',JSON.stringify(FD));}
+if(!FD){FD=WIPED?[]:FD_DEFAULT;localStorage.setItem('fcnFD',JSON.stringify(FD));}
 // migrate url field for existing data
 if(FD&&FD.some(r=>r.url===undefined)){
   const urlMap={'LU2829150577':'https://fund.cnyes.com/detail/%E5%AF%8C%E9%81%94%E5%9F%BA%E9%87%91%EF%BC%8D%E5%85%A8%E7%90%83%E5%84%AA%E8%B3%AA%E5%82%B5%E5%88%B8%E5%9F%BA%E9%87%91%20(B%E8%82%A1C%E6%9C%88%E9%85%8D%E6%81%AF%E6%97%A5%E5%9C%93%E9%81%BF%E9%9A%AA)/B140435/','LU2868952123':'https://fund.cnyes.com/detail/%E5%AF%8C%E9%81%94%E5%9F%BA%E9%87%91%EF%BC%8D%E5%85%A8%E7%90%83%E5%84%AA%E8%B3%AA%E5%82%B5%E5%88%B8%E5%9F%BA%E9%87%91%20(A%E4%B8%94C%E6%9C%88%E9%85%8D%E6%81%AF%E6%97%A5%E5%9C%93%E9%81%BF%E9%9A%AA)/B140434/','LU2859284783':'https://fund.cnyes.com/detail/%E8%81%AF%E5%8D%9A-%E7%BE%8E%E5%9C%8B%E6%88%90%E9%95%B7%E5%9F%BA%E9%87%91AP(%E7%B8%BD%E5%A0%B1%E9%85%AC%E6%9C%88%E9%85%8D)%E7%B4%9A%E5%88%A5%E7%BE%8E%E5%85%83/B030870/','LU1802467206':'https://fund.cnyes.com/detail/%E8%81%AF%E5%8D%9A-%E5%85%A8%E7%90%83%E9%9D%9E%E6%8A%95%E8%B3%87%E7%AD%89%E7%B4%9A%E5%82%B5%E5%88%B8%E5%9F%BA%E9%87%91EA(%E7%A9%A9%E5%AE%9A%E6%9C%88%E9%85%8D)%E7%B4%9A%E5%88%A5%E7%BE%8E%E5%85%83/B1yS8u7/document','00969B':'https://fund.cnyes.com/detail/%E5%85%83%E5%A4%A7%E9%9B%B6%E6%81%AF%E8%B6%85%E9%95%B7%E6%9C%9F%E7%BE%8E%E5%9C%8B%E6%94%BF%E5%BA%9C%E5%82%B5%E5%88%B8ETF/A05197/','日本龍企A':'https://fund.cnyes.com/detail/%E5%85%83%E5%A4%A7%E6%97%A5%E6%9C%AC%E9%BE%8D%E9%A0%AD%E4%BC%81%E6%A5%AD%E5%9F%BA%E9%87%91-A%E6%96%B0%E8%87%BA%E5%B9%A3/A05183/document'};
@@ -4545,6 +4557,8 @@ function importData(input){
       if(data.fcnBD) localStorage.setItem('fcnBD',JSON.stringify(data.fcnBD));
       if(data.fcnBDDist) localStorage.setItem('fcnBDDist',JSON.stringify(data.fcnBDDist));
       if(data.fcnEV3) localStorage.setItem('fcnEV3',JSON.stringify(data.fcnEV3));
+      // 匯入成功後清除「清空」旗標（因為已經有新資料了）
+      localStorage.removeItem('fcnWiped');
       alert('✓ 匯入成功！頁面即將重新載入');
       location.reload();
     }catch(err){
@@ -4553,6 +4567,68 @@ function importData(input){
   };
   reader.readAsText(file);
   input.value=''; // reset so same file can be re-selected
+}
+
+// 清空所有本機資料（給家人用時開新帳）
+function wipeAllData() {
+  const confirm1 = confirm(
+    '⚠️ 確定要清空這台裝置的所有投資資料嗎？\n\n' +
+    '將清除：\n' +
+    '• FCN 投資清單與配息紀錄\n' +
+    '• 基金清單與配息紀錄\n' +
+    '• 債券清單與配息紀錄\n' +
+    '• 換外幣紀錄\n' +
+    '• 報價 FCN\n' +
+    '• 評估 FCN\n\n' +
+    '雲端 Gist 資料不會被動（如果有連結，請斷開 Token 再執行）\n' +
+    '此動作無法復原！'
+  );
+  if (!confirm1) return;
+
+  const confirm2 = prompt(
+    '最後確認：請在下方輸入「清空」兩個字來確認清空所有資料：'
+  );
+  if (confirm2 !== '清空') {
+    alert('已取消，資料未清空。');
+    return;
+  }
+
+  // 列出所有要清掉的 key
+  const keys = [
+    'fcnv3',       // FCN 投資清單
+    'fcnfxl',      // 換外幣紀錄
+    'fcnQT',       // 報價 FCN
+    'fcnFD',       // 基金清單
+    'fcnFDDist',   // 基金配息紀錄
+    'fcnBD',       // 債券清單
+    'fcnBDDist',   // 債券配息紀錄
+    'fcnEV3',      // 評估 FCN
+    'fcnEVH',      // 評估 FCN 歷史快照
+    'fcnlast',     // 最後更新時間
+    'fcnJpyFx',    // 自訂 JPY 匯率
+    // 保留 fcnGithubToken 和 fcnGistDataId 讓使用者自己選擇是否清
+  ];
+  // 另外保險，掃一遍所有 fcn 開頭的 key
+  for (let i = localStorage.length - 1; i >= 0; i--) {
+    const k = localStorage.key(i);
+    if (k && k.startsWith('fcn') && k !== 'fcnGithubToken' && k !== 'fcnGistDataId' && k !== 'fcnUserMode') {
+      keys.push(k);
+    }
+  }
+  const uniq = [...new Set(keys)];
+  uniq.forEach(k => localStorage.removeItem(k));
+
+  // 設定清空旗標，讓程式不要再回填 DEF 預設資料
+  localStorage.setItem('fcnWiped', '1');
+
+  alert(
+    `✓ 已清空 ${uniq.length} 項資料\n\n` +
+    '即將重新載入頁面，進入全新空白狀態。\n' +
+    '（雲端 Token 與 Gist ID 設定保留，若家人要用自己的雲端請再手動清除）'
+  );
+
+  // 重新整理頁面
+  location.reload();
 }
 
 // ── GIST SYNC ───────────────────────────────────────────────
@@ -4800,11 +4876,12 @@ const BD_DEFAULT = [
 
 let BD = JSON.parse(localStorage.getItem('fcnBD') || 'null');
 if (!BD) {
-  BD = BD_DEFAULT;
+  BD = WIPED ? [] : BD_DEFAULT;
   localStorage.setItem('fcnBD', JSON.stringify(BD));
 }
 // 遷移：偵測舊版預設資料並覆蓋（保留使用者新增的非預設資料）
-else {
+// 清空模式下跳過（避免把家人剛清掉的資料又寫回來）
+else if (!WIPED) {
   const bd04 = BD.find(b => b.id === 'bd04');
   const bd07 = BD.find(b => b.id === 'bd07');
   // 條件：bd04 或 bd07 還沒標記 4/28 賣出

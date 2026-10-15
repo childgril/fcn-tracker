@@ -423,13 +423,17 @@ input[readonly]{background:var(--sur2);color:var(--tx2);}
     <div><div class="pt">FCN 清單明細</div><div class="ps" id="list-cnt"></div></div>
     <button class="btn btnp" onclick="showSec('add')">＋ 新增投資</button>
   </div>
-  <div class="fr">
+  <div class="fr" style="align-items:center;flex-wrap:wrap;">
     <button class="fb active" onclick="filt('all',this)">全部</button>
     <button class="fb" onclick="filt('active',this)">持有中</button>
     <button class="fb" onclick="filt('closed',this)">已出場</button>
     <button class="fb" onclick="filt('hold',this)">承接股票</button>
-    <button class="fb" onclick="filt('yin',this)">音－帳戶</button>
-    <button class="fb" onclick="filt('lin',this)">林－帳戶</button>
+    <label style="display:inline-flex;align-items:center;gap:6px;margin-left:8px;font-size:13px;color:var(--tx2);">
+      帳戶：
+      <select id="bank-filter" onchange="filtByBank(this.value)" style="padding:4px 8px;border:1px solid var(--bdr);border-radius:6px;font-size:13px;background:var(--bg);min-width:140px;">
+        <option value="all">全部帳戶</option>
+      </select>
+    </label>
   </div>
   <div class="card"><div class="tw"><table>
     <thead><tr>
@@ -1125,26 +1129,7 @@ MU
 </div>
 
 <script>
-const DEF=[
-  {id:1,date:'2025-01-07',bank:'音－元大',ccy:'USD',face:10000,fx:32.75,coupon:12,aki:65,strike:76.55,ko:105,term:'6M',status:'closed',maturity:'2025-07-07',exitDate:'2025-05-20',koStart:'',evalDate:'',note:'5/20提早出場，開心果的',isin:'XS2970819269',monthly:100,freq:'monthly',payDates:['2/21','3/20','4/18','5/20','6/20','7/18'],paidDates:['2/21','3/20','4/18','5/20','6/20','7/18'],totalUSD:600,totalTWD:19200,rate:4.0,stocks:[{name:'TSM',buy:211.42,aki:137.423,strike:161.842,exit:221.991},{name:'NVDA',buy:140.14,aki:91.091,strike:107.277,exit:147.147}]},
-  {id:2,date:'2025-02-25',bank:'音－元大',ccy:'USD',face:10000,fx:32.82,coupon:20.11,aki:60,strike:70,ko:95,term:'6M',status:'closed',maturity:'2025-08-25',exitDate:'2025-05-05',koStart:'2025-05-05',evalDate:'2025-09-05',note:'5/5提早出場，9/5評價日',isin:'',monthly:168,freq:'monthly',payDates:['4/9','5/7','6/9','7/9','8/7','9/9'],paidDates:['4/9','5/7','6/9','7/9','8/7','9/9'],totalUSD:1006,totalTWD:32179,rate:3.4,stocks:[{name:'TSM',buy:189.37,aki:113.622,strike:132.559,exit:179.902},{name:'NVDA',buy:126.63,aki:75.978,strike:88.641,exit:120.299},{name:'PLTR',buy:87.84,aki:52.704,strike:61.488,exit:83.448}]},
-  {id:3,date:'2025-04-08',bank:'音－元大',ccy:'USD',face:110000,fx:32.46,coupon:44.23,aki:55,strike:66,ko:100,term:'5M',status:'closed',maturity:'2025-09-15',exitDate:'2025-05-20',koStart:'2025-05-15',evalDate:'2025-09-15',note:'5/20提早出場，5/15開始比價',isin:'',monthly:4054.42,freq:'monthly',payDates:['5/20','6/20','7/18','8/20','9/18'],paidDates:['5/20','6/20','7/18','8/20','9/18'],totalUSD:20272,totalTWD:648707,rate:3.69,stocks:[{name:'NVDA',buy:96.3,aki:52.965,strike:63.558,exit:96.3},{name:'PLTR',buy:77.32,aki:42.526,strike:51.031,exit:77.32},{name:'ARM',buy:85.82,aki:47.201,strike:56.641,exit:85.82},{name:'AVGO',buy:156.03,aki:85.817,strike:102.98,exit:156.03}]},
-  {id:4,date:'2025-05-23',bank:'音－元大',ccy:'USD',face:130000,fx:32.51,coupon:24.09,aki:0,strike:75,ko:105,term:'6M',status:'closed',maturity:'2025-11-23',exitDate:'2025-09-08',koStart:'2025-07-02',evalDate:'2025-12-02',note:'9/8提早出場，600給開心果，7/2開始比價',isin:'',monthly:2609.75,freq:'monthly',payDates:['7/7','8/6','9/7','10/6','11/5','12/4'],paidDates:['7/7','8/6','9/7','10/6','11/5','12/4'],totalUSD:15659,totalTWD:501072,rate:6.66,stocks:[{name:'TSM',buy:191.98,aki:0,strike:143.985,exit:201.579},{name:'NVDA',buy:131.29,aki:0,strike:98.468,exit:137.855},{name:'TSLA',buy:339.34,aki:0,strike:254.505,exit:356.307},{name:'AVGO',buy:228.72,aki:0,strike:171.54,exit:240.156}]},
-  {id:5,date:'2025-08-06',bank:'音－元大',ccy:'USD',face:200000,fx:32.46,coupon:37.74,aki:0,strike:80,ko:105,term:'6M',status:'closed',maturity:'2026-02-06',exitDate:'2025-10-06',koStart:'2025-09-16',evalDate:'',note:'10/6提早出場，續作，林老爸轉20',isin:'',monthly:6290,freq:'monthly',payDates:['9/17','10/15','11/17','12/17','1/15','2/18'],paidDates:['9/17','10/15','11/17','12/17','1/15','2/18'],totalUSD:37740,totalTWD:1207680,rate:5.0,stocks:[{name:'TSM',buy:231.37,aki:0,strike:185.096,exit:242.939},{name:'NVDA',buy:179.42,aki:0,strike:143.536,exit:188.391},{name:'TSLA',buy:319.91,aki:0,strike:255.928,exit:335.906},{name:'HOOD',buy:105.65,aki:0,strike:84.52,exit:110.933},{name:'RKLB',buy:44.1,aki:0,strike:35.28,exit:46.305}]},
-  {id:6,date:'2025-10-14',bank:'音－元大',ccy:'USD',face:250000,fx:32.48,coupon:43.23,aki:65,strike:75,ko:100,term:'4M',status:'hold',maturity:'2026-02-14',exitDate:'',koStart:'',evalDate:'',note:'最後一天比，承接股票',isin:'',monthly:9006.25,freq:'monthly',payDates:['11/26','12/26','1/26','2/26'],paidDates:['11/26','12/26','1/26','2/26'],totalUSD:54038,totalTWD:1729200,rate:0,stocks:[{name:'AMD',buy:218.09,aki:130.854,strike:163.568,exit:228.995},{name:'AVGO',buy:344.13,aki:206.478,strike:258.098,exit:361.337},{name:'OKLO',buy:174.14,aki:104.484,strike:130.605,exit:182.847},{name:'TSLA',buy:429.24,aki:257.544,strike:321.93,exit:450.702}]},
-  {id:7,date:'2026-05-13',bank:'音－元大',ccy:'USD',face:10000,fx:0,coupon:16,aki:65,strike:80,ko:110,term:'12M',status:'active',maturity:'2027-05-12',exitDate:'',koStart:'',evalDate:'',note:'保息2個月',isin:'',monthly:135,freq:'monthly',payDates:['6/18','7/16','8/18','9/17','10/16','11/18','12/7','1/19','2/19','3/18','4/16','5/18'],paidDates:[],totalUSD:1620,totalTWD:51840,rate:0,stocks:[{name:'TSM',buy:338.89,aki:220.279,strike:271.112,exit:372.779},{name:'NVDA',buy:177.82,aki:115.583,strike:142.256,exit:195.602}]},
-  {id:8,date:'2026-03-11',bank:'音－元大',ccy:'USD',face:40000,fx:0,coupon:24.5,aki:0,strike:55,ko:100,term:'6M',status:'active',maturity:'2026-09-23',exitDate:'',koStart:'2026-06-22',evalDate:'',note:'保息3個月，6/22開始比價',isin:'',monthly:816.3,freq:'monthly',payDates:['4/23','5/21','6/24','7/23','8/21','9/23'],paidDates:[],totalUSD:4898,totalTWD:156736,rate:0,stocks:[{name:'TSM',buy:354.56,aki:0,strike:195.008,exit:354.56},{name:'NVDA',buy:186.03,aki:0,strike:102.317,exit:186.03},{name:'LITE',buy:672,aki:0,strike:369.6,exit:672}]},
-  {id:9,date:'2026-03-23',bank:'音－元大',ccy:'JPY',face:16000000,fx:0,coupon:23.3,aki:60,strike:70,ko:100,term:'3M',status:'active',maturity:'2026-07-02',exitDate:'',koStart:'',evalDate:'',note:'日圓面額，EKI到期比',isin:'',monthly:311040,freq:'monthly',payDates:['5/7','6/3','7/2'],paidDates:[],totalUSD:0,totalTWD:0,rate:0,stocks:[{name:'6857 愛德萬測試',buy:22730,aki:13638,strike:15911,exit:22730},{name:'8035 東京威力科創',buy:38300,aki:22980,strike:26810,exit:38300},{name:'9984 軟銀',buy:3507,aki:2104.2,strike:2454.9,exit:3507}]},
-  {id:10,date:'2026-03-24',bank:'音－兆豐',ccy:'USD',face:10000,fx:0,coupon:32.9,aki:0,strike:80,ko:100,term:'6M',status:'active',maturity:'2026-10-05',exitDate:'',koStart:'',evalDate:'',note:'',isin:'',monthly:274,freq:'monthly',payDates:['5/5','6/4','7/6','8/5','9/3','10/5'],paidDates:[],totalUSD:1644,totalTWD:0,rate:0,stocks:[{name:'HOOD',buy:69.08,aki:0,strike:55.264,exit:69.08},{name:'TSLA',buy:383.03,aki:0,strike:306.424,exit:383.03},{name:'PLTR',buy:154.78,aki:0,strike:123.824,exit:154.78}]},
-  {id:11,date:'2026-04-15',bank:'音－元大',ccy:'USD',face:50000,fx:0,coupon:23.04,aki:55,strike:70,ko:105,term:'6M',status:'active',maturity:'2026-10-26',exitDate:'',koStart:'',evalDate:'',note:'保息1個月',isin:'',monthly:960,freq:'monthly',payDates:['5/27','6/24','7/24','8/26','9/24','10/26'],paidDates:[],totalUSD:5760,totalTWD:0,rate:0,stocks:[{name:'AMD',buy:258.12,aki:141.966,strike:180.684,exit:271.026},{name:'MU',buy:456.23,aki:250.927,strike:319.361,exit:479.042},{name:'INTC',buy:64.94,aki:35.717,strike:45.458,exit:68.187},{name:'NVDA',buy:198.87,aki:109.379,strike:139.209,exit:208.814},{name:'TSM',buy:375.1,aki:206.305,strike:262.57,exit:393.855}]},
-  {id:12,date:'2025-01-22',bank:'林－元大',ccy:'USD',face:200000,fx:32.775,coupon:15.6,aki:60,strike:75,ko:100,term:'4M',status:'closed',maturity:'2025-05-22',exitDate:'2025-06-03',koStart:'',evalDate:'2025-05-29',note:'6/3正常出場，5/29評價日',isin:'',monthly:2600,freq:'monthly',payDates:['3/6','4/3','5/2','6/3'],paidDates:['3/6','4/3','5/2','6/3'],totalUSD:10400,totalTWD:332800,rate:5.2,stocks:[{name:'TSM',buy:223.2,aki:133.92,strike:167.4,exit:223.2},{name:'NVDA',buy:147.07,aki:88.242,strike:110.303,exit:147.07},{name:'TSLA',buy:415.11,aki:249.066,strike:311.333,exit:415.11}]},
-  {id:13,date:'2025-04-11',bank:'林－元大',ccy:'USD',face:210000,fx:32.761,coupon:36.42,aki:60,strike:75,ko:100,term:'3M',status:'closed',maturity:'2025-07-11',exitDate:'2025-05-22',koStart:'2025-05-19',evalDate:'',note:'5/22提早出場，5/19比價',isin:'',monthly:6373.5,freq:'monthly',payDates:['5/22','6/24','7/23'],paidDates:['5/22','6/24','7/23'],totalUSD:19121,totalTWD:611856,rate:3.0,stocks:[{name:'TSM',buy:157.08,aki:94.248,strike:117.81,exit:157.08},{name:'NVDA',buy:110.93,aki:66.558,strike:83.198,exit:110.93},{name:'PLTR',buy:88.55,aki:53.13,strike:66.413,exit:88.55}]},
-  {id:14,date:'2025-04-17',bank:'林－元大',ccy:'USD',face:110000,fx:31.29,coupon:36.97,aki:60,strike:75,ko:100,term:'6M',status:'closed',maturity:'2025-10-17',exitDate:'2025-05-29',koStart:'2025-05-28',evalDate:'',note:'5/29提早出場，5/28比價',isin:'',monthly:3388.92,freq:'monthly',payDates:['5/29','6/26','7/28','8/27','9/26','10/28'],paidDates:['5/29','6/26','7/28','8/27','9/26','10/28'],totalUSD:16945,totalTWD:542227,rate:3.1,stocks:[{name:'TSLA',buy:241.37,aki:144.822,strike:181.028,exit:241.37},{name:'NVDA',buy:101.49,aki:60.894,strike:76.118,exit:101.49},{name:'PLTR',buy:93.78,aki:56.268,strike:70.335,exit:93.78},{name:'AVGO',buy:170.99,aki:102.594,strike:128.243,exit:170.99}]},
-  {id:15,date:'2025-01-12',bank:'林－元大',ccy:'USD',face:200000,fx:32.775,coupon:20.0,aki:60,strike:77,ko:100,term:'6M',status:'closed',maturity:'2025-07-12',exitDate:'2025-07-29',koStart:'',evalDate:'2025-07-29',note:'7/29出場，7/29評價日，8/1看接股',isin:'',monthly:3333,freq:'monthly',payDates:['3/6','4/3','5/2','6/3','7/3','8/1'],paidDates:['3/6','4/3','5/2','6/3','7/3','8/1'],totalUSD:20000,totalTWD:640000,rate:10.0,stocks:[{name:'TSM',buy:223.2,aki:133.92,strike:171.864,exit:223.2},{name:'NVDA',buy:147.07,aki:88.242,strike:113.244,exit:147.07},{name:'TSLA',buy:415.11,aki:249.066,strike:319.635,exit:415.11}]},
-  {id:16,date:'2025-06-17',bank:'林－元大',ccy:'USD',face:200000,fx:32.46,coupon:27.0,aki:65,strike:75,ko:100,term:'6M',status:'closed',maturity:'2025-12-17',exitDate:'2025-07-30',koStart:'2025-07-28',evalDate:'',note:'7/30提早出場，續作，KO比價開始2025/07/28',isin:'',monthly:4500,freq:'monthly',payDates:['7/29','8/27','9/29','10/29','11/28','12/30'],paidDates:['7/29','8/27','9/29','10/29','11/28','12/30'],totalUSD:27000,totalTWD:864000,rate:2.3,stocks:[{name:'TSM',buy:213.9,aki:139.035,strike:160.425,exit:213.9},{name:'NVDA',buy:144.12,aki:93.678,strike:108.09,exit:144.12},{name:'TSLA',buy:316.35,aki:205.628,strike:237.263,exit:316.35},{name:'HOOD',buy:74.95,aki:48.718,strike:56.213,exit:74.95}]},
-  {id:17,date:'2025-08-22',bank:'林－元大',ccy:'USD',face:200000,fx:32.46,coupon:32.73,aki:0,strike:80,ko:105,term:'6M',status:'closed',maturity:'2026-02-22',exitDate:'2025-10-06',koStart:'2025-09-29',evalDate:'',note:'10/6提早出場，續作，KO比價開始2025/09/29',isin:'',monthly:5950.9,freq:'monthly',payDates:['10/2','11/3','12/3','1/2','2/3','3/4'],paidDates:['10/2','11/3','12/3','1/2','2/3','3/4'],totalUSD:35705,totalTWD:1142560,rate:3.0,stocks:[{name:'NVDA',buy:177.99,aki:0,strike:142.392,exit:177.99},{name:'PLTR',buy:158.74,aki:0,strike:126.992,exit:158.74},{name:'HOOD',buy:109.32,aki:0,strike:87.456,exit:109.32},{name:'TSM',buy:232.99,aki:0,strike:186.392,exit:232.99},{name:'TSLA',buy:340.01,aki:0,strike:272.008,exit:340.01}]},
-  {id:18,date:'2025-10-15',bank:'林－元大',ccy:'USD',face:250000,fx:32.46,coupon:31.65,aki:0,strike:82,ko:105,term:'6M',status:'hold',maturity:'2026-04-22',exitDate:'2026-04-22',koStart:'2025-11-24',evalDate:'',note:'2026/4/22接股票，KO比價開始2025/11/24',isin:'',monthly:6593.75,freq:'monthly',payDates:['11/28','12/26','1/27','2/26','3/26','4/27'],paidDates:['11/28','12/26','1/27','2/26','3/26','4/27'],totalUSD:39563,totalTWD:1284023,rate:0,stocks:[{name:'TSM',buy:304.71,aki:0,strike:249.862,exit:0},{name:'NVDA',buy:179.83,aki:0,strike:147.461,exit:0},{name:'TSLA',buy:435.15,aki:0,strike:356.823,exit:0},{name:'PLTR',buy:179.62,aki:0,strike:147.288,exit:0},{name:'ORCL',buy:303.62,aki:0,strike:248.968,exit:0}]},
-];
+const DEF=[];
 
 // 若使用者曾經「清空並留白」，就不要再回填 DEF 預設資料
 const WIPED = localStorage.getItem('fcnWiped')==='1';
@@ -1253,7 +1238,7 @@ async function refreshAll(){
   btn.textContent='↻ 更新股價+匯率';btn.disabled=false;
   rdash();
   if(document.getElementById('sec-list').classList.contains('active'))renderListTable(
-    (()=>{let rows=cf==='all'?D:cf==='yin'?D.filter(d=>d.bank.includes('音')):cf==='lin'?D.filter(d=>d.bank.includes('林')):D.filter(d=>d.status===cf);return[...rows].sort((a,b)=>b.date.localeCompare(a.date));})()
+    (()=>{let rows=filterRows(cf, (typeof bankFilter!=='undefined')?bankFilter:'all');return[...rows].sort((a,b)=>b.date.localeCompare(a.date));})()
   );
 }
 
@@ -1405,11 +1390,48 @@ async function rdash(){
   }).join('');
 }
 
+// 統一的過濾函式（支援 bank:xxx 格式作為帳戶過濾）
+function filterRows(cf, bankFilter) {
+  let rows = D;
+  // 狀態過濾
+  if (cf === 'active' || cf === 'closed' || cf === 'hold') {
+    rows = rows.filter(d => d.status === cf);
+  } else if (cf === 'yin') {
+    rows = rows.filter(d => d.bank && d.bank.includes('音'));
+  } else if (cf === 'lin') {
+    rows = rows.filter(d => d.bank && d.bank.includes('林'));
+  }
+  // 帳戶過濾（在狀態過濾之上疊加）
+  if (bankFilter && bankFilter !== 'all') {
+    rows = rows.filter(d => d.bank === bankFilter);
+  }
+  return rows;
+}
+
+// 刷新帳戶下拉選單（取 D 中所有不重複的 bank）
+function refreshBankFilter() {
+  const sel = document.getElementById('bank-filter');
+  if (!sel) return;
+  const current = sel.value;
+  const banks = [...new Set(D.map(d => d.bank).filter(Boolean))].sort();
+  sel.innerHTML = '<option value="all">全部帳戶</option>' +
+    banks.map(b => `<option value="${b}">${b}</option>`).join('');
+  // 保留原本選擇（若還存在）
+  if (banks.includes(current)) sel.value = current;
+}
+
+let bankFilter = 'all';
+function filtByBank(v) {
+  bankFilter = v;
+  rlist();
+}
+
 async function rlist(){
-  let rows=cf==='all'?D:cf==='yin'?D.filter(d=>d.bank.includes('音')):cf==='lin'?D.filter(d=>d.bank.includes('林')):D.filter(d=>d.status===cf);
+  refreshBankFilter();
+  let rows = filterRows(cf, bankFilter);
   rows=[...rows].sort((a,b)=>b.date.localeCompare(a.date));
   document.getElementById('list-cnt').textContent=`共 ${rows.length} 筆`;
-  const symbols=[...new Set(rows.flatMap(d=>d.stocks.map(s=>s.name).filter(n=>!/^\d/.test(n))))];
+  const symbols=[...new Set(rows.flatMap(d=>(d.stocks||[]).map(s=>s.name).filter(n=>!/^\d/.test(n))))];
   fetchPrices(symbols).then(()=>renderListTable(rows));
   renderListTable(rows);
 }
@@ -1419,21 +1441,26 @@ function setPriceManual(sym, val){
   if(!isNaN(n)&&n>0){
     priceCache[sym]=n;
     // re-render whichever view is active
-    const rows=(()=>{let r=cf==='all'?D:cf==='yin'?D.filter(d=>d.bank.includes('音')):cf==='lin'?D.filter(d=>d.bank.includes('林')):D.filter(d=>d.status===cf);return[...r].sort((a,b)=>b.date.localeCompare(a.date));})();
+    const rows=(()=>{let r=filterRows(cf, bankFilter);return[...r].sort((a,b)=>b.date.localeCompare(a.date));})();
     renderListTable(rows);
   }
 }
 
 function renderListTable(rows){
-  // 計算每筆的序號（依音/林分組，每組依買進日由舊到新）
+  // 計算每筆的序號（依「音/林」分組；其他帳戶用帳戶名第一字作分組）
   const seqMap = {};
-  ['音','林'].forEach(grp => {
-    const g = D.filter(d => d.bank.includes(grp)).slice().sort((a,b) => a.date.localeCompare(b.date));
-    g.forEach((d, i) => { seqMap[d.id] = `${grp}#${i+1}`; });
+  const groups = {};
+  D.forEach(d => {
+    if (!d.bank) { (groups['其'] ||= []).push(d); return; }
+    if (d.bank.includes('音')) { (groups['音'] ||= []).push(d); return; }
+    if (d.bank.includes('林')) { (groups['林'] ||= []).push(d); return; }
+    const key = d.bank.charAt(0) || '其';
+    (groups[key] ||= []).push(d);
   });
-  D.filter(d => !d.bank.includes('音') && !d.bank.includes('林'))
-    .slice().sort((a,b) => a.date.localeCompare(b.date))
-    .forEach((d,i) => { seqMap[d.id] = `其#${i+1}`; });
+  Object.entries(groups).forEach(([grp, arr]) => {
+    arr.sort((a, b) => a.date.localeCompare(b.date))
+       .forEach((d, i) => { seqMap[d.id] = `${grp}#${i+1}`; });
+  });
 
   let html='';
   rows.forEach((d,di)=>{
@@ -1446,7 +1473,9 @@ function renderListTable(rows){
     const akiPct=(d.aki||0)/100;
     const strikePct=(d.strike||0)/100;
 
-    d.stocks.forEach((s,i)=>{
+    // 如果該筆投資沒有股票資料，給一個 placeholder 以確保至少顯示一行
+    const stocksToRender = (d.stocks && d.stocks.length) ? d.stocks : [{name:'（未設定股票）', buy:0, aki:0, strike:0, exit:0}];
+    stocksToRender.forEach((s,i)=>{
       const cur=priceCache[s.name];
       // price zone: danger = below AKI price, caution = below strike price, safe = above
       const belowAki = cur&&s.aki&&cur<s.aki;
@@ -3402,160 +3431,7 @@ rdash();
 // auto-fetch FX + stock prices on load
 refreshAll();
 // ── FUND ────────────────────────────────────────────────────
-const FD_DEFAULT=[
-  // ── 日幣基金 ────────────────────────────────────────────
-  {id:'fd01',date:'2025-01-24',bank:'湯-永豐',exitDate:'',ccy:'JPY',
-   face:5000000,twd:1047350,fx:0.20947,redeem:4762762,interest:381741,
-   isin:'LU2829150577',name:'富達-全球優質債卷基金B股',
-   buyPrice:971.6,units:5146.15,distPerUnit:6.94,distType:'月配',
-   rate:'8.57%',yield:'',maturity:'',
-   acct:'FIDELITY-GLOBAL-QUAL-BOND-B',
-   url:'https://fund.cnyes.com/detail/%E5%AF%8C%E9%81%94%E5%9F%BA%E9%87%91%EF%BC%8D%E5%85%A8%E7%90%83%E5%84%AA%E8%B3%AA%E5%82%B5%E5%88%B8%E5%9F%BA%E9%87%91%20(B%E8%82%A1C%E6%9C%88%E9%85%8D%E6%81%AF%E6%97%A5%E5%9C%93%E9%81%BF%E9%9A%AA)/B140435/',
-   note:'',pl:4762762+381741-5000000,plPct:((4762762+381741-5000000)/5000000*100).toFixed(1)},
-
-  {id:'fd02',date:'2025-04-24',bank:'湯-永豐',exitDate:'',ccy:'JPY',
-   face:13530000,twd:3105135,fx:0.2295,redeem:13253613,interest:767079,
-   isin:'LU2829150577',name:'富達-全球優質債卷基金B股',
-   buyPrice:944.8,units:14320.49,distPerUnit:0,distType:'月配',
-   rate:'0.00%',yield:'',maturity:'',
-   acct:'FIDELITY-GLOBAL-QUAL-BOND-B',
-   url:'https://fund.cnyes.com/detail/%E5%AF%8C%E9%81%94%E5%9F%BA%E9%87%91%EF%BC%8D%E5%85%A8%E7%90%83%E5%84%AA%E8%B3%AA%E5%82%B5%E5%88%B8%E5%9F%BA%E9%87%91%20(B%E8%82%A1C%E6%9C%88%E9%85%8D%E6%81%AF%E6%97%A5%E5%9C%93%E9%81%BF%E9%9A%AA)/B140435/',
-   note:'',pl:13253613+767079-13530000,plPct:((13253613+767079-13530000)/13530000*100).toFixed(1)},
-
-  {id:'fd03',date:'2025-04-24',bank:'湯-永豐',exitDate:'定期定額',ccy:'JPY',
-   face:0,twd:0,fx:0.2295,redeem:2380135,interest:0,
-   isin:'日本龍企A',name:'元大日本龍頭企業基金A不配息',
-   buyPrice:10.52756,units:68392,distPerUnit:0,distType:'定期定額',
-   rate:'',yield:'',maturity:'',
-   acct:'YUANTA-JP-DRAGON-A',
-   url:'https://fund.cnyes.com/detail/%E5%85%83%E5%A4%A7%E6%97%A5%E6%9C%AC%E9%BE%8D%E9%A0%AD%E4%BC%81%E6%A5%AD%E5%9F%BA%E9%87%91-A%E6%96%B0%E8%87%BA%E5%B9%A3/A05183/document',
-   note:'定期定額90000，每月7.13.21日',pl:0,plPct:0},
-
-  {id:'fd04',date:'2025-04-24',bank:'湯-永豐',exitDate:'2025-12-22',ccy:'JPY',
-   face:11110000,twd:2549745,fx:0.2295,redeem:10841710,interest:625817,
-   isin:'LU2868952123',name:'富達-全球優質債卷基金A股',
-   buyPrice:945.1,units:11638.98,distPerUnit:0,distType:'月配',
-   rate:'',yield:'',maturity:'',
-   acct:'FIDELITY-GLOBAL-QUAL-BOND-A',
-   url:'https://fund.cnyes.com/detail/%E5%AF%8C%E9%81%94%E5%9F%BA%E9%87%91%EF%BC%8D%E5%85%A8%E7%90%83%E5%84%AA%E8%B3%AA%E5%82%B5%E5%88%B8%E5%9F%BA%E9%87%91%20(A%E4%B8%94C%E6%9C%88%E9%85%8D%E6%81%AF%E6%97%A5%E5%9C%93%E9%81%BF%E9%9A%AA)/B140434/',
-   note:'',pl:-268290,plPct:-2.4},
-
-  {id:'fd05',date:'2025-04-24',bank:'湯-永豐',exitDate:'2025-12-22',ccy:'JPY',
-   face:11110000,twd:2549745,fx:0.2295,redeem:10841710,interest:625817,
-   isin:'LU2868952123',name:'富達-全球優質債卷基金A股',
-   buyPrice:945.1,units:11638.98,distPerUnit:0,distType:'月配',
-   rate:'',yield:'',maturity:'',
-   acct:'FIDELITY-GLOBAL-QUAL-BOND-A',
-   url:'https://fund.cnyes.com/detail/%E5%AF%8C%E9%81%94%E5%9F%BA%E9%87%91%EF%BC%8D%E5%85%A8%E7%90%83%E5%84%AA%E8%B3%AA%E5%82%B5%E5%88%B8%E5%9F%BA%E9%87%91%20(A%E4%B8%94C%E6%9C%88%E9%85%8D%E6%81%AF%E6%97%A5%E5%9C%93%E9%81%BF%E9%9A%AA)/B140434/',
-   note:'',pl:-268290,plPct:-2.4},
-
-  // ── 美元基金 ────────────────────────────────────────────
-  {id:'fd06',date:'2025-04-24',bank:'湯-永豐',exitDate:'2025-08-05',ccy:'USD',
-   face:50500,twd:1666500,fx:33,redeem:56126.74,interest:2413.56,
-   isin:'LU2859284783',name:'聯博-美國成長基金ＡＰ',
-   buyPrice:68.96,units:725.058,distPerUnit:0,distType:'月配',
-   rate:'',yield:'',maturity:'',
-   acct:'AB-US-GROWTH-AP',
-   url:'https://fund.cnyes.com/detail/%E8%81%AF%E5%8D%9A-%E7%BE%8E%E5%9C%8B%E6%88%90%E9%95%B7%E5%9F%BA%E9%87%91AP(%E7%B8%BD%E5%A0%B1%E9%85%AC%E6%9C%88%E9%85%8D)%E7%B4%9A%E5%88%A5%E7%BE%8E%E5%85%83/B030870/',
-   note:'',pl:8040.3,plPct:15.9},
-
-  {id:'fd07',date:'2025-04-24',bank:'湯-永豐',exitDate:'2025-08-05',ccy:'USD',
-   face:50500,twd:1666500,fx:33,redeem:56126.74,interest:2413.56,
-   isin:'LU2859284783',name:'聯博-美國成長基金ＡＰ',
-   buyPrice:68.96,units:725.058,distPerUnit:0,distType:'月配',
-   rate:'',yield:'',maturity:'',
-   acct:'AB-US-GROWTH-AP',
-   url:'https://fund.cnyes.com/detail/%E8%81%AF%E5%8D%9A-%E7%BE%8E%E5%9C%8B%E6%88%90%E9%95%B7%E5%9F%BA%E9%87%91AP(%E7%B8%BD%E5%A0%B1%E9%85%AC%E6%9C%88%E9%85%8D)%E7%B4%9A%E5%88%A5%E7%BE%8E%E5%85%83/B030870/',
-   note:'',pl:8040.3,plPct:15.9},
-
-  {id:'fd08',date:'2025-08-11',bank:'湯-永豐',exitDate:'2025-12-19',ccy:'USD',
-   face:55571,twd:0,fx:0,redeem:57105.98,interest:1919.41,
-   isin:'',name:'施羅德環球收益成長Ａ月配固定2',
-   buyPrice:128.4416,units:432.66,distPerUnit:0,distType:'月配',
-   rate:'',yield:'',maturity:'',acct:'',url:'',
-   note:'永豐8/5聯博轉單，轉自176-L3T-42500178',pl:3454.36,plPct:6.2},
-
-  {id:'fd09',date:'2025-08-11',bank:'湯-永豐',exitDate:'2025-12-19',ccy:'USD',
-   face:55571,twd:0,fx:0,redeem:55696.63,interest:2064.3,
-   isin:'',name:'摩根多重收益基金-JPM-A股穩定月配(美元對沖)',
-   buyPrice:74.03,units:750.656,distPerUnit:0,distType:'月配',
-   rate:'',yield:'',maturity:'',acct:'',url:'',
-   note:'永豐8/5聯博轉單，轉自176-L3T-42500179',pl:2189.9,plPct:3.9},
-
-  {id:'fd10',date:'2024-11-25',bank:'湯-玉山',exitDate:'2025-12-19',ccy:'USD',
-   face:32000,twd:1039040,fx:32.47,redeem:29658.45,interest:3588,
-   isin:'LU1802467206',name:'聯博全球非投等債EA美穩',
-   buyPrice:9.6,units:3333.3,distPerUnit:0,distType:'月配',
-   rate:'8.28%',yield:'10.35%',maturity:'',
-   acct:'AB-GLOBAL-HY-EA',
-   url:'https://fund.cnyes.com/detail/%E8%81%AF%E5%8D%9A-%E5%85%A8%E7%90%83%E9%9D%9E%E6%8A%95%E8%B3%87%E7%AD%89%E7%B4%9A%E5%82%B5%E5%88%B8%E5%9F%BA%E9%87%91EA(%E7%A9%A9%E5%AE%9A%E6%9C%88%E9%85%8D)%E7%B4%9A%E5%88%A5%E7%BE%8E%E5%85%83/B1yS8u7/document',
-   note:'配息276/月，年3312',pl:1246.45,plPct:3.9},
-
-  {id:'fd11',date:'2024-11-25',bank:'湯-玉山',exitDate:'2025-12-19',ccy:'USD',
-   face:32000,twd:1039040,fx:32.47,redeem:29658.45,interest:3588,
-   isin:'LU1802467206',name:'聯博全球非投等債EA美穩',
-   buyPrice:9.6,units:3333.3,distPerUnit:0,distType:'月配',
-   rate:'8.28%',yield:'10.35%',maturity:'',
-   acct:'AB-GLOBAL-HY-EA',
-   url:'https://fund.cnyes.com/detail/%E8%81%AF%E5%8D%9A-%E5%85%A8%E7%90%83%E9%9D%9E%E6%8A%95%E8%B3%87%E7%AD%89%E7%B4%9A%E5%82%B5%E5%88%B8%E5%9F%BA%E9%87%91EA(%E7%A9%A9%E5%AE%9A%E6%9C%88%E9%85%8D)%E7%B4%9A%E5%88%A5%E7%BE%8E%E5%85%83/B1yS8u7/document',
-   note:'配息276/月，年3312',pl:1246.45,plPct:3.9},
-
-  {id:'fd12',date:'2024-11-25',bank:'湯-玉山',exitDate:'2025-12-19',ccy:'USD',
-   face:34000,twd:1103980,fx:32.47,redeem:31512.12,interest:3812.25,
-   isin:'LU1802467206',name:'聯博全球非投等債EA美穩',
-   buyPrice:9.6,units:3541.7,distPerUnit:0,distType:'月配',
-   rate:'8.28%',yield:'10.35%',maturity:'',
-   acct:'AB-GLOBAL-HY-EA',
-   url:'https://fund.cnyes.com/detail/%E8%81%AF%E5%8D%9A-%E5%85%A8%E7%90%83%E9%9D%9E%E6%8A%95%E8%B3%87%E7%AD%89%E7%B4%9A%E5%82%B5%E5%88%B8%E5%9F%BA%E9%87%91EA(%E7%A9%A9%E5%AE%9A%E6%9C%88%E9%85%8D)%E7%B4%9A%E5%88%A5%E7%BE%8E%E5%85%83/B1yS8u7/document',
-   note:'配息293/月，年3519',pl:1324.37,plPct:3.9},
-
-  {id:'fd13',date:'2024-09-06',bank:'頂陽-陽信',exitDate:'2025-04-14',ccy:'USD',
-   face:65292.5,twd:2089947.63,fx:32.009,redeem:61009.16,interest:3550.12,
-   isin:'',name:'法巴永續高評等企業債卷基金',
-   buyPrice:76.67,units:851.6,distPerUnit:0,distType:'月配',
-   rate:'5.35%',yield:'5.91%',maturity:'',acct:'',url:'',note:'',
-   pl:-733.22,plPct:-1.1},
-
-  // ── 台幣基金 ────────────────────────────────────────────
-  {id:'fd14',date:'2024-11-20',bank:'湯-元大',exitDate:'2025-12-19',ccy:'TWD',
-   face:1000000,twd:1000000,fx:1,redeem:847270,interest:0,
-   isin:'00969B',name:'元大零息超長美債',
-   buyPrice:10,units:100000,distPerUnit:0,distType:'無配息',
-   rate:'',yield:'',maturity:'',
-   acct:'00969B',
-   url:'https://fund.cnyes.com/detail/%E5%85%83%E5%A4%A7%E9%9B%B6%E6%81%AF%E8%B6%85%E9%95%B7%E6%9C%9F%E7%BE%8E%E5%9C%8B%E6%94%BF%E5%BA%9C%E5%82%B5%E5%88%B8ETF/A05197/',
-   note:'沒配息 有資本利得',pl:-152730,plPct:-15.3},
-
-  {id:'fd15',date:'2024-11-20',bank:'湯-元大',exitDate:'2025-12-19',ccy:'TWD',
-   face:1012000,twd:1012000,fx:1,redeem:1284133,interest:0,
-   isin:'日本龍企A',name:'元大日本龍頭企業基金A不配息',
-   buyPrice:10.34,units:96711.8,distPerUnit:0,distType:'無配息',
-   rate:'',yield:'',maturity:'',
-   acct:'YUANTA-JP-DRAGON-A',
-   url:'https://fund.cnyes.com/detail/%E5%85%83%E5%A4%A7%E6%97%A5%E6%9C%AC%E9%BE%8D%E9%A0%AD%E4%BC%81%E6%A5%AD%E5%9F%BA%E9%87%91-A%E6%96%B0%E8%87%BA%E5%B9%A3/A05183/document',
-   note:'',pl:272133,plPct:26.9},
-
-  {id:'fd16',date:'2024-11-20',bank:'湯-元大',exitDate:'2025-12-19',ccy:'TWD',
-   face:30180,twd:30180,fx:1,redeem:46643,interest:0,
-   isin:'',name:'黃金期貨基金',
-   buyPrice:10.99,units:30000,distPerUnit:0,distType:'無配息',
-   rate:'',yield:'',maturity:'',acct:'',url:'',note:'',
-   pl:16463,plPct:54.5},
-
-  {id:'fd17',date:'2024-11-20',bank:'湯-元大',exitDate:'2025-01-09',ccy:'TWD',
-   face:1000000,twd:1000000,fx:1,redeem:950111,interest:0,
-   isin:'00967B',name:'元大優息美債',
-   buyPrice:10,units:100000,distPerUnit:0,distType:'月配',
-   rate:'',yield:'',maturity:'',acct:'00967B',url:'',note:'',
-   pl:-49889,plPct:-5.0},
-
-  {id:'fd18',date:'2024-11-20',bank:'湯-元大',exitDate:'2025-01-09',ccy:'TWD',
-   face:1000000,twd:1000000,fx:1,redeem:938119,interest:0,
-   isin:'00968B',name:'元大優息投等債',
-   buyPrice:10,units:100000,distPerUnit:0,distType:'月配',
-   rate:'',yield:'',maturity:'',acct:'00968B',url:'',
-   note:'風險高 配息好',pl:-61881,plPct:-6.2},
-];
+const FD_DEFAULT=[];
 let FD=JSON.parse(localStorage.getItem('fcnFD')||'null');
 if(!FD){FD=WIPED?[]:FD_DEFAULT;localStorage.setItem('fcnFD',JSON.stringify(FD));}
 // migrate url field for existing data
@@ -4804,75 +4680,7 @@ function setupToken(){
 // ═══════════════════════════════════════════════════════════
 
 // 預設債券資料（從你提供的 CSV）
-const BD_DEFAULT = [
-  // bd01: BRK 5.75 2040/1/15, 50000股，未賣出（你的賣出表沒這筆，但 bd04 是同 ISIN 50000股已賣，重新對照）
-  // 對照賣出表 4/23：
-  // - US084664CR08 80000股 賣價0.8217 利息5100 → 對應 bd08
-  // - US084664CR08 50000股 賣價0.8217 利息3187.5 → 對應 bd03
-  // - US717081EV18 50000股 賣價0.7856 利息3000 → 對應 bd05
-  // - US92343VCZ58 100000股 賣價0.8106 利息7008 → 對應 bd09
-  // - US084664BL47 50000股 賣價1.0739 利息4312.5 → 對應 bd01 (50000股) 或 bd04(20000股)
-  // - US037833EW60 50000股 賣價0.9223 利息3637.5 → 對應 bd02
-  // - US002824AV29 50000股 賣價1.0757 利息6000 → 對應 bd06
-
-  // bd01: BRK 5.75 2040 - 50000股 賣出 (4/23, 賣價107.39 *50000/100=53695)
-  // 等等，賣價0.8217 * 50000 = 41085... 賣出價值欄是 66671.01 / 80000 * 100 = 83.34
-  // 重新理解：賣出價值欄就是台幣金額？不對是USD
-  // 賣出價值 = 單價 × 股數 / 100  e.g. 0.8217 * 80000 = 65736 ≈ 66671
-  // 所以單價是 美元價（百元面額），股數是面額
-  // 賣出金額 = 0.8217 × 80000 = 65,736  但表格寫 66,671 → 包含應計利息？
-  // 用「賣出價值」欄為準
-
-  {id:'bd01',date:'2024-08-26',exitDate:'2026-04-23',bank:'達-元大',ccy:'USD',name:'波克夏海瑟威金融公司 BRK 5.75 2040/1/15',isin:'US084664BL47',cusip:'084664BL4',
-   buyPrice:113.5,units:50000,face:57085.42,fx:31.83,twd:1817143.09,curPrice:107.39,sellAmt:54485.62,interest:4312.5,
-   coupon:'5.75%',yield:'4.51%',maturity:'2040-01-15',distFreq:'半年',distDates:'1/15, 7/15',
-   couponAmt:1437.5,holdYears:15,note:'2026/4/23 賣出'},
-
-  {id:'bd02',date:'2024-09-11',exitDate:'2026-04-23',bank:'達-元大',ccy:'USD',name:'蘋果公司 AAPL 4.85 2053/5/10',isin:'US037833EW60',cusip:'037833EW6',
-   buyPrice:105.98,units:50000,face:53811.81,fx:32.16,twd:1730695.43,curPrice:92.23,sellAmt:47219.72,interest:3637.5,
-   coupon:'4.85%',yield:'4.48%',maturity:'2053-05-10',distFreq:'半年',distDates:'5/10, 11/10',
-   couponAmt:1212.5,holdYears:28,note:'2026/4/23 賣出'},
-
-  {id:'bd03',date:'2024-09-11',exitDate:'2026-04-23',bank:'達-元大',ccy:'USD',name:'波克夏海瑟威金融公司 BRK 4.25 2049/1/15',isin:'US084664CR08',cusip:'084664CR0',
-   buyPrice:94.3,units:50000,face:47486.46,fx:32.16,twd:1527259.53,curPrice:82.17,sellAmt:41669.37,interest:3187.5,
-   coupon:'4.25%',yield:'4.64%',maturity:'2049-01-05',distFreq:'半年',distDates:'1/15, 7/15',
-   couponAmt:1062.5,holdYears:24,note:'2026/4/23 賣出'},
-
-  {id:'bd04',date:'2024-09-12',exitDate:'2026-04-28',bank:'達-元大',ccy:'USD',name:'波克夏海瑟威金融公司 BRK 5.75 2040/1/15',isin:'US084664BL47',cusip:'084664BL4',
-   buyPrice:114.9,units:20000,face:23165.28,fx:32.15,twd:744833.25,curPrice:106.9,sellAmt:21712.23,interest:1725,
-   coupon:'5.75%',yield:'4.40%',maturity:'2040-01-15',distFreq:'半年',distDates:'1/15, 7/15',
-   couponAmt:575,holdYears:15,note:'2026/4/28 賣出'},
-
-  {id:'bd05',date:'2024-09-16',exitDate:'2026-04-23',bank:'達-元大',ccy:'USD',name:'輝瑞大藥廠 PFE 4 2049/3/15',isin:'US717081EV18',cusip:'717081EV1',
-   buyPrice:89.45,units:50000,face:44741.67,fx:31.90,twd:1427348.76,curPrice:78.56,sellAmt:39496.67,interest:3000,
-   coupon:'4%',yield:'4.73%',maturity:'2049-03-15',distFreq:'半年',distDates:'3/15, 9/15',
-   couponAmt:1000,holdYears:24,note:'2026/4/23 賣出'},
-
-  {id:'bd06',date:'2024-09-16',exitDate:'2026-04-23',bank:'達-元大',ccy:'USD',name:'亞培 ABT 6 2039/4/1',isin:'US002824AV29',cusip:'002824AV2',
-   buyPrice:118.25,units:50000,face:60516.67,fx:31.90,twd:1930602.81,curPrice:107.57,sellAmt:53976.67,interest:6000,
-   coupon:'6%',yield:'4.30%',maturity:'2039-04-01',distFreq:'半年',distDates:'4/1, 10/1',
-   couponAmt:1500,holdYears:14,note:'2026/4/23 賣出'},
-
-  {id:'bd07',date:'2024-09-16',exitDate:'2026-04-28',bank:'達-元大',ccy:'USD',name:'波克夏海瑟威金融公司 BRK 5.75 2040/1/15',isin:'US084664BL47',cusip:'084664BL4',
-   buyPrice:115,units:30000,face:34801.88,fx:31.90,twd:1110249.58,curPrice:106.9,sellAmt:32568.33,interest:2587.5,
-   coupon:'5.75%',yield:'4.39%',maturity:'2040-01-15',distFreq:'半年',distDates:'1/15, 7/15',
-   couponAmt:862.5,holdYears:15,note:'2026/4/28 賣出'},
-
-  {id:'bd08',date:'2024-09-16',exitDate:'2026-04-23',bank:'達-元大',ccy:'USD',name:'波克夏海瑟威金融公司 BRK 4.25 2049/1/15',isin:'US084664CR08',cusip:'084664CR0',
-   buyPrice:94.5,units:80000,face:76195,fx:31.90,twd:2430772.89,curPrice:82.17,sellAmt:66671.01,interest:5100,
-   coupon:'4.25%',yield:'4.63%',maturity:'2049-01-15',distFreq:'半年',distDates:'1/15, 7/15',
-   couponAmt:1700,holdYears:24,note:'2026/4/23 賣出'},
-
-  {id:'bd09',date:'2024-09-16',exitDate:'2026-04-23',bank:'達-元大',ccy:'USD',name:'威瑞森電信 VZ 4.672 2055/3/15',isin:'US92343VCZ58',cusip:'92343VCZ5',
-   buyPrice:95.75,units:100000,face:95788.93,fx:31.90,twd:3055858.44,curPrice:81.06,sellAmt:81566.13,interest:7008,
-   coupon:'4.67%',yield:'4.94%',maturity:'2055-03-15',distFreq:'半年',distDates:'3/15, 9/15',
-   couponAmt:2336,holdYears:30,note:'2026/4/23 賣出'},
-
-  {id:'bd10',date:'2024-09-16',exitDate:'',bank:'達-國泰',ccy:'USD',name:'英特爾 INTC 5.9 2063/2/10',isin:'US458140CK47',cusip:'458140CK4',
-   buyPrice:102.15,units:50000,face:153225,fx:31.88,twd:4884813,curPrice:95.39,interest:0,
-   coupon:'5.90%',yield:'',maturity:'2063-02-10',distFreq:'半年',distDates:'2/10, 8/10',
-   couponAmt:4410,holdYears:38,url:'https://tw.tradingview.com/symbols/SWB-US458140CK47/',note:''},
-];
+const BD_DEFAULT = [];
 
 let BD = JSON.parse(localStorage.getItem('fcnBD') || 'null');
 if (!BD) {
